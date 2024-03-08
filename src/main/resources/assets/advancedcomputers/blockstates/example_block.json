@@ -1,0 +1,7 @@
+{
+	"variants": {
+		"": {
+			"model": "advancedcomputers:block/example_block"
+		}
+	}	
+}
