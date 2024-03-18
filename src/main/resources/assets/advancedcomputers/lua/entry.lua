@@ -38,13 +38,13 @@ end
 
 local function init()
     print("Init begun")
-    local whitelistedGlobals =  {
-    "_G", "setmetatable", "warn", "tonumber", "table", "rawequal", "select", "load", "pcall", "string", "math",
-    "rawlen", "print", "_VERSION", "xpcall", "error","assert", "tostring","getmetatable", "pairs",
-    "rawset","rawget","ipairs","next","dofile","type","collectgarbage", "coroutine",
+    local whitelistedGlobals = {
+        "_G", "setmetatable", "warn", "tonumber", "table", "rawequal", "select", "load", "pcall", "string", "math",
+        "rawlen", "print", "_VERSION", "xpcall", "error","assert", "tostring","getmetatable", "pairs",
+        "rawset","rawget","ipairs","next","type","collectgarbage", "coroutine",
 
-    -- already sanitized
-    "debug"
+        -- already sanitized
+        "debug"
     }
 
     for k,v in pairs(_G) do
