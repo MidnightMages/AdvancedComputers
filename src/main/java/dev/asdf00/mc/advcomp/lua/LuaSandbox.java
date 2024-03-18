@@ -25,7 +25,7 @@ public class LuaSandbox
     public void SandboxLog(String s)
     {
         if (s.replace(" ","").toLowerCase().startsWith("error:") || s.trim().toLowerCase().startsWith("warning:"))
-            s = " \r" + s; // needed so idea/gradle dont remove it from the stdoutput and put it into. What a dumb 'feature'.
+            s = " \r" + s; // needed so idea/gradle doesnt remove it from the stdoutput and put it into stderr. What a dumb 'feature'.
         System.out.println(s);
     }
 
