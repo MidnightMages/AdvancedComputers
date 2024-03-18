@@ -38,7 +38,7 @@ end
 
 local function init()
     print("Init begun")
-    local WhitelistedGlobals =  {
+    local whitelistedGlobals =  {
     "_G", "setmetatable", "warn", "tonumber", "table", "rawequal", "select", "load", "pcall", "string", "math",
     "rawlen", "print", "_VERSION", "xpcall", "error","assert", "tostring","getmetatable", "pairs",
     "rawset","rawget","ipairs","next","dofile","type","collectgarbage", "coroutine",
@@ -49,7 +49,7 @@ local function init()
 
     for k,v in pairs(_G) do
         local name = tostring(k)
-         if not arrayContains(WhitelistedGlobals, name) then
+         if not arrayContains(whitelistedGlobals, name) then
              _G[name] = nil
              print("Removed "..name)
         end
