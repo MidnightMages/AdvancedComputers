@@ -49,8 +49,9 @@ public class LuaSandbox
     {
 //        L.newThread(); // shouldnt be needed i think??
         L_eventCallbackRef.push();
+        L.push(name);
         LuaUtils.PushArgs(L, args);
-        var status = L.resume(args.length);
+        var status = L.resume(args.length + 1);
         SandboxLog("CO status: "+status);
     }
 
