@@ -34,14 +34,7 @@ public class LuaFunctionProxy implements JFunction
     {
         try
         {
-            var argCnt = L.getTop();
-            var args = new Object[argCnt];
-            for (int i = L.getTop(); i > L.getTop()-argCnt; i--) // pop in reverse order as the args are pushed in order
-            {
-                args[i-1] = L.toObject(i);
-            }
-            L.pop(argCnt);
-
+            var args = LuaUtils.PopAllArgs(L);
             try
             {
                 if (action != null) // no return value
@@ -52,10 +45,7 @@ public class LuaFunctionProxy implements JFunction
                 else // one or more return values
                 {
                     var rv = function.apply(args);
-                    for (Object o : rv)
-                    {
-                        L.push(o, Lua.Conversion.SEMI);
-                    }
+                    LuaUtils.PushArgs(L, rv);
                     return rv.length;
                 }
             }

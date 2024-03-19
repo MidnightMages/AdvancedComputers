@@ -20,6 +20,12 @@ _G["load"] = function(chunk, chunkname, mode, env) -- based on http://lua-users.
     return oldLoad(chunk, chunkname, "t", env) -- returns function on success, else (nil,errorMessage)
 end
 
+setEventCallback(function(...)
+    print("CALLBACK: Received event with args:", ...)
+end)
+
+_G["setEventCallback"] = nil
+
 --[[
 TODO sanitize
 
