@@ -11,10 +11,7 @@ public class LuaUtils
         var args = new Object[argCnt];
         for (int i = L.getTop(); i > L.getTop() - argCnt; i--) // pop in reverse order as the args are pushed in order
         {
-            if (L.isFunction(i) && false)
-                args[i - 1] = L.toObject(i, Runnable.class);
-            else
-                args[i - 1] = L.toObject(i);
+            args[i - 1] = L.toObject(i);
         }
         L.pop(argCnt);
         return args;
