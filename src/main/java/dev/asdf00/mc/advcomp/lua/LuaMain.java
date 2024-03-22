@@ -1,22 +1,14 @@
 package dev.asdf00.mc.advcomp.lua;
 
-
 import com.mojang.logging.LogUtils;
-import dev.asdf00.mc.advcomp.AdvancedComputers;
-import net.minecraft.resources.ResourceLocation;
-import party.iroiro.luajava.AbstractLua;
 import party.iroiro.luajava.lua54.Lua54;
 
-//import dev.asdf00.mc.advcomp.repack.luakava.lua54.Lua54;
-
 import java.io.BufferedReader;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
-public class LuaMain
-{
+public class LuaMain {
     Lua54 lua;
     static String luaEntryScript = null;
 
@@ -26,41 +18,36 @@ public class LuaMain
         luaEntryScript = new BufferedReader(new InputStreamReader(rl, StandardCharsets.UTF_8)).lines().collect(Collectors.joining("\n"));
     }
 
-    public LuaMain()
-    {
-        try
-        {
+    public LuaMain() {
+        try {
             lua = new Lua54();
             LogUtils.getLogger().info("Lua initialized successfully!");
-        }
-        catch (LinkageError ex)
-        {
+        } catch (LinkageError ex) {
             LogUtils.getLogger().error(String.format("Failed to initialize LUA! %s", ex));
         }
     }
 
-    private void setGlobal(String name, String value){
+    private void setGlobal(String name, String value) {
         lua.push(value);
         lua.setGlobal(name);
     }
 
-    private void setGlobal(String name, Number value){
+    private void setGlobal(String name, Number value) {
         lua.push(value);
         lua.setGlobal(name);
     }
 
-    private void setGlobal(String name, boolean value){
+    private void setGlobal(String name, boolean value) {
         lua.push(value);
         lua.setGlobal(name);
     }
 
-    private void setGlobal(String name, Integer value){
+    private void setGlobal(String name, Integer value) {
         lua.push(value);
         lua.setGlobal(name);
     }
 
-    public void runLuaCode()
-    {
+    public void runLuaCode() {
         // https://gudzpoz.github.io/luajava/examples/java.html
 
 //        lua.load()

@@ -1,13 +1,10 @@
 package dev.asdf00.mc.advcomp.lua;
 
 import org.jetbrains.annotations.NotNull;
-import party.iroiro.luajava.AbstractLua;
 import party.iroiro.luajava.Lua;
 
-public class LuaUtils
-{
-    public static Object[] PopArgs(Lua L, int argCnt)
-    {
+public class LuaUtils {
+    public static Object[] popArgs(Lua L, int argCnt) {
         var args = new Object[argCnt];
         for (int i = L.getTop(); i > L.getTop() - argCnt; i--) // pop in reverse order as the args are pushed in order
         {
@@ -17,25 +14,23 @@ public class LuaUtils
         return args;
     }
 
-    public static Object[] PopAllArgs(Lua L)
-    {
+    public static Object[] popAllArgs(Lua L) {
         int argCount = L.getTop();
-        return PopArgs(L, argCount);
+        return popArgs(L, argCount);
     }
 
     /**
      * MAKE SURE TO PROPERLY RETURN THE CORRECT ARG COUNT WHEN USING THIS FUNCTION
+     *
      * @param L
      * @param args
      */
-    public static void PushArgs(Lua L, Object @NotNull [] args)
-    {
+    public static void pushArgs(Lua L, Object @NotNull [] args) {
         for (Object o : args)
             L.push(o, Lua.Conversion.SEMI);
     }
 
-    public static void SetGlobalField(Lua L, String name, Number n)
-    {
+    public static void setGlobalField(Lua L, String name, Number n) {
         L.push(n);
         L.setGlobal(name);
     }

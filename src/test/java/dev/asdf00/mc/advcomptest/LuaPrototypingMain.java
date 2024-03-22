@@ -11,9 +11,9 @@ public class LuaPrototypingMain
     public static void main(String[] args)
     {
         CWriteLine("Creating sandbox...");
-        var sandbox = new LuaSandbox();
+        var sandbox = new LuaSandbox(10000);
         try{
-            sandbox.Run();
+            sandbox.runLua();
         }
         catch (Exception ex)
         {
