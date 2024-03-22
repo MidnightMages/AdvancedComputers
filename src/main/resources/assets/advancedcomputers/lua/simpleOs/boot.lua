@@ -1,4 +1,5 @@
 local allCoroutines = {} -- ({coroutine co} CONCAT object[] args)[] == (object[])[]
+local sleepingCoroutines = {} -- (coroutine co CONCAT number:runAfterTimestamp CONCAT object[] args)[]
 
 local function coroutineDispatcher()
     local i = 1
@@ -30,20 +31,68 @@ local function coroutineDispatcher()
 end
 
 -- TODO DOCUMENT NEW TABLE
-_G["osCoroutine"] = {}
+_G.osCoroutine = {}
 
 -- TODO DOCUMENT NEW FUNCTION 
-_G.osCoroutine["enqueue"] = function(co, ...) 
+_G.osCoroutine.enqueue = function(co, ...)
     table.insert(allCoroutines, {co, table.pack(...)})
 end
 
 -- TODO DOCUMENT NEW FUNCTION 
-_G.osCoroutine["createAndEnqueue"] = function(f, ...)
+_G.osCoroutine.createAndEnqueue = function(f, ...)
     osCoroutine.enqueue(coroutine.create(f), ...)
 end
 
-local function boot()
+local eventHandlers = {} -- Dict<string eventname, (function handler)[]>
+_G.event = {}
+_G.event.subscribe = function(eventName, callbackFunc)
+    local existing = eventHandlers[eventName]
+    if existing then
+        table.insert(existing, callbackFunc)
+    else
+        eventHandlers[eventName] = {callbackFunc}
+    end
+    return {eventName, callbackFunc} -- eventReference
+end
+
+_G.event.unsubscribe = function(eventReference)
+    local tbl = eventHandlers[eventReference[1]]
+    local fref = eventReference[2]
+    for i = 1, #tbl do
+        if tbl[i] == fref then
+            if #tbl > 1 then
+                table.remove(tbl, i)
+            else
+                eventHandlers[eventReference[1]] = nil
+            end
+            return true
+        end
+    end
+    return false
+end
+
+_G.event.pull = function(timeout, eventName)
+    local currentCo = coroutine.running() -- should always return a coroutine as the main-one will always be running the dispatcher
+
+    event.subscribe(eventName, function(...)
+        coroutine.resume(currentCo, ...)
+    end)
+    return coroutine.yield()
+end
+
+_G.os = {}
+
+_G.os.realTime = function() -- shall return the current time in seconds
     
+end
+
+_G.os.sleep = function(duration)
+    table.insert(sleepingCoroutines, {coroutine.running(), os.realTime()})
+    coroutine.yield()
+end
+
+local function boot()
+
 end
 
 osCoroutine.createAndEnqueue(boot)
