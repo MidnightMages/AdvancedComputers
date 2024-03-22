@@ -33,4 +33,10 @@ public class LuaUtils
         for (Object o : args)
             L.push(o, Lua.Conversion.SEMI);
     }
+
+    public static void SetGlobalField(Lua L, String name, Number n)
+    {
+        L.push(n);
+        L.setGlobal(name);
+    }
 }
