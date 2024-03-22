@@ -26,6 +26,18 @@ end)
 
 _G["setEventCallback"] = nil
 
+local function GetAndClearGlobal(name)
+    local copy = _G[name]
+    if copy == nil then error("A global was nil!") end
+    _G[name] = nil
+    return copy
+end
+
+local sandboxCountHookCallback = GetAndClearGlobal("sandboxCountHookCallback")
+local sandboxCountHookCallbackInterval = GetAndClearGlobal("sandboxCountHookCallbackInterval")
+debug.sethook(sandboxCountHookCallback, "c", sandboxCountHookCallbackInterval)
+
+
 --[[
 TODO sanitize
 
