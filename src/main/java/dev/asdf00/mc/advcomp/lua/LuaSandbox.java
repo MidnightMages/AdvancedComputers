@@ -23,7 +23,8 @@ public class LuaSandbox {
         try (var stream = LuaMain.class.getClassLoader().getResourceAsStream("assets/advancedcomputers/lua/entry.lua")) {
             Objects.requireNonNull(stream, "Error reading resource 'entry.lua'");
             luaEntryScript = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             throw new IllegalStateException("Resource 'entry.lua' not found!");
         }
     }
@@ -40,10 +41,18 @@ public class LuaSandbox {
         ipt = Math.max(instructionsPerSecond / 20, 1);
     }
 
-    public void sandboxLog(String s) {
+    public void sandboxLog(String s, boolean newLine) {
         if (s.replace(" ", "").toLowerCase().startsWith("error:") || s.trim().toLowerCase().startsWith("warning:"))
             s = " \r" + s; // needed so idea/gradle doesnt remove it from the stdoutput and put it into stderr. What a dumb 'feature'.
-        System.out.println(s);
+        
+        if (newLine)
+            System.out.println(s);
+        else
+            System.out.print(s);
+    }
+
+    public void sandboxLog(String s) {
+        sandboxLog(s, true);
     }
 
     public void setGlobalFunction(String funcName, JFunction callback) {
@@ -67,6 +76,8 @@ public class LuaSandbox {
     public void runLua() {
         setGlobalFunction("print", new LuaFunctionProxy((Object[] args) -> sandboxLog(
                 Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" ")))));
+        setGlobalFunction("printInline", new LuaFunctionProxy((Object[] args) -> sandboxLog(
+                Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" ")), false)));
 
         setGlobalFunction("setEventCallback", new LuaFunctionProxy(this::setEventCallback));
         setGlobalField(L, "sandboxCountHookCallbackInterval", 10);
