@@ -93,6 +93,19 @@ _G.coroutine.resume = function(co, ...)
     _G.coroutine.yield({co, table.pack(...)})
 end
 
+
+---@diagnostic disable-next-line: duplicate-set-field
+_G.coroutine.wrap = function(f)
+    local co = _G.coroutine.create(f)
+    return function(...)
+        local packed = table.pack(_G.coroutine.resume(co, ...))
+        if not packed[1] then
+            error("Error during coroutine.wrap: "..tostring(packed[2]))
+        end
+        return table.unpack(packed, 2)
+    end
+end
+
 _G.os = {}
 _G.os.spawnCoroutine = function(func, ...) -- Creates a new coroutine that is managed by the scheduler but does not have a parent, optionally with arguments
     local co = _G.coroutine.create(func)
