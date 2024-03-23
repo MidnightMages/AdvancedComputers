@@ -100,6 +100,18 @@ _G.coroutine.create = function(f)
     coroutineParentMap[co] = coroutine.running()
 end
 
+---@diagnostic disable-next-line: duplicate-set-field
+_G.coroutine.wrap = function(f)
+    local co = _G.coroutine.create(f)
+    return function(...)
+        local packed = table.pack(_G.coroutine.resume(co, ...))
+        if not packed[1] then
+            error("Error during coroutine.wrap: "..tostring(packed[2]))
+        end
+        return table.unpack(packed, 2)
+    end
+end
+
 -- ---@diagnostic disable-next-line: duplicate-set-field
 -- _G.coroutine.yield = function(...)
 -- end
