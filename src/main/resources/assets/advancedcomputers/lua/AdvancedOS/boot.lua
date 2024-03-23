@@ -1,5 +1,4 @@
 local coroutineResumeOrig = _G.coroutine.resume
-local coroutineCreateOrig = _G.coroutine.create
 
 --[[
     
@@ -25,7 +24,7 @@ _G.computer.uptime = function() -- time since computer boot (not increasing whil
 end
 ]]
 
-local coroutineParentMap = {} -- Dict<coroutine coroutine, coroutine parent>
+local coroutineResumedByMap = {} -- Dict<coroutine coroutine, coroutine parent>
 local coroutineExecutionQueue = {}
 local coroutineRescheduleMap = {} -- Dict<coroutine co, number earliestRescheduleTimestamp>
 local coroutineResumptionArguments = {} -- Dict<coroutine co, varargsPacked args>
@@ -89,24 +88,14 @@ COROUTINE_WAIT_TYPE.SUPER_RESUMPTION = 3 -- {type}
 local coroutineWaitReason = nil
 ---@diagnostic disable-next-line: duplicate-set-field
 _G.coroutine.resume = function(co, ...)
+    coroutineResumedByMap[co] = coroutine.running()
     coroutineWaitReason = COROUTINE_WAIT_TYPE.SUB_YIELDRET
     _G.coroutine.yield({co, table.pack(...)})
 end
 
----@diagnostic disable-next-line: duplicate-set-field
-_G.coroutine.create = function(f)
-    local co = coroutineCreateOrig(f)
----@diagnostic disable-next-line: need-check-nil
-    coroutineParentMap[co] = coroutine.running()
-end
-
--- ---@diagnostic disable-next-line: duplicate-set-field
--- _G.coroutine.yield = function(...)
--- end
-
 _G.os = {}
 _G.os.spawnCoroutine = function(func, ...) -- Creates a new coroutine that is managed by the scheduler but does not have a parent, optionally with arguments
-    local co = coroutineCreateOrig(func)
+    local co = _G.coroutine.create(func)
     enqueueCoroutineWithArgs(co, table.pack(...))
 end
 
@@ -239,9 +228,10 @@ local function coroutineScheduler()
             local coData = coReturnValue[2]
             enqueueCoroutineWithArgs(coData[1], coData[2])
         elseif coroutineWaitReason == COROUTINE_WAIT_TYPE.SUPER_RESUMPTION then
-            local blocker = coroutineParentMap[nextCo]
-            if blocker then -- coroutine was not started by the main lua coroutine
-                enqueueCoroutineWithArgs(blocker, coReturnValue)
+            local parent = coroutineResumedByMap[nextCo]
+            if parent then -- coroutine was not started by the main lua coroutine
+                coroutineResumedByMap[nextCo] = nil -- coroutine has no "resumed by" relationship after yielding
+                enqueueCoroutineWithArgs(parent, coReturnValue)
             else
                 if coReturnValue[1] == false then -- if coroutine has errored and there is no parent coroutine
                     error("Coroutine errored with reason: "..tostring(coReturnValue[2]))
