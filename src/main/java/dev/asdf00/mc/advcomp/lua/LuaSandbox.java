@@ -44,7 +44,7 @@ public class LuaSandbox {
     public void sandboxLog(String s, boolean newLine) {
         if (s.replace(" ", "").toLowerCase().startsWith("error:") || s.trim().toLowerCase().startsWith("warning:"))
             s = " \r" + s; // needed so idea/gradle doesnt remove it from the stdoutput and put it into stderr. What a dumb 'feature'.
-        
+
         if (newLine)
             System.out.println(s);
         else
