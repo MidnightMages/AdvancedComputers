@@ -242,7 +242,7 @@ local function coroutineScheduler()
             enqueueCoroutineWithArgs(coData[1], coData[2])
         elseif coroutineWaitReason == COROUTINE_WAIT_TYPE.SUPER_RESUMPTION then
             local parent = coroutineResumedByMap[nextCo]
-            if parent then -- coroutine was not started by the main lua coroutine
+            if parent ~= coroutine.running() then -- coroutine was not started by the main lua coroutine
                 coroutineResumedByMap[nextCo] = nil -- coroutine has no "resumed by" relationship after yielding
                 enqueueCoroutineWithArgs(parent, coReturnValue)
             else
@@ -257,6 +257,10 @@ local function coroutineScheduler()
             error("Not implemented")
         end
         ::continue::
+        
+        if coroutine.running() ~= nil then -- if not in hypervisor mode
+            coroutine.yield()
+        end
     end
     error("All coroutines have exited. Shutdown time?")
 end
