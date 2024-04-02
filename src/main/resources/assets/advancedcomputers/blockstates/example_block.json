@@ -1,7 +1,7 @@
 {
-	"variants": {
-		"": {
-			"model": "advancedcomputers:block/example_block"
-		}
-	}	
+  "variants": {
+    "": {
+      "model": "advancedcomputers:block/example_block"
+    }
+  }
 }
