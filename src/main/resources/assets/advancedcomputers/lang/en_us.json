@@ -1,4 +1,5 @@
 {
 	"block.advancedcomputers.example_block": "Example Block",
-	"item.advancedcomputers.example_item": "Example Item"
+	"item.advancedcomputers.example_item": "Example Item",
+	"item_group.advancedcomputers.tab_name": "Advanced Computers"
 }
