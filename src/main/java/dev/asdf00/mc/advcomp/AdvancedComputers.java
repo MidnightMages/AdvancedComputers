@@ -88,7 +88,7 @@ public class AdvancedComputers {
     public static final RegistryObject<CreativeModeTab> creativeTab = CREATIVE_MODE_TABS.register("advanced_computers",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("item_group." + MODID + ".tab_name"))
-                    .icon(() -> new ItemStack(EXAMPLE_BLOCK.blockItem().get()))
+                    .icon(() -> new ItemStack(COMPUTER_BLOCK.blockItem().get()))
                     .displayItems((parameters, output) -> {
                         for (var item : ModItems.getRegisteredItems())
                             output.accept(item.get());
