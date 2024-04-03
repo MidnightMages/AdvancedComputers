@@ -1,4 +1,4 @@
-package dev.asdf00.mc.advcomp.computers.computerBlock;
+package dev.asdf00.mc.advcomp.blocks.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
@@ -9,17 +9,18 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
-public class ComputerBlockScreen extends AbstractContainerScreen<ComputerBlockMenu> {
-    private static final ResourceLocation TEXTURE = new ResourceLocation(AdvancedComputers.MODID, "textures/gui/computer_gui.png");
+public class ScreenScreen extends AbstractContainerScreen<ScreenMenu> {
+    private static final ResourceLocation TEXTURE = new ResourceLocation(AdvancedComputers.MODID, "textures/gui/screen_gui.png");
 
-    public ComputerBlockScreen(ComputerBlockMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
+    public ScreenScreen(ScreenMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
     }
 
     @Override
     protected void init() {
         super.init();
-        //this.titleLabelY = 1000; // hide top text
+        this.titleLabelY = 1000; // hide top text
+        this.inventoryLabelY = 1000; // hide inventory text
     }
 
     @Override

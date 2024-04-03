@@ -1,4 +1,4 @@
-package dev.asdf00.mc.advcomp.computers.computerBlock;
+package dev.asdf00.mc.advcomp.blocks.screen;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import net.minecraft.core.BlockPos;
@@ -17,15 +17,15 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
-public class ComputerBlock extends BaseEntityBlock {
-    public ComputerBlock(Properties pProperties) {
+public class Screen extends BaseEntityBlock {
+    public Screen(Properties pProperties) {
         super(pProperties);
     }
 
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
-        return new ComputerBlockEntity(pPos, pState);
+        return new ScreenEntity(pPos, pState);
     }
 
     @Override
@@ -37,8 +37,8 @@ public class ComputerBlock extends BaseEntityBlock {
     public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pMovedByPiston) {
         if (pState.getBlock() != pNewState.getBlock()) {
             var be = pLevel.getBlockEntity(pPos);
-            if (be instanceof ComputerBlockEntity cbe)
-                cbe.drops();
+//            if (be instanceof ComputerScreenEntity cbe)
+//                cbe.drops();
         }
 
         super.onRemove(pState, pLevel, pPos, pNewState, pMovedByPiston);
@@ -48,7 +48,7 @@ public class ComputerBlock extends BaseEntityBlock {
     public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
         if (!pLevel.isClientSide()) {
             var be = pLevel.getBlockEntity(pPos);
-            if (be instanceof ComputerBlockEntity cbe)
+            if (be instanceof ScreenEntity cbe)
                 NetworkHooks.openScreen((ServerPlayer) pPlayer, cbe, pPos); // will likely break in 1.20.2+
             else
                 throw new IllegalStateException("Tile entity missing?");
@@ -63,7 +63,7 @@ public class ComputerBlock extends BaseEntityBlock {
         if (pLevel.isClientSide())
             return null;
 
-        return createTickerHelper(pBlockEntityType, AdvancedComputers.COMPUTER_BE.get(),
+        return createTickerHelper(pBlockEntityType, AdvancedComputers.SCREEN_BE.get(),
                 (pLevel1, pPos, pState1, pBlockEntity) -> pBlockEntity.tick(pLevel1, pPos, pState1));
     }
 }

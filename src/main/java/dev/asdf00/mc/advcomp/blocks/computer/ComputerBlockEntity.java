@@ -1,4 +1,4 @@
-package dev.asdf00.mc.advcomp.computers.computerBlock;
+package dev.asdf00.mc.advcomp.blocks.computer;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.TranslationMap;

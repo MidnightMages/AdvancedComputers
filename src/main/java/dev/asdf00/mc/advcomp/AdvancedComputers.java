@@ -1,10 +1,14 @@
 package dev.asdf00.mc.advcomp;
 
 import com.mojang.logging.LogUtils;
-import dev.asdf00.mc.advcomp.computers.computerBlock.ComputerBlock;
-import dev.asdf00.mc.advcomp.computers.computerBlock.ComputerBlockEntity;
-import dev.asdf00.mc.advcomp.computers.computerBlock.ComputerBlockMenu;
-import dev.asdf00.mc.advcomp.computers.computerBlock.ComputerBlockScreen;
+import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlock;
+import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockMenu;
+import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockScreen;
+import dev.asdf00.mc.advcomp.blocks.screen.Screen;
+import dev.asdf00.mc.advcomp.blocks.screen.ScreenEntity;
+import dev.asdf00.mc.advcomp.blocks.screen.ScreenMenu;
+import dev.asdf00.mc.advcomp.blocks.screen.ScreenScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.registries.Registries;
@@ -66,12 +70,20 @@ public class AdvancedComputers {
     public static final RegistryBlockItemPair<Block> COMPUTER_BLOCK = registerBlockWithItem("computer_block",
             () -> new ComputerBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
 
+    public static final RegistryBlockItemPair<Block> SCREEN_BLOCK = registerBlockWithItem("screen_block",
+            () -> new Screen(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
+
     public static final RegistryObject<BlockEntityType<ComputerBlockEntity>> COMPUTER_BE = BLOCK_ENTITY_TYPES.register("computer_be",
-            () -> BlockEntityType.Builder.of(ComputerBlockEntity::new, COMPUTER_BLOCK.block().get()).build(null)
-    );
+            () -> BlockEntityType.Builder.of(ComputerBlockEntity::new, COMPUTER_BLOCK.block().get()).build(null));
+
+    public static final RegistryObject<BlockEntityType<ScreenEntity>> SCREEN_BE = BLOCK_ENTITY_TYPES.register("screen_be",
+            () -> BlockEntityType.Builder.of(ScreenEntity::new, SCREEN_BLOCK.block().get()).build(null));
 
     public static final RegistryObject<MenuType<ComputerBlockMenu>> COMPUTER_MENU =
             registerMenuType("computer_menu", ComputerBlockMenu::new);
+
+    public static final RegistryObject<MenuType<ScreenMenu>> SCREEN_MENU =
+            registerMenuType("screen_menu", ScreenMenu::new);
 
     private static <T extends AbstractContainerMenu> RegistryObject<MenuType<T>> registerMenuType(String name, IContainerFactory<T> factory) {
         return MENUS.register(name, ()-> IForgeMenuType.create(factory));
@@ -159,6 +171,7 @@ public class AdvancedComputers {
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
 
             MenuScreens.register(COMPUTER_MENU.get(), ComputerBlockScreen::new);
+            MenuScreens.register(SCREEN_MENU.get(), ScreenScreen::new);
         }
     }
 }

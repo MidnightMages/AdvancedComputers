@@ -1,7 +1,13 @@
 {
 	"block.advancedcomputers.example_block": "Example Block",
 	"block.advancedcomputers.computer_block": "Computer",
+	"block.advancedcomputers.screen_block": "Screen",
+
+
 	"block.advancedcomputers.computer_block.gui.title": "Computer Title",
+
 	"item.advancedcomputers.example_item": "Example Item",
+
+
 	"item_group.advancedcomputers.tab_name": "Advanced Computers"
 }
