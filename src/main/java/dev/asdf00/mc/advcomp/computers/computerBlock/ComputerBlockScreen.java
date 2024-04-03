@@ -1,8 +1,7 @@
-package dev.asdf00.mc.advcomp.gui;
+package dev.asdf00.mc.advcomp.computers.computerBlock;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.TranslationMap;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;

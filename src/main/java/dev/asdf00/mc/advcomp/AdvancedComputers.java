@@ -1,10 +1,10 @@
 package dev.asdf00.mc.advcomp;
 
 import com.mojang.logging.LogUtils;
-import dev.asdf00.mc.advcomp.computers.ComputerBlock;
-import dev.asdf00.mc.advcomp.computers.ComputerBlockEntity;
-import dev.asdf00.mc.advcomp.gui.ComputerBlockMenu;
-import dev.asdf00.mc.advcomp.gui.ComputerBlockScreen;
+import dev.asdf00.mc.advcomp.computers.computerBlock.ComputerBlock;
+import dev.asdf00.mc.advcomp.computers.computerBlock.ComputerBlockEntity;
+import dev.asdf00.mc.advcomp.computers.computerBlock.ComputerBlockMenu;
+import dev.asdf00.mc.advcomp.computers.computerBlock.ComputerBlockScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.registries.Registries;
@@ -15,7 +15,6 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
@@ -38,7 +37,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import org.slf4j.Logger;
 
-import java.awt.*;
 import java.util.function.Supplier;
 
 // The value here should match an entry in the META-INF/mods.toml file

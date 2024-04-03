@@ -1,7 +1,7 @@
-package dev.asdf00.mc.advcomp.gui;
+package dev.asdf00.mc.advcomp.computers.computerBlock;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.computers.ComputerBlockEntity;
+import dev.asdf00.mc.advcomp.computers.computerBlock.ComputerBlockEntity;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;

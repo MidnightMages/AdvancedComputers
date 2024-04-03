@@ -1,4 +1,4 @@
-package dev.asdf00.mc.advcomp.computers;
+package dev.asdf00.mc.advcomp.computers.computerBlock;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import net.minecraft.core.BlockPos;
