@@ -1,16 +1,21 @@
 package dev.asdf00.mc.advcomp.items;
 
 import dev.asdf00.mc.advcomp.lua.IAcComponent;
+import dev.asdf00.mc.advcomp.lua.LuaComponentRegistry;
+import dev.asdf00.mc.advcomp.lua.fs.UnmanagedStorageHandler;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.Item;
 
 public class StorageItem extends Item implements IAcComponent {
 
     private final int totalCapcityBytes;
     private final boolean IsUnmanaged = false;
+    private UnmanagedStorageHandler storageComponent;
 
     public StorageItem(int totalCapcityBytes) {
         super(new Properties());
         this.totalCapcityBytes = totalCapcityBytes;
+        storageComponent = new UnmanagedStorageHandler("someid", totalCapcityBytes);
     }
 
     @Override
@@ -19,12 +24,12 @@ public class StorageItem extends Item implements IAcComponent {
     }
 
     @Override
-    public void onRegister() {
-
+    public void onRegister(LuaComponentRegistry.LuaFunctionGroup group) {
+        group.RegisterMethods(storageComponent);
     }
 
     @Override
-    public void onDeregister() {
+    public void onDeregister(LuaComponentRegistry.LuaFunctionGroup group) {
 
     }
 }
