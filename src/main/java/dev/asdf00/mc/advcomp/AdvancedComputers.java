@@ -9,6 +9,7 @@ import dev.asdf00.mc.advcomp.blocks.screen.Screen;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenMenu;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenScreen;
+import dev.asdf00.mc.advcomp.items.StorageItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.registries.Registries;
@@ -95,6 +96,10 @@ public class AdvancedComputers {
         return new RegistryBlockItemPair<T>(rv, i);
     }
 
+    private static <T extends Item> RegistryObject<T> RegisterItem(String name, Supplier<T> itemBuilder) {
+        return ITEMS.register(name, itemBuilder);
+    }
+
     public static final RegistryObject<CreativeModeTab> creativeTab = CREATIVE_MODE_TABS.register("advanced_computers",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("item_group." + MODID + ".tab_name"))
@@ -109,6 +114,10 @@ public class AdvancedComputers {
     // Creates a new food item with the id "examplemod:example_id", nutrition 1 and saturation 2
     public static final RegistryObject<Item> EXAMPLE_ITEM = ITEMS.register("example_item", () -> new Item(new Item.Properties().food(new FoodProperties.Builder()
             .alwaysEat().nutrition(1).saturationMod(2f).build())));
+
+    public static final RegistryObject<Item> DiskTier1 = RegisterItem("disk_tier1", () -> new StorageItem(Constants.MiB));
+    public static final RegistryObject<Item> DiskTier2 = RegisterItem("disk_tier2", () -> new StorageItem(5*Constants.MiB));
+    public static final RegistryObject<Item> DiskTier3 = RegisterItem("disk_tier3", () -> new StorageItem(10*Constants.MiB));
 
     public AdvancedComputers() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
