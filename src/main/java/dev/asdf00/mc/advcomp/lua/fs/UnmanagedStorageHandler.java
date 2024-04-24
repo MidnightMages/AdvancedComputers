@@ -15,7 +15,7 @@ public class UnmanagedStorageHandler implements StorageHandler {
     private static final Logger LOGGER = LogUtils.getLogger();
     private final Path suffix;
     private final int capacity;
-    private static final int headerLength = 5; // 1 byte saveformat version; 4 byte data file size
+    private static final int headerLength = 0; // TODO 1 byte saveformat version; 4 byte data file size
 
     public UnmanagedStorageHandler(String storageId, int capacity) {
         this.capacity = capacity;
@@ -30,7 +30,7 @@ public class UnmanagedStorageHandler implements StorageHandler {
     public void writeToPosition(int position, byte[] data) {
         try {
             var f = new RandomAccessFile(getSaveFilePath().toFile(), "rw");
-            f.write(data, position, data.length);
+            f.write(data, position+headerLength, data.length);
             f.close();
         }
         catch (IOException e) {
@@ -44,7 +44,7 @@ public class UnmanagedStorageHandler implements StorageHandler {
             var f = new RandomAccessFile(getSaveFilePath().toFile(), "r");
             // TODO handle oob reads
             var data = new byte[length];
-            f.readFully(data, position, data.length);
+            f.readFully(data, position+headerLength, data.length);
             return data;
         }
         catch (IOException e) {
