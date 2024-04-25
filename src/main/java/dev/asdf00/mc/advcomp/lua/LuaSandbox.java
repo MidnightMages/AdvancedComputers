@@ -23,8 +23,7 @@ public class LuaSandbox {
         try (var stream = LuaMain.class.getClassLoader().getResourceAsStream("assets/advancedcomputers/lua/entry.lua")) {
             Objects.requireNonNull(stream, "Error reading resource 'entry.lua'");
             luaEntryScript = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new IllegalStateException("Resource 'entry.lua' not found!");
         }
     }
@@ -35,6 +34,7 @@ public class LuaSandbox {
     private RefLuaValue L_eventCallbackRef;
     private long timeLastHook = 0;
     private volatile boolean suspended;
+    private volatile boolean isRunning;
 
     public LuaSandbox(int instructionsPerSecond) {
         L = new Lua54();
@@ -44,7 +44,7 @@ public class LuaSandbox {
     public void sandboxLog(String s, boolean newLine) {
         if (s.replace(" ", "").toLowerCase().startsWith("error:") || s.trim().toLowerCase().startsWith("warning:"))
             s = " \r" + s; // needed so idea/gradle doesnt remove it from the stdoutput and put it into stderr. What a dumb 'feature'.
-        
+
         if (newLine)
             System.out.println(s);
         else
@@ -73,7 +73,31 @@ public class LuaSandbox {
         L_eventCallbackRef = (RefLuaValue) args[0];
     }
 
+    public void start() {
+        if (isRunning) {
+            throw new IllegalStateException("LVM is already running");
+        }
+        executionEnv = new Thread(this::runLua);
+    }
+
+    public void suspend() {
+        suspended = true;
+    }
+
+    public void resume() {
+        if (executionEnv == null) {
+            throw new IllegalStateException("no execution environment to resume");
+        }
+        suspended = false;
+        LockSupport.unpark(executionEnv);
+    }
+
+    public void kill() {
+        executionEnv.interrupt();
+    }
+
     public void runLua() {
+        isRunning = true;
         setGlobalFunction("print", new LuaFunctionProxy((Object[] args) -> sandboxLog(
                 Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" ")))));
         setGlobalFunction("printInline", new LuaFunctionProxy((Object[] args) -> sandboxLog(
@@ -93,9 +117,14 @@ public class LuaSandbox {
         timeLastHook = System.currentTimeMillis();
         var rv = L.run(luaEntryScript);
 
+        // cleanup after shutdown
+        isRunning = false;
+        executionEnv = null;
+
         pushEventIntoSandbox("testEvent", new Object[]{1, 2, 3});
         if (rv != Lua.LuaError.OK)
             sandboxLog("Unexpected fatal error: " + rv.toString());
+
     }
 
 
@@ -105,7 +134,7 @@ public class LuaSandbox {
     public void sandboxCountHookCallback() throws InterruptedException {
         LockSupport.parkNanos(1_000_000 / TPS - 1000 * (System.currentTimeMillis() - timeLastHook));
         if (Thread.currentThread().isInterrupted()) {
-            throw new InterruptedException();
+            Thread.currentThread().interrupt();
         }
         while (suspended) {
             LockSupport.park();

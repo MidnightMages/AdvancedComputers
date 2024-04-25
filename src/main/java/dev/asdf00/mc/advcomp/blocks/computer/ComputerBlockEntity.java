@@ -2,6 +2,7 @@ package dev.asdf00.mc.advcomp.blocks.computer;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.TranslationMap;
+import dev.asdf00.mc.advcomp.lua.LuaSandbox;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -28,17 +29,20 @@ public class ComputerBlockEntity extends BlockEntity implements MenuProvider {
     public final ItemStackHandler itemHandler = new ItemStackHandler(2);
     private LazyOptional<IItemHandler> lazyItemhandler = LazyOptional.empty();
 
+    protected final ContainerData data;
+    private int computerState = 0;
+    private LuaSandbox lvm;
+
     public void tick(Level pLevel, BlockPos pPos, BlockState pState) {
         // todo add logic
     }
 
-    private static enum SLOT
-    {
+    private static enum SLOT {
         CPU
     }
 
-        public ComputerBlockEntity(BlockPos pPos, BlockState pBlockState) {
-        super(AdvancedComputers.COMPUTER_BE.get(),pPos, pBlockState);
+    public ComputerBlockEntity(BlockPos pPos, BlockState pBlockState) {
+        super(AdvancedComputers.COMPUTER_BE.get(), pPos, pBlockState);
         this.data = new ContainerData() {
             @Override
             public int get(int pIndex) {
@@ -52,7 +56,7 @@ public class ComputerBlockEntity extends BlockEntity implements MenuProvider {
             public void set(int pIndex, int pValue) {
                 switch (pIndex) {
                     case 0 -> computerState = pValue;
-                };
+                }
             }
 
             @Override
@@ -61,9 +65,6 @@ public class ComputerBlockEntity extends BlockEntity implements MenuProvider {
             }
         };
     }
-
-    protected final ContainerData data;
-    private int computerState = 0;
 
     @Override
     public @NotNull Component getDisplayName() {
@@ -79,18 +80,12 @@ public class ComputerBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     @Override
-    public void onLoad() {
-        super.onLoad();
-        lazyItemhandler = LazyOptional.of(()->itemHandler);
-    }
-
-    @Override
     public void invalidateCaps() {
         super.invalidateCaps();
         lazyItemhandler.invalidate();
     }
 
-    public void drops(){
+    public void drops() {
         SimpleContainer inv = new SimpleContainer(itemHandler.getSlots());
         for (int i = 0; i < itemHandler.getSlots(); i++) {
             inv.setItem(i, itemHandler.getStackInSlot(i));
@@ -115,5 +110,24 @@ public class ComputerBlockEntity extends BlockEntity implements MenuProvider {
     public void load(@NotNull CompoundTag pTag) {
         super.load(pTag);
         itemHandler.deserializeNBT(pTag.getCompound("inventory"));
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        lazyItemhandler = LazyOptional.of(() -> itemHandler);
+        // create LVM
+        lvm = new LuaSandbox(Integer.MAX_VALUE);
+    }
+
+    @Override
+    public void onChunkUnloaded() {
+        super.onChunkUnloaded();
+        // crash LVM
+        if
+    }
+
+    public void startLVM() {
+
     }
 }
