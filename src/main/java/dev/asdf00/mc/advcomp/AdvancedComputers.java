@@ -9,10 +9,12 @@ import dev.asdf00.mc.advcomp.blocks.screen.Screen;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenMenu;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenScreen;
+import dev.asdf00.mc.advcomp.items.StorageItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
@@ -25,6 +27,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.extensions.IForgeMenuType;
@@ -44,6 +47,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import org.slf4j.Logger;
 
+import java.nio.file.Path;
 import java.util.function.Supplier;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -98,6 +102,10 @@ public class AdvancedComputers {
         return new RegistryBlockItemPair<T>(rv, i);
     }
 
+    private static <T extends Item> RegistryObject<T> RegisterItem(String name, Supplier<T> itemBuilder) {
+        return ITEMS.register(name, itemBuilder);
+    }
+
     public static final RegistryObject<CreativeModeTab> creativeTab = CREATIVE_MODE_TABS.register("advanced_computers",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("item_group." + MODID + ".tab_name"))
@@ -112,6 +120,12 @@ public class AdvancedComputers {
     // Creates a new food item with the id "examplemod:example_id", nutrition 1 and saturation 2
     public static final RegistryObject<Item> EXAMPLE_ITEM = ITEMS.register("example_item", () -> new Item(new Item.Properties().food(new FoodProperties.Builder()
             .alwaysEat().nutrition(1).saturationMod(2f).build())));
+
+    public static final RegistryObject<Item> DiskTier1 = RegisterItem("disk_tier1", () -> new StorageItem(Constants.MiB));
+    public static final RegistryObject<Item> DiskTier2 = RegisterItem("disk_tier2", () -> new StorageItem(5*Constants.MiB));
+    public static final RegistryObject<Item> DiskTier3 = RegisterItem("disk_tier3", () -> new StorageItem(10*Constants.MiB));
+
+    private static MinecraftServer serverReference;
 
     public AdvancedComputers() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -157,11 +171,16 @@ public class AdvancedComputers {
 //            ModItems.registerCreativeTabItems(event);
     }
 
+    public static Path getAcWorldSaveSubFolder(){
+        return serverReference.getWorldPath(LevelResource.ROOT).normalize().toAbsolutePath().resolve("advancedComputers");
+    }
+
     // You can use SubscribeEvent and let the Event Bus discover methods to call
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
         // Do something when the server starts
-        LOGGER.info("HELLO from server starting");
+        //LOGGER.info("HELLO from server starting");
+        serverReference = event.getServer();
     }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
