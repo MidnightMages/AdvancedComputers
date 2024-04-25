@@ -30,11 +30,13 @@ public class LuaSandbox {
 
     private final AbstractLua L;
     private final int ipt;
-    private Thread executionEnv;
     private RefLuaValue L_eventCallbackRef;
     private long timeLastHook = 0;
+
+    private final Object startStopLock = new Object();
     private volatile boolean suspended;
     private volatile boolean isRunning;
+    private volatile Thread executionEnv;
 
     public LuaSandbox(int instructionsPerSecond) {
         L = new Lua54();
@@ -74,30 +76,48 @@ public class LuaSandbox {
     }
 
     public void start() {
-        if (isRunning) {
-            throw new IllegalStateException("LVM is already running");
+        synchronized (startStopLock) {
+            if (isRunning) {
+                throw new IllegalStateException("LVM is already running");
+            }
+            executionEnv = new Thread(this::runLua);
         }
-        executionEnv = new Thread(this::runLua);
     }
 
     public void suspend() {
-        suspended = true;
+        synchronized (startStopLock) {
+            if (isRunning) {
+                suspended = true;
+            }
+        }
     }
 
     public void resume() {
-        if (executionEnv == null) {
-            throw new IllegalStateException("no execution environment to resume");
+        synchronized (startStopLock) {
+            if (executionEnv == null) {
+                throw new IllegalStateException("no execution environment to resume");
+            }
+            var prev = suspended;
+            suspended = false;
+            if (prev) {
+                // only grant unpark permit if thread was parked in the first place
+                LockSupport.unpark(executionEnv);
+            }
         }
-        suspended = false;
-        LockSupport.unpark(executionEnv);
     }
 
-    public void kill() {
-        executionEnv.interrupt();
+    public void tryKill() {
+        synchronized (startStopLock) {
+            if (isRunning) {
+                executionEnv.interrupt();
+            }
+        }
     }
 
     public void runLua() {
-        isRunning = true;
+        synchronized (startStopLock) {
+            isRunning = true;
+        }
         setGlobalFunction("print", new LuaFunctionProxy((Object[] args) -> sandboxLog(
                 Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" ")))));
         setGlobalFunction("printInline", new LuaFunctionProxy((Object[] args) -> sandboxLog(

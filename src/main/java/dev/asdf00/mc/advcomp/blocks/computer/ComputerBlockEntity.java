@@ -37,10 +37,6 @@ public class ComputerBlockEntity extends BlockEntity implements MenuProvider {
         // todo add logic
     }
 
-    private static enum SLOT {
-        CPU
-    }
-
     public ComputerBlockEntity(BlockPos pPos, BlockState pBlockState) {
         super(AdvancedComputers.COMPUTER_BE.get(), pPos, pBlockState);
         this.data = new ContainerData() {
@@ -124,10 +120,6 @@ public class ComputerBlockEntity extends BlockEntity implements MenuProvider {
     public void onChunkUnloaded() {
         super.onChunkUnloaded();
         // crash LVM
-        if
-    }
-
-    public void startLVM() {
-
+        lvm.tryKill();
     }
 }
