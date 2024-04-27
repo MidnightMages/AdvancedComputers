@@ -17,6 +17,10 @@ public class TranslationMap {
     }
 
     public static Component GuiTitle(String blockName) {
-        return BlockName(blockName + ".gui.title");
+        return GuiName(blockName + ".title");
+    }
+
+    public static Component GuiButton(String blockName, String buttonName) {
+        return GuiName(blockName + ".button." + buttonName);
     }
 }
