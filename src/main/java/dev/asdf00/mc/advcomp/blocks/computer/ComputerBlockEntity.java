@@ -122,4 +122,20 @@ public class ComputerBlockEntity extends BlockEntity implements MenuProvider {
         // crash LVM
         lvm.tryKill();
     }
+
+    public void toggleOnOff() {
+
+    }
+
+    public void startLVM() {
+        lvm.start();
+    }
+
+    public void stopLVM() {
+        lvm.tryKill();
+    }
+
+    public int getLVMState() {
+        return lvm.getState();
+    }
 }

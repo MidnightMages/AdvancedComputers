@@ -3,6 +3,8 @@ package dev.asdf00.mc.advcomp.blocks.computer;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
@@ -11,6 +13,10 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class ComputerBlockScreen extends AbstractContainerScreen<ComputerBlockMenu> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(AdvancedComputers.MODID, "textures/gui/computer_gui.png");
+    private static final Component ON_OFF_BUTTON = Component.translatable("gui." + AdvancedComputers.MODID +
+            ".computer_block_screen.on_off_button");
+
+    private Button onOffButton;
 
     public ComputerBlockScreen(ComputerBlockMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
@@ -20,6 +26,17 @@ public class ComputerBlockScreen extends AbstractContainerScreen<ComputerBlockMe
     protected void init() {
         super.init();
         //this.titleLabelY = 1000; // hide top text
+        onOffButton = addRenderableWidget(Button.builder(
+                        ON_OFF_BUTTON,
+                        this::handleOnOffButton)
+                .bounds(this.leftPos + 2, this.topPos + 2, 70, 30)
+                .tooltip(Tooltip.create(ON_OFF_BUTTON))
+                .build());
+    }
+
+    private void handleOnOffButton(Button btn) {
+        AdvancedComputers.LOGGER.info(String.format("clicked on/off button on %s", getMenu().blockEntity.getBlockPos()));
+        getMenu().blockEntity.startLVM();
     }
 
     @Override
