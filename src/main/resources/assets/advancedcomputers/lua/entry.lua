@@ -1,3 +1,5 @@
+print("SETTING UP LUA SANDBOX")
+
 local oldPrint = _G["print"]
 _G["print"] = function(...)
     local args = table.pack(...)
@@ -28,7 +30,7 @@ _G["setEventCallback"] = nil
 
 local function GetAndClearGlobal(name)
     local copy = _G[name]
-    if copy == nil then error("A global was nil!") end
+    if copy == nil then error("A global with name " .. name .. " was nil!") end
     _G[name] = nil
     return copy
 end

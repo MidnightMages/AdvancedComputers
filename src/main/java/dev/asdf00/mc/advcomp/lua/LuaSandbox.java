@@ -3,7 +3,6 @@ package dev.asdf00.mc.advcomp.lua;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import party.iroiro.luajava.AbstractLua;
 import party.iroiro.luajava.JFunction;
-import party.iroiro.luajava.Lua;
 import party.iroiro.luajava.lua54.Lua54;
 import party.iroiro.luajava.value.RefLuaValue;
 
@@ -44,24 +43,20 @@ public class LuaSandbox {
         ipt = Math.max(instructionsPerSecond / 20, 1);
     }
 
-    private static final boolean OUTTOLOGGER = true;
-
-    public void sandboxLog(String s, boolean newLine) {
+    public void sandboxLog(String s, boolean newLine, boolean error) {
         if (s.replace(" ", "").toLowerCase().startsWith("error:") || s.trim().toLowerCase().startsWith("warning:"))
             s = " \r" + s; // needed so idea/gradle doesnt remove it from the stdoutput and put it into stderr. What a dumb 'feature'.
 
-        if (OUTTOLOGGER) {
-            AdvancedComputers.LOGGER.info(s);
-        }
+        var printer = error ? System.err : System.out;
 
         if (newLine)
-            System.out.println(s);
+            printer.println(s);
         else
-            System.out.print(s);
+            printer.print(s);
     }
 
-    public void sandboxLog(String s) {
-        sandboxLog(s, true);
+    public void sandboxLog(String s, boolean error) {
+        sandboxLog(s, true, error);
     }
 
     public void setGlobalFunction(String funcName, JFunction callback) {
@@ -75,7 +70,7 @@ public class LuaSandbox {
         L.push(name);
         LuaUtils.pushArgs(L, args);
         var status = L.resume(args.length + 1);
-        sandboxLog("CO status: " + status);
+        sandboxLog("CO status: " + status, false);
     }
 
     private void setEventCallback(Object[] args) {
@@ -153,20 +148,13 @@ public class LuaSandbox {
         }
         AdvancedComputers.LOGGER.info("trying to start LVM");
         setGlobalFunction("print", new LuaFunctionProxy((Object[] args) -> sandboxLog(
-                Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" ")))));
-        setGlobalFunction("printInline", new LuaFunctionProxy((Object[] args) -> sandboxLog(
                 Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" ")), false)));
+        setGlobalFunction("printInline", new LuaFunctionProxy((Object[] args) -> sandboxLog(
+                Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" ")), false, false)));
+        setGlobalFunction("error", new LuaFunctionProxy((Object[] args) -> sandboxLog(
+                Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" ")), true)));
 
-        if (true) {
-            var rv = L.run("print(\"TEST INSIDE LUA\")");
-            AdvancedComputers.LOGGER.info(String.format("lua exited with %s", rv));
-            synchronized (startStopLock) {
-                isRunning = false;
-                executionEnv = null;
-            }
-            return;
-        }
-
+        setGlobalFunction("sandboxCountHookCallback", new LuaFunctionProxy(this::sandboxCountHookCallback));
         setGlobalFunction("setEventCallback", new LuaFunctionProxy(this::setEventCallback));
         setGlobalField(L, "sandboxCountHookCallbackInterval", 10);
 
@@ -179,31 +167,37 @@ public class LuaSandbox {
         //L.openLibrary("package"); // TODO make custom implementation
 
         timeLastHook = System.currentTimeMillis();
+
         var rv = L.run(luaEntryScript);
+        AdvancedComputers.LOGGER.info(String.format("LVM exited with code %s", rv));
 
         // cleanup after shutdown
         synchronized (startStopLock) {
             isRunning = false;
             executionEnv = null;
         }
-
-        pushEventIntoSandbox("testEvent", new Object[]{1, 2, 3});
-        if (rv != Lua.LuaError.OK)
-            sandboxLog("Unexpected fatal error: " + rv.toString());
-
     }
 
 
     /**
      * Called about every tick via a lua debug count hook. Used to create an artificial slowdown for Lua PCs.
      */
-    public void sandboxCountHookCallback() throws InterruptedException {
+    public void sandboxCountHookCallback(Object[] args) {
         LockSupport.parkNanos(1_000_000 / TPS - 1000 * (System.currentTimeMillis() - timeLastHook));
         if (Thread.currentThread().isInterrupted()) {
             Thread.currentThread().interrupt();
         }
+        boolean isInterrupted = false;
         while (suspended) {
             LockSupport.park();
+            if (Thread.currentThread().isInterrupted()) {
+                // if the executor thread gets interrupted while the LVM is suspended, break suspension and continue the interrupt
+                isInterrupted = true;
+                break;
+            }
+        }
+        if (isInterrupted) {
+            Thread.currentThread().interrupt();
         }
         timeLastHook = System.currentTimeMillis();
     }
