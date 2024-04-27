@@ -1,4 +1,4 @@
-print("SETTING UP LUA SANDBOX")
+print("Setting up LUA sandbox")
 
 local oldPrint = _G["print"]
 _G["print"] = function(...)
@@ -37,7 +37,7 @@ end
 
 local sandboxCountHookCallback = GetAndClearGlobal("sandboxCountHookCallback")
 local sandboxCountHookCallbackInterval = GetAndClearGlobal("sandboxCountHookCallbackInterval")
-debug.sethook(sandboxCountHookCallback, "c", sandboxCountHookCallbackInterval)
+oldDebug.sethook(sandboxCountHookCallback, "c", sandboxCountHookCallbackInterval)
 
 
 --[[
@@ -84,7 +84,7 @@ end
 print("Testing!")
 local ok, rv = pcall(init)
 if not ok then
-    print("ERROR:", rv)
+    printErr("ERROR:", rv)
 end
 
 print("lua done!")

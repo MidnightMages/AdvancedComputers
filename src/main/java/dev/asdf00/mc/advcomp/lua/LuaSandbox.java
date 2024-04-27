@@ -151,7 +151,7 @@ public class LuaSandbox {
                 Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" ")), false)));
         setGlobalFunction("printInline", new LuaFunctionProxy((Object[] args) -> sandboxLog(
                 Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" ")), false, false)));
-        setGlobalFunction("error", new LuaFunctionProxy((Object[] args) -> sandboxLog(
+        setGlobalFunction("printErr", new LuaFunctionProxy((Object[] args) -> sandboxLog(
                 Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" ")), true)));
 
         setGlobalFunction("sandboxCountHookCallback", new LuaFunctionProxy(this::sandboxCountHookCallback));
