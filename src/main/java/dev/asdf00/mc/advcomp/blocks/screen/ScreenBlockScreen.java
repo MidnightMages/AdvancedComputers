@@ -19,8 +19,8 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
     public ScreenBlockScreen(ScreenMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
         computerEntity = null;
-        this.imageWidth = 287;
-        this.imageHeight = 166;
+        this.imageWidth = 256;
+        this.imageHeight = 149;
     }
 
     @Override
