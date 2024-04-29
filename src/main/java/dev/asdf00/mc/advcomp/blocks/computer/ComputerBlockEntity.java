@@ -111,31 +111,20 @@ public class ComputerBlockEntity extends BlockEntity implements MenuProvider {
     @Override
     public void onLoad() {
         super.onLoad();
+        System.out.println("ON LOAD COMPUTER");
         lazyItemhandler = LazyOptional.of(() -> itemHandler);
         // create LVM
-        lvm = new LuaSandbox(Integer.MAX_VALUE);
+        lvm = new LuaSandbox(this, Integer.MAX_VALUE);
     }
 
     @Override
     public void onChunkUnloaded() {
         super.onChunkUnloaded();
         // crash LVM
-        lvm.tryKill();
+        lvm.tryKill("Chunk unloaded");
     }
 
-    public void toggleOnOff() {
-
-    }
-
-    public void startLVM() {
-        lvm.start();
-    }
-
-    public void stopLVM() {
-        lvm.tryKill();
-    }
-
-    public int getLVMState() {
-        return lvm.getState();
+    public LuaSandbox getLvm() {
+        return lvm;
     }
 }

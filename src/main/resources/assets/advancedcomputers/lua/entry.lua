@@ -1,4 +1,6 @@
 print("Setting up LUA sandbox")
+
+local _setStopCode
 local function init()
     local oldPrint = _G["print"]
     _G["print"] = function(...)
@@ -37,6 +39,7 @@ local function init()
 
     local sandboxCountHookCallback = GetAndClearGlobal("sandboxCountHookCallback")
     local sandboxCountHookCallbackInterval = GetAndClearGlobal("sandboxCountHookCallbackInterval")
+    _setStopCode = GetAndClearGlobal("setStopCode")
     oldDebug.sethook(sandboxCountHookCallback, "c", sandboxCountHookCallbackInterval)
 
 
@@ -75,15 +78,15 @@ local function init()
         print(tostring(k),":",tostring(_G[k]))
     end
 
-
+    error("TEST")
     print("init ended")
 end
-
 
 print("Testing!")
 local ok, rv = pcall(init)
 if not ok then
-    printErr("ERROR:", rv)
+    print("LUA ERROR:", rv)
+    _setStopCode("LUA ERROR:", rv)
 end
 
 print("lua done!")

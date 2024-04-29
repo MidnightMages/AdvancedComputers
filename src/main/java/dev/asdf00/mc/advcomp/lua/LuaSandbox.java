@@ -1,6 +1,7 @@
 package dev.asdf00.mc.advcomp.lua;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import party.iroiro.luajava.AbstractLua;
 import party.iroiro.luajava.JFunction;
 import party.iroiro.luajava.lua54.Lua54;
@@ -28,6 +29,8 @@ public class LuaSandbox {
         }
     }
 
+    private final ComputerBlockEntity computer;
+
     private final AbstractLua L;
     private final int ipt;
     private RefLuaValue L_eventCallbackRef;
@@ -38,9 +41,14 @@ public class LuaSandbox {
     private volatile boolean isRunning;
     private volatile Thread executionEnv;
 
-    public LuaSandbox(int instructionsPerSecond) {
+    private LuaStdOut stdOut;
+    private String stopCode;
+
+    public LuaSandbox(ComputerBlockEntity computer, int instructionsPerSecond) {
+        this.computer = computer;
         L = new Lua54();
         ipt = Math.max(instructionsPerSecond / 20, 1);
+        stdOut = null;
     }
 
     public void sandboxLog(String s, boolean newLine, boolean error) {
@@ -95,7 +103,10 @@ public class LuaSandbox {
             if (isRunning) {
                 throw new IllegalStateException("LVM is already running");
             }
+            isRunning = true;
+            stdOut = new LuaStdOut();
             executionEnv = new Thread(this::runLua);
+            stopCode = "";
         }
         executionEnv.start();
     }
@@ -122,12 +133,20 @@ public class LuaSandbox {
         }
     }
 
-    public void tryKill() {
+    public void tryKill(String reason) {
         synchronized (startStopLock) {
             if (isRunning) {
-                executionEnv.interrupt();
-                if (suspended) {
-                    resume();
+                synchronized (startStopLock) {
+                    executionEnv.interrupt();
+                    if (suspended) {
+                        resume();
+                    }
+
+                    // cleanup after kill
+                    isRunning = false;
+                    executionEnv = null;
+                    stdOut = null;
+                    stopCode = "[KILLED] " + reason;
                 }
             }
         }
@@ -138,15 +157,12 @@ public class LuaSandbox {
             if (getState() == 0) {
                 start();
             } else {
-                tryKill();
+                tryKill("ON/OFF button pushed");
             }
         }
     }
 
-    public void runLua() {
-        synchronized (startStopLock) {
-            isRunning = true;
-        }
+    private void runLua() {
         AdvancedComputers.LOGGER.info("trying to start LVM");
         setGlobalFunction("print", new LuaFunctionProxy((Object[] args) -> sandboxLog(
                 Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" ")), false)));
@@ -158,6 +174,12 @@ public class LuaSandbox {
         setGlobalFunction("sandboxCountHookCallback", new LuaFunctionProxy(this::sandboxCountHookCallback));
         setGlobalFunction("setEventCallback", new LuaFunctionProxy(this::setEventCallback));
         setGlobalField(L, "sandboxCountHookCallbackInterval", 10);
+
+        setGlobalFunction("setStopCode", new LuaFunctionProxy((Object[] args) -> {
+            var msg = Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" "));
+            System.out.println("setStopCode: " + msg);
+            stopCode = msg;
+        }));
 
         L.openLibrary("table");
         L.openLibrary("debug");
@@ -176,6 +198,7 @@ public class LuaSandbox {
         synchronized (startStopLock) {
             isRunning = false;
             executionEnv = null;
+            stdOut = null;
         }
     }
 
@@ -201,5 +224,11 @@ public class LuaSandbox {
             Thread.currentThread().interrupt();
         }
         timeLastHook = System.currentTimeMillis();
+    }
+
+    public Object getStdOut() {
+        synchronized (startStopLock) {
+            return isRunning ? stdOut : stopCode;
+        }
     }
 }

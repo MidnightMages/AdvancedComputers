@@ -5,10 +5,10 @@ import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlock;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockMenu;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockScreen;
-import dev.asdf00.mc.advcomp.blocks.screen.Screen;
-import dev.asdf00.mc.advcomp.blocks.screen.ScreenEntity;
+import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlock;
+import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockScreen;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenMenu;
-import dev.asdf00.mc.advcomp.blocks.screen.ScreenScreen;
 import dev.asdf00.mc.advcomp.items.StorageItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
@@ -78,13 +78,13 @@ public class AdvancedComputers {
             () -> new ComputerBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
 
     public static final RegistryBlockItemPair<Block> SCREEN_BLOCK = registerBlockWithItem("screen_block",
-            () -> new Screen(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
+            () -> new ScreenBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
 
     public static final RegistryObject<BlockEntityType<ComputerBlockEntity>> COMPUTER_BE = BLOCK_ENTITY_TYPES.register("computer_be",
             () -> BlockEntityType.Builder.of(ComputerBlockEntity::new, COMPUTER_BLOCK.block().get()).build(null));
 
-    public static final RegistryObject<BlockEntityType<ScreenEntity>> SCREEN_BE = BLOCK_ENTITY_TYPES.register("screen_be",
-            () -> BlockEntityType.Builder.of(ScreenEntity::new, SCREEN_BLOCK.block().get()).build(null));
+    public static final RegistryObject<BlockEntityType<ScreenBlockEntity>> SCREEN_BE = BLOCK_ENTITY_TYPES.register("screen_be",
+            () -> BlockEntityType.Builder.of(ScreenBlockEntity::new, SCREEN_BLOCK.block().get()).build(null));
 
     public static final RegistryObject<MenuType<ComputerBlockMenu>> COMPUTER_MENU =
             registerMenuType("computer_menu", ComputerBlockMenu::new);
@@ -122,8 +122,8 @@ public class AdvancedComputers {
             .alwaysEat().nutrition(1).saturationMod(2f).build())));
 
     public static final RegistryObject<Item> DiskTier1 = RegisterItem("disk_tier1", () -> new StorageItem(Constants.MiB));
-    public static final RegistryObject<Item> DiskTier2 = RegisterItem("disk_tier2", () -> new StorageItem(5*Constants.MiB));
-    public static final RegistryObject<Item> DiskTier3 = RegisterItem("disk_tier3", () -> new StorageItem(10*Constants.MiB));
+    public static final RegistryObject<Item> DiskTier2 = RegisterItem("disk_tier2", () -> new StorageItem(5 * Constants.MiB));
+    public static final RegistryObject<Item> DiskTier3 = RegisterItem("disk_tier3", () -> new StorageItem(10 * Constants.MiB));
 
     private static MinecraftServer serverReference;
 
@@ -171,7 +171,7 @@ public class AdvancedComputers {
 //            ModItems.registerCreativeTabItems(event);
     }
 
-    public static Path getAcWorldSaveSubFolder(){
+    public static Path getAcWorldSaveSubFolder() {
         return serverReference.getWorldPath(LevelResource.ROOT).normalize().toAbsolutePath().resolve("advancedComputers");
     }
 
@@ -193,7 +193,7 @@ public class AdvancedComputers {
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
 
             MenuScreens.register(COMPUTER_MENU.get(), ComputerBlockScreen::new);
-            MenuScreens.register(SCREEN_MENU.get(), ScreenScreen::new);
+            MenuScreens.register(SCREEN_MENU.get(), ScreenBlockScreen::new);
         }
     }
 }

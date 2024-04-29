@@ -34,8 +34,7 @@ public class ComputerBlockScreen extends AbstractContainerScreen<ComputerBlockMe
     }
 
     private void handleOnOffButton(Button btn) {
-        AdvancedComputers.LOGGER.info(String.format("clicked on/off button on %s", getMenu().blockEntity.getBlockPos()));
-        getMenu().blockEntity.startLVM();
+        getMenu().blockEntity.getLvm().toggleOnOff();
     }
 
     @Override
