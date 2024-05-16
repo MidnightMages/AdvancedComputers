@@ -12,6 +12,7 @@ import dev.asdf00.mc.advcomp.blocks.screen.ScreenMenu;
 import dev.asdf00.mc.advcomp.datagen.BlockModelGenerator;
 import dev.asdf00.mc.advcomp.datagen.ItemModelGenerator;
 import dev.asdf00.mc.advcomp.datagen.RecipeGenerator;
+import dev.asdf00.mc.advcomp.items.KeycardAdvancedItem;
 import dev.asdf00.mc.advcomp.items.KeycardBasicItem;
 import dev.asdf00.mc.advcomp.items.StorageItem;
 import dev.asdf00.mc.advcomp.types.DualLayerItemColorHandler;
@@ -150,6 +151,7 @@ public class AdvancedComputers {
     public static final RegistryObject<Item> DISK_TIER_3_ITEM = RegisterItem("disk_tier3_item", () -> new StorageItem(10 * Constants.MiB));
 
     public static final RegistryObject<Item> KEYCARD_BASIC_ITEM = RegisterItem("keycard_basic_item", () -> new KeycardBasicItem(new Item.Properties()));
+    public static final RegistryObject<Item> KEYCARD_ADVANCED_ITEM = RegisterItem("keycard_advanced_item", () -> new KeycardAdvancedItem(new Item.Properties()));
 
     private static MinecraftServer serverReference;
 
@@ -198,6 +200,7 @@ public class AdvancedComputers {
 
     private void registerColorHandlers(final RegisterColorHandlersEvent.Item event) {
         event.register(new DualLayerItemColorHandler(), KEYCARD_BASIC_ITEM.get());
+        event.register(new DualLayerItemColorHandler(), KEYCARD_ADVANCED_ITEM.get());
     }
 
     private void registerDatagen(final GatherDataEvent event) {

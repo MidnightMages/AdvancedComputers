@@ -16,6 +16,10 @@ public class ItemModelGenerator extends ItemModelProvider {
                 .texture("layer0", rl("item/keycard_basic_item_0"))
                 .texture("layer1", rl("item/keycard_basic_item_1"));
 
+        this.withExistingParent("keycard_advanced_item", "item/handheld")
+                .texture("layer0", rl("item/keycard_advanced_item_0"))
+                .texture("layer1", rl("item/keycard_advanced_item_1"));
+
         this.withExistingParent("example_item", "item/generated")
                 .texture("layer0", rl("item/example_item"));
 

@@ -9,6 +9,7 @@
 
 	"item.advancedcomputers.example_item": "Example Item",
 	"item.advancedcomputers.keycard_basic_item": "Basic %s Keycard",
+	"item.advancedcomputers.keycard_advanced_item": "Advanced %s Keycard",
 
 	"item_group.advancedcomputers.tab_name": "Advanced Computers"
 }

@@ -5,6 +5,7 @@ import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.*;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -36,6 +37,24 @@ public class RecipeGenerator extends RecipeProvider {
                 .requires(Tags.Items.DYES)
                 .unlockedBy("item", has(keyCarditem))
                 .save(pWriter, "advancedcomputers:keycard_basic_item_dye");
+
+
+        var diamond = getVanillaItem("diamond");
+        var advKeyCarditem = AdvancedComputers.KEYCARD_ADVANCED_ITEM.get();
+        shaped(advKeyCarditem)
+                .pattern("IDI")
+                .pattern("III")
+                .pattern("III")
+                .define('I', Tags.Items.NUGGETS_IRON)
+                .define('D', diamond)
+                .unlockedBy("item", has(diamond))
+                .save(pWriter);
+
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, advKeyCarditem)
+                .requires(advKeyCarditem)
+                .requires(Tags.Items.DYES)
+                .unlockedBy("item", has(advKeyCarditem))
+                .save(pWriter, "advancedcomputers:keycard_advanced_item_dye");
     }
 
     private ItemLike getVanillaItem(String name) {
