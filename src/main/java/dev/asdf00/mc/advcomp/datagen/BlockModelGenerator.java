@@ -18,5 +18,7 @@ public class BlockModelGenerator extends BlockModelProvider {
 
         this.orientable("screen_block", rl("block/machine_base"),
                 rl("block/screen_block"), rl("block/machine_base"));
+
+        this.cubeAll("example_block", rl("block/example_block"));
     }
 }

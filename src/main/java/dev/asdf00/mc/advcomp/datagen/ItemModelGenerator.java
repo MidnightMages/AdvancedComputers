@@ -19,8 +19,12 @@ public class ItemModelGenerator extends ItemModelProvider {
                 .texture("layer0", rl("item/keycard_basic_item_0"))
                 .texture("layer1", rl("item/keycard_basic_item_1"));
 
+        this.withExistingParent("example_item", "item/generated")
+                .texture("layer0", rl("item/example_item"));
+
         this.withExistingParent("computer_block", rl("block/computer_block"));
         this.withExistingParent("screen_block", rl("block/screen_block"));
+        this.withExistingParent("example_block", rl("block/example_block"));
     }
 
     static ResourceLocation rl(String s) {
