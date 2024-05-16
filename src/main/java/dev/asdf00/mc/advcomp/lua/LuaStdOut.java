@@ -10,11 +10,15 @@ public final class LuaStdOut {
     private int top;
     private int caret;
 
+    private String lastPrinted;
+    private int linesPrinted;
+
     public LuaStdOut() {
         clear();
     }
 
     public void print(char[] out) {
+        linesPrinted = -1;
         var curLine = buffer[top];
         for (var c : out) {
             switch (c) {
@@ -45,10 +49,34 @@ public final class LuaStdOut {
     }
 
     public void clear() {
-        buffer = new PrimitiveList[128];
+        buffer = new PrimitiveList[MAX_LINE_CNT];
         buffer[0] = PrimitiveList.create(Character.class);
         wrapping = false;
         top = 0;
         caret = 0;
+        linesPrinted = -1;
+    }
+
+    public String getLastLines(int n) {
+        if (linesPrinted != n) {
+            var sb = new StringBuilder();
+            int avail = wrapping ? MAX_LINE_CNT : top;
+            if (avail < n) {
+                sb.append("\n".repeat(n - avail));
+                n = avail;
+            }
+            boolean first = true;
+            for (int i = ((top - n) + MAX_LINE_CNT) % MAX_LINE_CNT; i != top; i = (i + 1) % MAX_LINE_CNT) {
+                if (first) {
+                    first = false;
+                } else {
+                    sb.append('\n');
+                }
+                sb.append(buffer[i].toCharArray());
+            }
+            lastPrinted = sb.toString();
+            linesPrinted = n;
+        }
+        return lastPrinted;
     }
 }
