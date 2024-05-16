@@ -1,0 +1,7 @@
+{
+  "parent": "item/handheld",
+  "textures": {
+    "layer0": "advancedcomputers:item/keycard_basic_item_0",
+    "layer1": "advancedcomputers:item/keycard_basic_item_1"
+  }
+}
