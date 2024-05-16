@@ -10,9 +10,6 @@
     }
   ],
   "result": {
-    "item": "advancedcomputers:keycard_basic_item",
-    "nbt": {
-      "color": 2651799
-    }
+    "item": "advancedcomputers:keycard_basic_item"
   }
 }
