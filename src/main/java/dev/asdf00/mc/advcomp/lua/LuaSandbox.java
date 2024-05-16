@@ -56,6 +56,11 @@ public class LuaSandbox {
         if (s.replace(" ", "").toLowerCase().startsWith("error:") || s.trim().toLowerCase().startsWith("warning:"))
             s = " \r" + s; // needed so idea/gradle doesnt remove it from the stdoutput and put it into stderr. What a dumb 'feature'.
 
+        stdOut.print(s);
+        if (newLine) {
+            stdOut.print("\n");
+        }
+
         var printer = error ? System.err : System.out;
 
         if (newLine)
@@ -163,6 +168,8 @@ public class LuaSandbox {
     }
 
     private void runLua() {
+        stdOut = new LuaStdOut();
+        stdOut.clear();
         AdvancedComputers.LOGGER.info("trying to start LVM");
         setGlobalFunction("print", new LuaFunctionProxy((Object[] args) -> sandboxLog(
                 Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" ")), false)));
