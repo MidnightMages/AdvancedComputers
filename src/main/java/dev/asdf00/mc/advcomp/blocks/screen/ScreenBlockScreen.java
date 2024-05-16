@@ -13,7 +13,7 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(AdvancedComputers.MODID, "textures/gui/screen_gui.png");
-    private static final int LINE_CNT = 10;
+    private static final int LINE_CNT = 15;
 
     private ComputerBlockEntity computerEntity;
 
@@ -58,14 +58,16 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
         if (out instanceof LuaStdOut stdOut) {
             // display standard out
             var txt = stdOut.getLastLines(LINE_CNT);
-            x += 4;
-            y += 4;
-            pGuiGraphics.drawString(font, txt, x, y, -1);
-        } else {
+            x += 6;
+            y += 6;
+            for (int i = 0; i < LINE_CNT; i++) {
+                pGuiGraphics.drawString(font, txt[i], x, y, -1);
+                y += font.lineHeight;
+            }
+        } else if (out instanceof String errCode) {
             // display stop code centered
-            var errCode = (String) out;
             x += imageWidth / 2;
-            y += (imageHeight - (font.lineHeight * errCode.lines().count())) / 2;
+            y += (imageHeight - (font.lineHeight)) / 2;
             pGuiGraphics.drawCenteredString(font, errCode, x, y, -1);
         }
     }
