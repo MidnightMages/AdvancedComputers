@@ -9,7 +9,11 @@ import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlock;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockScreen;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenMenu;
+import dev.asdf00.mc.advcomp.datagen.RecipeGenerator;
+import dev.asdf00.mc.advcomp.items.KeycardBasicItem;
 import dev.asdf00.mc.advcomp.items.StorageItem;
+import dev.asdf00.mc.advcomp.types.DualLayerItemColorHandler;
+import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.registries.Registries;
@@ -22,6 +26,8 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -29,8 +35,10 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.extensions.IForgeMenuType;
+import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -65,6 +73,9 @@ public class AdvancedComputers {
     // Create a Deferred Register to hold CreativeModeTabs which will all be registered under the "examplemod" namespace
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MODID);
+    public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, MODID);
+    public static final DeferredRegister<RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(ForgeRegistries.RECIPE_TYPES, MODID);
+
 
     // Creates a new Block with the id "examplemod:example_block", combining the namespace and path
 //    public static final RegistryObject<Block> EXAMPLE_BLOCK = BLOCKS.register("example_block", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.STONE)));
@@ -92,6 +103,12 @@ public class AdvancedComputers {
     public static final RegistryObject<MenuType<ScreenMenu>> SCREEN_MENU =
             registerMenuType("screen_menu", ScreenMenu::new);
 
+    public static final RegistryObject<RecipeSerializer<DyeCustomRecipe>> DYE_RECIPE_SERIALIZER =
+            RECIPE_SERIALIZERS.register("dye_item", () -> DyeCustomRecipe.serializer);
+
+//    public static final RegistryObject<RecipeType<DyeCustomRecipe>> DYE_RECIPE =
+//            RECIPE_TYPES.register("dye_item", DyeCustomRecipe::new);
+
     private static <T extends AbstractContainerMenu> RegistryObject<MenuType<T>> registerMenuType(String name, IContainerFactory<T> factory) {
         return MENUS.register(name, () -> IForgeMenuType.create(factory));
     }
@@ -102,8 +119,10 @@ public class AdvancedComputers {
         return new RegistryBlockItemPair<T>(rv, i);
     }
 
-    private static <T extends Item> RegistryObject<T> RegisterItem(String name, Supplier<T> itemBuilder) {
-        return ITEMS.register(name, itemBuilder);
+    private static RegistryObject<Item> RegisterItem(String name, Supplier<Item> itemBuilder) {
+        var ro = ITEMS.register(name, itemBuilder);
+        ModItems.registerItem(ro);
+        return ro;
     }
 
     public static final RegistryObject<CreativeModeTab> creativeTab = CREATIVE_MODE_TABS.register("advanced_computers",
@@ -111,6 +130,8 @@ public class AdvancedComputers {
                     .title(Component.translatable("item_group." + MODID + ".tab_name"))
                     .icon(() -> new ItemStack(COMPUTER_BLOCK.blockItem().get()))
                     .displayItems((parameters, output) -> {
+                        for (var item : ModItems.getRegisteredBlockItems())
+                            output.accept(item.get());
                         for (var item : ModItems.getRegisteredItems())
                             output.accept(item.get());
                     })
@@ -121,9 +142,11 @@ public class AdvancedComputers {
     public static final RegistryObject<Item> EXAMPLE_ITEM = ITEMS.register("example_item", () -> new Item(new Item.Properties().food(new FoodProperties.Builder()
             .alwaysEat().nutrition(1).saturationMod(2f).build())));
 
-    public static final RegistryObject<Item> DiskTier1 = RegisterItem("disk_tier1", () -> new StorageItem(Constants.MiB));
-    public static final RegistryObject<Item> DiskTier2 = RegisterItem("disk_tier2", () -> new StorageItem(5 * Constants.MiB));
-    public static final RegistryObject<Item> DiskTier3 = RegisterItem("disk_tier3", () -> new StorageItem(10 * Constants.MiB));
+    public static final RegistryObject<Item> DISK_TIER_1_ITEM = RegisterItem("disk_tier1_item", () -> new StorageItem(Constants.MiB));
+    public static final RegistryObject<Item> DISK_TIER_2_ITEM = RegisterItem("disk_tier2_item", () -> new StorageItem(5 * Constants.MiB));
+    public static final RegistryObject<Item> DISK_TIER_3_ITEM = RegisterItem("disk_tier3_item", () -> new StorageItem(10 * Constants.MiB));
+
+    public static final RegistryObject<Item> KEYCARD_BASIC_ITEM = RegisterItem("keycard_basic_item", () -> new KeycardBasicItem(new Item.Properties()));
 
     private static MinecraftServer serverReference;
 
@@ -137,17 +160,22 @@ public class AdvancedComputers {
         BLOCKS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so items get registered
         ITEMS.register(modEventBus);
+        RECIPE_SERIALIZERS.register(modEventBus);
+
         // Register the Deferred Register to the mod event bus so tabs get registered
         CREATIVE_MODE_TABS.register(modEventBus);
 
         BLOCK_ENTITY_TYPES.register(modEventBus);
         MENUS.register(modEventBus);
 
+
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
 
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
+        modEventBus.addListener(this::registerColorHandlers);
+        modEventBus.addListener(this::registerDatagen);
 
         // Register our mod's ForgeConfigSpec so that Forge can create and load the config file for us
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.SPEC);
@@ -163,6 +191,15 @@ public class AdvancedComputers {
         LOGGER.info(Config.magicNumberIntroduction + Config.magicNumber);
 
         Config.items.forEach((item) -> LOGGER.info("ITEM >> {}", item.toString()));
+    }
+
+    private void registerColorHandlers(final RegisterColorHandlersEvent.Item event) {
+        event.register(new DualLayerItemColorHandler(), KEYCARD_BASIC_ITEM.get());
+    }
+
+    private void registerDatagen(final GatherDataEvent event) {
+        var gen = event.getGenerator();
+        gen.addProvider(event.includeServer(), new RecipeGenerator(gen.getPackOutput()));
     }
 
     // Add the example block item to the building blocks tab

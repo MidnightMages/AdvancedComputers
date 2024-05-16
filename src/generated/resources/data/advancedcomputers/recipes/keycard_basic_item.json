@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": {
+      "tag": "forge:nuggets/iron"
+    },
+    "P": {
+      "item": "minecraft:paper"
+    }
+  },
+  "pattern": [
+    "IIP",
+    "IIP",
+    "IIP"
+  ],
+  "result": {
+    "item": "advancedcomputers:keycard_basic_item"
+  },
+  "show_notification": true
+}
