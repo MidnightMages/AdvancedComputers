@@ -9,6 +9,8 @@ import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlock;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockScreen;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenMenu;
+import dev.asdf00.mc.advcomp.datagen.BlockModelGenerator;
+import dev.asdf00.mc.advcomp.datagen.ItemModelGenerator;
 import dev.asdf00.mc.advcomp.datagen.RecipeGenerator;
 import dev.asdf00.mc.advcomp.items.KeycardBasicItem;
 import dev.asdf00.mc.advcomp.items.StorageItem;
@@ -37,6 +39,7 @@ import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
@@ -199,7 +202,10 @@ public class AdvancedComputers {
 
     private void registerDatagen(final GatherDataEvent event) {
         var gen = event.getGenerator();
-        gen.addProvider(event.includeServer(), new RecipeGenerator(gen.getPackOutput()));
+        var packOut = gen.getPackOutput();
+        gen.addProvider(event.includeServer(), new RecipeGenerator(packOut));
+        gen.addProvider(event.includeClient(), new BlockModelGenerator(packOut, MODID, event.getExistingFileHelper()));
+        gen.addProvider(event.includeClient(), new ItemModelGenerator(packOut, MODID, event.getExistingFileHelper()));
     }
 
     // Add the example block item to the building blocks tab
