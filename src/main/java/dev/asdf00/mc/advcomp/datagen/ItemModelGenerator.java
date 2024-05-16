@@ -1,6 +1,5 @@
 package dev.asdf00.mc.advcomp.datagen;
 
-import dev.asdf00.mc.advcomp.AdvancedComputers;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
@@ -13,8 +12,6 @@ public class ItemModelGenerator extends ItemModelProvider {
 
     @Override
     protected void registerModels() {
-        var keycard = AdvancedComputers.KEYCARD_BASIC_ITEM.get();
-
         this.withExistingParent("keycard_basic_item", "item/handheld")
                 .texture("layer0", rl("item/keycard_basic_item_0"))
                 .texture("layer1", rl("item/keycard_basic_item_1"));
@@ -28,6 +25,6 @@ public class ItemModelGenerator extends ItemModelProvider {
     }
 
     static ResourceLocation rl(String s) {
-        return new ResourceLocation("advancedcomputers:"+s);
+        return new ResourceLocation("advancedcomputers:" + s);
     }
 }

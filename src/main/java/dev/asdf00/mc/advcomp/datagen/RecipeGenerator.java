@@ -1,6 +1,5 @@
 package dev.asdf00.mc.advcomp.datagen;
 
-import com.google.gson.JsonObject;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
 import net.minecraft.data.PackOutput;
