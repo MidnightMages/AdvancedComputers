@@ -5,11 +5,14 @@ import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlock;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockMenu;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockScreen;
+import dev.asdf00.mc.advcomp.blocks.keycard_reader.KeyCardReaderBlock;
+import dev.asdf00.mc.advcomp.blocks.keycard_reader.KeyCardReaderBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlock;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockScreen;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenMenu;
 import dev.asdf00.mc.advcomp.datagen.BlockModelGenerator;
+import dev.asdf00.mc.advcomp.datagen.BlockStateGenerator;
 import dev.asdf00.mc.advcomp.datagen.ItemModelGenerator;
 import dev.asdf00.mc.advcomp.datagen.RecipeGenerator;
 import dev.asdf00.mc.advcomp.items.KeycardAdvancedItem;
@@ -95,11 +98,17 @@ public class AdvancedComputers {
     public static final RegistryBlockItemPair<Block> SCREEN_BLOCK = registerBlockWithItem("screen_block",
             () -> new ScreenBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
 
+    public static final RegistryBlockItemPair<Block> KEYCARD_READER_BLOCK = registerBlockWithItem("keycard_reader_block",
+            () -> new KeyCardReaderBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
+
     public static final RegistryObject<BlockEntityType<ComputerBlockEntity>> COMPUTER_BE = BLOCK_ENTITY_TYPES.register("computer_be",
             () -> BlockEntityType.Builder.of(ComputerBlockEntity::new, COMPUTER_BLOCK.block().get()).build(null));
 
     public static final RegistryObject<BlockEntityType<ScreenBlockEntity>> SCREEN_BE = BLOCK_ENTITY_TYPES.register("screen_be",
             () -> BlockEntityType.Builder.of(ScreenBlockEntity::new, SCREEN_BLOCK.block().get()).build(null));
+
+    public static final RegistryObject<BlockEntityType<KeyCardReaderBlockEntity>> KEYCARD_READER_BE = BLOCK_ENTITY_TYPES.register("keycard_reader_be",
+            () -> BlockEntityType.Builder.of(KeyCardReaderBlockEntity::new, KEYCARD_READER_BLOCK.block().get()).build(null));
 
     public static final RegistryObject<MenuType<ComputerBlockMenu>> COMPUTER_MENU =
             registerMenuType("computer_menu", ComputerBlockMenu::new);
@@ -207,8 +216,11 @@ public class AdvancedComputers {
         var gen = event.getGenerator();
         var packOut = gen.getPackOutput();
         gen.addProvider(event.includeServer(), new RecipeGenerator(packOut));
+
         gen.addProvider(event.includeClient(), new BlockModelGenerator(packOut, MODID, event.getExistingFileHelper()));
         gen.addProvider(event.includeClient(), new ItemModelGenerator(packOut, MODID, event.getExistingFileHelper()));
+        gen.addProvider(event.includeClient(), new BlockStateGenerator(packOut, MODID, event.getExistingFileHelper()));
+
     }
 
     // Add the example block item to the building blocks tab

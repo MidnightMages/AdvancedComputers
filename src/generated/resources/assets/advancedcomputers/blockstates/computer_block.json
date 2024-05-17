@@ -1,11 +1,11 @@
 {
   "variants": {
-    "facing=north": {
-      "model": "advancedcomputers:block/computer_block"
-    },
     "facing=east": {
       "model": "advancedcomputers:block/computer_block",
       "y": 90
+    },
+    "facing=north": {
+      "model": "advancedcomputers:block/computer_block"
     },
     "facing=south": {
       "model": "advancedcomputers:block/computer_block",
