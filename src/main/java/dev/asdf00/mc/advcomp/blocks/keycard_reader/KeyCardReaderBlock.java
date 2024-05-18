@@ -1,8 +1,7 @@
 package dev.asdf00.mc.advcomp.blocks.keycard_reader;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.items.KeycardAdvancedItem;
-import dev.asdf00.mc.advcomp.items.KeycardBasicItem;
+import dev.asdf00.mc.advcomp.items.BaseKeycardItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -67,18 +66,19 @@ public class KeyCardReaderBlock extends BaseEntityBlock {
 
     @Override
     public InteractionResult use(@NotNull BlockState pState, Level pLevel, @NotNull BlockPos pPos, @NotNull Player pPlayer, @NotNull InteractionHand pHand, @NotNull BlockHitResult pHit) {
+        var handItem = pPlayer.getItemInHand(pHand).getItem();
+        if (!(handItem instanceof BaseKeycardItem bki)) // fail if player doesnt swipe with a keycard
+            return InteractionResult.FAIL;
+
         if (!pLevel.isClientSide()) {
-            var be = pLevel.getBlockEntity(pPos);
-            if (be instanceof KeyCardReaderBlockEntity cbe) {
-                // TODO add keycard interaction?
+            if (pLevel.getBlockEntity(pPos) instanceof KeyCardReaderBlockEntity cbe) {
+                cbe.onKeycardSwiped(bki);
             }
             else
                 throw new IllegalStateException("Tile entity missing?");
         }
 
-        var handItem = pPlayer.getItemInHand(pHand).getItem();
-        // success if player clicks with a keycard
-        return (handItem instanceof KeycardAdvancedItem || handItem instanceof KeycardBasicItem) ? InteractionResult.SUCCESS : InteractionResult.FAIL;
+        return InteractionResult.SUCCESS;
     }
 
     @Nullable
