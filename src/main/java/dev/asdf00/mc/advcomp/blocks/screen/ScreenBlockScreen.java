@@ -82,16 +82,14 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
     @Override
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
         switch (pKeyCode) {
-            case 256 -> {
-                onClose();
-                return true;
-            }
-            case 257 -> {
-                getComputerEntity().getLvm().pushMachineEvent("keyTyped", "\n");
-                return true;
+            case 256 -> onClose();
+            case 257 -> getComputerEntity().getLvm().pushMachineEvent("keyTyped", "\n");
+            case 259 -> getComputerEntity().getLvm().pushMachineEvent("keyTyped", "\b");
+            default -> {
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     @Override

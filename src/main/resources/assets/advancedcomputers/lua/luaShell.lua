@@ -6,7 +6,15 @@ while true do
     computer.waitForMachineEvent() -- infinite waittime
     local eventName, key = computer.getMachineEvent()
     if eventName == "keyTyped" then
-        printInline(key)
+        if key == "\b" then
+            if #stringBuffer > 0 then
+                printInline(key)
+                stringBuffer = stringBuffer:sub(1, #stringBuffer - 1)
+            end
+        else
+            printInline(key)
+        end
+
         if key == "\n" then
             if stringBuffer == "exit()" then
                 break
@@ -22,7 +30,7 @@ while true do
                 if ok then print(rv) end
             end
             printInline(">> ")
-        else
+        elseif key ~= "\b" then
             stringBuffer = stringBuffer .. key
         end
         -- print(stringBuffer)

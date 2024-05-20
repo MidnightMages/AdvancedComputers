@@ -9,9 +9,9 @@ import party.iroiro.luajava.value.RefLuaValue;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
 
@@ -54,7 +54,7 @@ public class LuaSandbox {
     private record MachineEvent(String name, Object content) {
     }
 
-    private final ConcurrentLinkedQueue<MachineEvent> machineEvents = new ConcurrentLinkedQueue<>();
+    private final ArrayDeque<MachineEvent> machineEvents = new ArrayDeque<>();
 
     public LuaSandbox(ComputerBlockEntity computer, int instructionsPerSecond) {
         this.computer = computer;
@@ -258,8 +258,8 @@ public class LuaSandbox {
     }
 
     public void pushMachineEvent(String name, Object event) {
-        machineEvents.add(new MachineEvent(name, event));
         synchronized (machineEvents) {
+            machineEvents.add(new MachineEvent(name, event));
             machineEvents.notifyAll();
         }
     }
@@ -268,7 +268,10 @@ public class LuaSandbox {
         if (ignore.length != 0) {
             throw new IllegalArgumentException("cannot pass pass arguments to 'getMachineEvent'");
         }
-        var event = machineEvents.poll();
+        MachineEvent event;
+        synchronized (machineEvents) {
+            event = machineEvents.poll();
+        }
         return event == null ? null : new Object[]{event.name, event.content};
     }
 
@@ -278,10 +281,12 @@ public class LuaSandbox {
         }
         try {
             synchronized (machineEvents) {
-                if (timeout.length == 1) {
-                    machineEvents.wait(Long.parseLong(timeout[0].toString()));
-                } else {
-                    machineEvents.wait();
+                if (machineEvents.isEmpty()) {
+                    if (timeout.length == 1) {
+                        machineEvents.wait(Long.parseLong(timeout[0].toString()));
+                    } else {
+                        machineEvents.wait();
+                    }
                 }
             }
         } catch (InterruptedException e) {
