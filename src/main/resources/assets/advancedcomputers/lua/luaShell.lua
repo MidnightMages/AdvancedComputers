@@ -1,12 +1,14 @@
 local stringBuffer = ""
+clear()
+print("LUA Shell:")
+printInline(">> ")
 while true do
     computer.waitForMachineEvent() -- infinite waittime
-    local event = computer.getMachineEvent()
-    local eventName = event[1]
+    local eventName, key = computer.getMachineEvent()
     if eventName == "keyPressed" then
-        local key = event[2]
+        printInline(key)
         if key == "\n" then
-            if stringBuffer == "exit" then
+            if stringBuffer == "EXIT" then
                 break
             end
             local res, err = load(stringBuffer)
@@ -16,8 +18,10 @@ while true do
             else
                 xpcall(res,function() print(debug.traceback("Execution error:\n")) end)
             end
+            printInline(">> ")
+        else
+            stringBuffer = stringBuffer .. key
         end
-        stringBuffer = stringBuffer .. key
-        print(stringBuffer)
+        -- print(stringBuffer)
     end
 end

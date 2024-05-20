@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
 
@@ -54,7 +54,7 @@ public class LuaSandbox {
     private record MachineEvent(String name, Object content) {
     }
 
-    private final SynchronousQueue<MachineEvent> machineEvents = new SynchronousQueue<>();
+    private final ConcurrentLinkedQueue<MachineEvent> machineEvents = new ConcurrentLinkedQueue<>();
 
     public LuaSandbox(ComputerBlockEntity computer, int instructionsPerSecond) {
         this.computer = computer;
@@ -190,6 +190,7 @@ public class LuaSandbox {
                 Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" ")), false, false)));
         setGlobalFunction("printErr", new LuaFunctionProxy((Object[] args) -> sandboxLog(
                 Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" ")), true)));
+        setGlobalFunction("clear", new LuaFunctionProxy((Object[] o) -> stdOut.clear()));
 
         setGlobalFunction("sandboxCountHookCallback", new LuaFunctionProxy(this::sandboxCountHookCallback));
         setGlobalFunction("setEventCallback", new LuaFunctionProxy(this::setEventCallback));
@@ -258,7 +259,9 @@ public class LuaSandbox {
 
     public void pushMachineEvent(String name, Object event) {
         machineEvents.add(new MachineEvent(name, event));
-        machineEvents.notifyAll();
+        synchronized (machineEvents) {
+            machineEvents.notifyAll();
+        }
     }
 
     private Object[] getMachineEvent(Object[] ignore) {
@@ -274,10 +277,12 @@ public class LuaSandbox {
             throw new IllegalArgumentException("'waitForMachineEvent' expects either no argument or 1 timeout argument");
         }
         try {
-            if (timeout.length == 1) {
-                machineEvents.wait(Long.parseLong(timeout[0].toString()));
-            } else {
-                machineEvents.wait();
+            synchronized (machineEvents) {
+                if (timeout.length == 1) {
+                    machineEvents.wait(Long.parseLong(timeout[0].toString()));
+                } else {
+                    machineEvents.wait();
+                }
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

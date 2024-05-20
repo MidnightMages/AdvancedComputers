@@ -5,19 +5,18 @@ import dev.asdf00.mc.advcomp.utils.list.PrimitiveList;
 public final class LuaStdOut {
     private static final int MAX_LINE_CNT = 128;
 
-    private PrimitiveList<Character>[] buffer;
-    private boolean wrapping;
-    private int top;
+    private volatile PrimitiveList<Character>[] buffer;
+    private volatile boolean wrapping;
+    private volatile int top;
     private int caret;
 
-    private String[] lastPrinted;
+    private volatile String[] lastPrinted;
 
     public LuaStdOut() {
         clear();
     }
 
     public void print(CharSequence out) {
-        lastPrinted = null;
         var curLine = buffer[top];
         for (int i = 0; i < out.length(); i++) {
             var c = out.charAt(i);
@@ -46,6 +45,7 @@ public final class LuaStdOut {
                 }
             }
         }
+        lastPrinted = null;
     }
 
     public void clear() {
@@ -63,7 +63,7 @@ public final class LuaStdOut {
     public String[] getLastLines(final int n) {
         if (lastPrinted == null || lastPrinted.length != n) {
             String[] lines = new String[n];
-            int avail = wrapping ? MAX_LINE_CNT : top;
+            int avail = wrapping ? MAX_LINE_CNT : top + 1;
             int toPrint = n;
             if (avail < n) {
                 for (int i = 0; i < n - avail; i++) {
@@ -71,10 +71,12 @@ public final class LuaStdOut {
                 }
                 toPrint = avail;
             }
-            for (int i = ((top - toPrint) + MAX_LINE_CNT) % MAX_LINE_CNT; i != top; i = (i + 1) % MAX_LINE_CNT) {
+            for (int i = ((top - (toPrint - 1)) + MAX_LINE_CNT) % MAX_LINE_CNT; i != top; i = (i + 1) % MAX_LINE_CNT) {
                 lines[n - toPrint] = String.valueOf(buffer[i].toCharArray());
                 toPrint--;
             }
+            // we always have at least 1 line to print which is at top
+            lines[n - 1] = String.valueOf(buffer[top].toCharArray());
             lastPrinted = lines;
         }
         return lastPrinted;

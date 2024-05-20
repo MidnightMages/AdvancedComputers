@@ -78,4 +78,20 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
         }
         return computerEntity;
     }
+
+    @Override
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (pKeyCode == 256) {
+            // close on esc
+            this.onClose();
+            return true;
+        }
+        char key = switch (pKeyCode) {
+            case 257 -> '\n';
+            default -> (char) pKeyCode;
+        };
+        System.out.println("key pressed: '%s' (keyCode %s, scanCode %s, modifiers %s)".formatted(key, pKeyCode, pScanCode, pModifiers));
+        getComputerEntity().getLvm().pushMachineEvent("keyPressed", String.valueOf(key));
+        return true;
+    }
 }

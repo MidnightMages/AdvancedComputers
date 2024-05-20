@@ -1,7 +1,8 @@
+-- sandbox setup
 print("Setting up LUA sandbox")
 
 local _setStopCode
-local _luaShell
+local _luaShellCode
 
 local function init()
     local oldPrint = _G["print"]
@@ -58,11 +59,7 @@ local function init()
     computer["waitForMachineEvent"] = GetAndClearGlobal("waitForMachineEvent")
     _G["computer"] = computer;
 
-    local fc, err = _G.load(_G.luaShell, "luaShell", "t", nil)
-    if fc == nil then
-        error("shell compilation error: " .. err)
-    end
-    _luaShell = fc
+    _luaShellCode = GetAndClearGlobal("luaShell")
 
     local function arrayContains(t, obj)
         for i=1,#t do
@@ -78,7 +75,10 @@ local function init()
         "rawset","rawget","ipairs","next","type","collectgarbage", "coroutine",
 
         -- already sanitized
-        "debug"
+        "debug",
+
+        -- custom objects
+        "computer", "clear", "printInline"
     }
 
     for k,v in pairs(_G) do
@@ -98,13 +98,20 @@ local ok, rv = pcall(init)
 if not ok then
     print("SANDBOX ERROR:", rv)
     _setStopCode("SANDBOX ERROR:", rv)
+    error(rv)
 end
 
+local _luaShell, err = _G.load(_luaShellCode, "luaShell", "t", _G)
+print(_luaShell)
+if _luaShell == nil then
+    error("shell compilation error: " .. err)
+end
 print("starting shell")
-ok, rv = pcall(_luaShell)
+ok, rv = xpcall(_luaShell, debug.traceback)
 if not ok then
     print("ERROR:", rv)
     _setStopCode("ERROR:", rv)
+    error(rv)
 end
 
 print("lua done!")
