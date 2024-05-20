@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
 
@@ -19,14 +20,20 @@ import static dev.asdf00.mc.advcomp.lua.LuaUtils.setGlobalField;
 public class LuaSandbox {
     private static final int TPS = 20;
     private static final String luaEntryScript;
+    private static final String luaShellScript;
+
+    private static String loadLuaScript(String name) {
+        try (var stream = LuaMain.class.getClassLoader().getResourceAsStream("assets/advancedcomputers/lua/" + name)) {
+            Objects.requireNonNull(stream, "Error reading resource '%s'".formatted(name));
+            return new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new IllegalStateException("Resource '%s' not found!".formatted(name));
+        }
+    }
 
     static {
-        try (var stream = LuaMain.class.getClassLoader().getResourceAsStream("assets/advancedcomputers/lua/entry.lua")) {
-            Objects.requireNonNull(stream, "Error reading resource 'entry.lua'");
-            luaEntryScript = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new IllegalStateException("Resource 'entry.lua' not found!");
-        }
+        luaEntryScript = loadLuaScript("entry.lua");
+        luaShellScript = loadLuaScript("luaShell.lua");
     }
 
     private final ComputerBlockEntity computer;
@@ -43,6 +50,11 @@ public class LuaSandbox {
 
     private LuaStdOut stdOut;
     private String stopCode;
+
+    private final ConcurrentLinkedQueue<MachineEvent> machineEvents = new ConcurrentLinkedQueue<>();
+
+    private record MachineEvent(String name, Object content) {
+    }
 
     public LuaSandbox(ComputerBlockEntity computer, int instructionsPerSecond) {
         this.computer = computer;
@@ -163,6 +175,7 @@ public class LuaSandbox {
     }
 
     private void runLua() {
+        machineEvents.clear();
         AdvancedComputers.LOGGER.info("trying to start LVM");
         setGlobalFunction("print", new LuaFunctionProxy((Object[] args) -> sandboxLog(
                 Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" ")), false)));
@@ -180,6 +193,10 @@ public class LuaSandbox {
             System.out.println("setStopCode: " + msg);
             stopCode = msg;
         }));
+
+        setGlobalFunction("getMachineEvent", new LuaFunctionProxy(this::getMachineEvent));
+        setGlobalFunction("waitForMachineEvent", new LuaFunctionProxy(this::waitForMachineEvent));
+        setGlobalField(L, "luaShell", luaShellScript);
 
         L.openLibrary("table");
         L.openLibrary("debug");
@@ -208,20 +225,21 @@ public class LuaSandbox {
      */
     public void sandboxCountHookCallback(Object[] args) {
         LockSupport.parkNanos(1_000_000 / TPS - 1000 * (System.currentTimeMillis() - timeLastHook));
-        if (Thread.currentThread().isInterrupted()) {
-            Thread.currentThread().interrupt();
+        var curThread = Thread.currentThread();
+        if (curThread.isInterrupted()) {
+            curThread.interrupt();
         }
         boolean isInterrupted = false;
         while (suspended) {
             LockSupport.park();
-            if (Thread.currentThread().isInterrupted()) {
+            if (curThread.isInterrupted()) {
                 // if the executor thread gets interrupted while the LVM is suspended, break suspension and continue the interrupt
                 isInterrupted = true;
                 break;
             }
         }
         if (isInterrupted) {
-            Thread.currentThread().interrupt();
+            curThread.interrupt();
         }
         timeLastHook = System.currentTimeMillis();
     }
@@ -229,6 +247,34 @@ public class LuaSandbox {
     public Object getStdOut() {
         synchronized (startStopLock) {
             return isRunning ? stdOut : stopCode;
+        }
+    }
+
+    public void pushMachineEvent(String name, Object event) {
+        machineEvents.add(new MachineEvent(name, event));
+        machineEvents.notifyAll();
+    }
+
+    private Object[] getMachineEvent(Object[] ignore) {
+        if (ignore.length != 0) {
+            throw new IllegalArgumentException("cannot pass pass arguments to 'getMachineEvent'");
+        }
+        var event = machineEvents.poll();
+        return event == null ? null : new Object[]{event.name, event.content};
+    }
+
+    private void waitForMachineEvent(Object[] timeout) {
+        if (timeout.length > 1) {
+            throw new IllegalArgumentException("'waitForMachineEvent' expects either no argument or 1 timeout argument");
+        }
+        try {
+            if (timeout.length == 1) {
+                machineEvents.wait(Long.parseLong(timeout[0].toString()));
+            } else {
+                machineEvents.wait();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 }

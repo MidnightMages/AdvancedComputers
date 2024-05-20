@@ -1,6 +1,8 @@
 print("Setting up LUA sandbox")
 
 local _setStopCode
+local _luaShell
+
 local function init()
     local oldPrint = _G["print"]
     _G["print"] = function(...)
@@ -50,7 +52,17 @@ local function init()
     metatables?
     ]]--
 
+    -- build 'computer' table
+    local computer = {};
+    computer["getMachineEvent"] = GetAndClearGlobal("getMachineEvent")
+    computer["waitForMachineEvent"] = GetAndClearGlobal("waitForMachineEvent")
+    _G["computer"] = computer;
 
+    local fc, err = _G.load(_G.luaShell, "luaShell", "t", nil)
+    if fc == nil then
+        error("shell compilation error: " .. err)
+    end
+    _luaShell = fc
 
     local function arrayContains(t, obj)
         for i=1,#t do
@@ -85,8 +97,17 @@ end
 print("Testing!")
 local ok, rv = pcall(init)
 if not ok then
-    print("LUA ERROR:", rv)
-    _setStopCode("LUA ERROR:", rv)
+    print("SANDBOX ERROR:", rv)
+    _setStopCode("SANDBOX ERROR:", rv)
+end
+
+print("starting shell")
+ok, rv = pcall(_luaShell)
+if not ok then
+    print("ERROR:", rv)
+    _setStopCode("ERROR:", rv)
 end
 
 print("lua done!")
+
+
