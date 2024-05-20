@@ -30,7 +30,8 @@ public final class LuaStdOut {
                             top %= MAX_LINE_CNT;
                             wrapping = true;
                         }
-                        buffer[top] = PrimitiveList.create(Character.class);
+                        curLine = PrimitiveList.create(Character.class);
+                        buffer[top] = curLine;
                         caret = 0;
                     }
                     case '\b' -> {
@@ -74,7 +75,8 @@ public final class LuaStdOut {
                 int toPrint = Math.min(n, avail);
                 String[] lines = new String[toPrint];
                 for (int i = ((top - (toPrint - 1)) + MAX_LINE_CNT) % MAX_LINE_CNT; i != top; i = (i + 1) % MAX_LINE_CNT) {
-                    lines[lines.length - toPrint] = String.valueOf(buffer[i].toCharArray());
+                    // TODO: properly support \t
+                    lines[lines.length - toPrint] = String.valueOf(buffer[i].toCharArray()).replace("\t", "  ");
                     toPrint--;
                 }
                 // we always have at least 1 line to print which is at top

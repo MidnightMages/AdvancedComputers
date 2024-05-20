@@ -78,7 +78,7 @@ local function init()
         "debug",
 
         -- custom objects
-        "computer", "clear", "printInline"
+        "computer", "clear", "printInline", "sleep"
     }
 
     for k,v in pairs(_G) do
@@ -114,5 +114,13 @@ if not ok then
     error(rv)
 end
 
-print("lua done!")
+print("")
+printInline("\nshutting down .")
+sleep(0.5)
+printInline(" .")
+sleep(0.5)
+printInline(" .")
+sleep(0.5)
+printInline("\nBYE")
+sleep(0.75)
 _setStopCode("")

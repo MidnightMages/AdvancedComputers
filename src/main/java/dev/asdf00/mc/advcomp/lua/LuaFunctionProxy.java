@@ -41,6 +41,10 @@ public class LuaFunctionProxy implements JFunction {
                     LuaUtils.pushArgs(L, rv);
                     return rv.length;
                 }
+            } catch (AcLuaException err) {
+                // pass exception into lua as error
+                L.push(err.getMessage());
+                return -1;
             } catch (Exception ex) {
                 L.push("Internal error");
                 log.warning(String.format("Function invocation produced unexpected error: %s", ex));
