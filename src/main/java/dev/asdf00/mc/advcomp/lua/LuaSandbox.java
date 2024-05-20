@@ -64,21 +64,20 @@ public class LuaSandbox {
     }
 
     public void sandboxLog(String s, boolean newLine, boolean error) {
-        s = s.replace("\r", "");
-        if (s.replace(" ", "").toLowerCase().startsWith("error:") || s.trim().toLowerCase().startsWith("warning:"))
-            s = " \r" + s; // needed so idea/gradle doesnt remove it from the stdoutput and put it into stderr. What a dumb 'feature'.
-
-        stdOut.print(s);
+        var msg = s.replace("\r", "");
+        stdOut.print(msg);
         if (newLine) {
             stdOut.print("\n");
         }
 
+        // print to system.out for debugging purposes
+        if (msg.replace(" ", "").toLowerCase().startsWith("error:") || msg.trim().toLowerCase().startsWith("warning:"))
+            msg = " \r" + msg; // needed so idea/gradle doesnt remove it from the stdoutput and put it into stderr. What a dumb 'feature'.
         var printer = error ? System.err : System.out;
-
         if (newLine)
-            printer.println(s);
+            printer.println(msg);
         else
-            printer.print(s);
+            printer.print(msg);
     }
 
     public void sandboxLog(String s, boolean error) {
@@ -203,6 +202,20 @@ public class LuaSandbox {
         }));
         setGlobalFunction("getMachineEvent", new LuaFunctionProxy(this::getMachineEvent));
         setGlobalFunction("waitForMachineEvent", new LuaFunctionProxy(this::waitForMachineEvent));
+        setGlobalFunction("sleep", new LuaFunctionProxy((Object[] args) -> {
+            if (args.length != 1) {
+                throw new AcLuaException("'sleep' expects 1 timeout argument");
+            }
+            if (args[0] instanceof Double d) {
+                try {
+                    Thread.sleep((long) (d * 1000));
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            } else {
+                throw new AcLuaException("'sleep' expects number as argument");
+            }
+        }));
         setGlobalField(L, "luaShell", luaShellScript);
 
         L.openLibrary("table");
@@ -266,7 +279,7 @@ public class LuaSandbox {
 
     private Object[] getMachineEvent(Object[] ignore) {
         if (ignore.length != 0) {
-            throw new IllegalArgumentException("cannot pass pass arguments to 'getMachineEvent'");
+            throw new AcLuaException("cannot pass pass arguments to 'getMachineEvent'");
         }
         MachineEvent event;
         synchronized (machineEvents) {
@@ -277,7 +290,7 @@ public class LuaSandbox {
 
     private void waitForMachineEvent(Object[] timeout) {
         if (timeout.length > 1) {
-            throw new IllegalArgumentException("'waitForMachineEvent' expects either no argument or 1 timeout argument");
+            throw new AcLuaException("'waitForMachineEvent' expects either no argument or 1 timeout argument");
         }
         try {
             synchronized (machineEvents) {

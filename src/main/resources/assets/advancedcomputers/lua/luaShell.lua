@@ -19,15 +19,18 @@ while true do
             if stringBuffer == "exit()" then
                 break
             end
-            local res, err = load(stringBuffer, "instr", "t", _G)
+            local res, err = load(stringBuffer, "cmd", "t", _G)
             stringBuffer = ""
             if not res then
                 print("Error: ", err)
             else
-                local rvs = table.pack(xpcall(res,function() print(debug.traceback("Execution error:\n")) end))
-                if rvs[1] and #rvs>1 then
-                    print(table.unpack(rvs, 2))
-                end
+                local rvs = table.pack(xpcall(res,function(msg)
+                    local trcb = debug.traceback("X-ERR: " .. tostring(msg), 2)
+                    for i = 1, 4, 1 do
+                        trcb = trcb:sub(1, trcb:match("^.*()\n") - 1)
+                    end
+                    print(trcb)
+                end))
             end
             printInline(">> ")
         elseif key ~= "\b" then
