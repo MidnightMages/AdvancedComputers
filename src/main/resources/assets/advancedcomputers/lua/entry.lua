@@ -90,7 +90,6 @@ local function init()
         print(tostring(k),":",tostring(_G[k]))
     end
 
-    error("TEST")
     print("init ended")
 end
 
@@ -109,5 +108,4 @@ if not ok then
 end
 
 print("lua done!")
-
-
+_setStopCode("")

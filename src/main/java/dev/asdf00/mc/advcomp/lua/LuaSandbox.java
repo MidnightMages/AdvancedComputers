@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
 
@@ -51,10 +51,10 @@ public class LuaSandbox {
     private LuaStdOut stdOut;
     private String stopCode;
 
-    private final ConcurrentLinkedQueue<MachineEvent> machineEvents = new ConcurrentLinkedQueue<>();
-
     private record MachineEvent(String name, Object content) {
     }
+
+    private final SynchronousQueue<MachineEvent> machineEvents = new SynchronousQueue<>();
 
     public LuaSandbox(ComputerBlockEntity computer, int instructionsPerSecond) {
         this.computer = computer;
@@ -67,6 +67,11 @@ public class LuaSandbox {
         s = s.replace("\r", "");
         if (s.replace(" ", "").toLowerCase().startsWith("error:") || s.trim().toLowerCase().startsWith("warning:"))
             s = " \r" + s; // needed so idea/gradle doesnt remove it from the stdoutput and put it into stderr. What a dumb 'feature'.
+
+        stdOut.print(s);
+        if (newLine) {
+            stdOut.print("\n");
+        }
 
         var printer = error ? System.err : System.out;
 
@@ -175,6 +180,8 @@ public class LuaSandbox {
     }
 
     private void runLua() {
+        stdOut = new LuaStdOut();
+        stdOut.clear();
         machineEvents.clear();
         AdvancedComputers.LOGGER.info("trying to start LVM");
         setGlobalFunction("print", new LuaFunctionProxy((Object[] args) -> sandboxLog(
@@ -193,7 +200,6 @@ public class LuaSandbox {
             System.out.println("setStopCode: " + msg);
             stopCode = msg;
         }));
-
         setGlobalFunction("getMachineEvent", new LuaFunctionProxy(this::getMachineEvent));
         setGlobalFunction("waitForMachineEvent", new LuaFunctionProxy(this::waitForMachineEvent));
         setGlobalField(L, "luaShell", luaShellScript);

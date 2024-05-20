@@ -1,7 +1,7 @@
 {
   "parent": "minecraft:block/orientable",
   "textures": {
-    "front": "advancedcomputers:block/screen_block",
+    "front": "advancedcomputers:block/keycard_reader_block_front",
     "side": "advancedcomputers:block/machine_base",
     "top": "advancedcomputers:block/machine_base"
   }

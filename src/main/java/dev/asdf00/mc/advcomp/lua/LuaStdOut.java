@@ -10,17 +10,17 @@ public final class LuaStdOut {
     private int top;
     private int caret;
 
-    private String lastPrinted;
-    private int linesPrinted;
+    private String[] lastPrinted;
 
     public LuaStdOut() {
         clear();
     }
 
-    public void print(char[] out) {
-        linesPrinted = -1;
+    public void print(CharSequence out) {
+        lastPrinted = null;
         var curLine = buffer[top];
-        for (var c : out) {
+        for (int i = 0; i < out.length(); i++) {
+            var c = out.charAt(i);
             switch (c) {
                 case '\n' -> {
                     // newline
@@ -54,28 +54,28 @@ public final class LuaStdOut {
         wrapping = false;
         top = 0;
         caret = 0;
-        linesPrinted = -1;
+        lastPrinted = null;
     }
 
-    public String getLastLines(int n) {
-        if (linesPrinted != n) {
-            var sb = new StringBuilder();
+    /**
+     * DO NOT MUTATE THE ARRAY RETURNED BY THIS METHOD!
+     */
+    public String[] getLastLines(final int n) {
+        if (lastPrinted == null || lastPrinted.length != n) {
+            String[] lines = new String[n];
             int avail = wrapping ? MAX_LINE_CNT : top;
+            int toPrint = n;
             if (avail < n) {
-                sb.append("\n".repeat(n - avail));
-                n = avail;
-            }
-            boolean first = true;
-            for (int i = ((top - n) + MAX_LINE_CNT) % MAX_LINE_CNT; i != top; i = (i + 1) % MAX_LINE_CNT) {
-                if (first) {
-                    first = false;
-                } else {
-                    sb.append('\n');
+                for (int i = 0; i < n - avail; i++) {
+                    lines[i] = "";
                 }
-                sb.append(buffer[i].toCharArray());
+                toPrint = avail;
             }
-            lastPrinted = sb.toString();
-            linesPrinted = n;
+            for (int i = ((top - toPrint) + MAX_LINE_CNT) % MAX_LINE_CNT; i != top; i = (i + 1) % MAX_LINE_CNT) {
+                lines[n - toPrint] = String.valueOf(buffer[i].toCharArray());
+                toPrint--;
+            }
+            lastPrinted = lines;
         }
         return lastPrinted;
     }

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "I": {
+      "tag": "forge:nuggets/iron"
+    }
+  },
+  "pattern": [
+    "IDI",
+    "III",
+    "III"
+  ],
+  "result": {
+    "item": "advancedcomputers:keycard_advanced_item"
+  },
+  "show_notification": true
+}
