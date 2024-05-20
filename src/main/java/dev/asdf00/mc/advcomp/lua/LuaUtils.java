@@ -34,4 +34,9 @@ public class LuaUtils {
         L.push(n);
         L.setGlobal(name);
     }
+
+    public static void setGlobalField(Lua L, String name, String n) {
+        L.push(n);
+        L.setGlobal(name);
+    }
 }

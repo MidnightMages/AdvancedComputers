@@ -10,21 +10,32 @@ import java.util.function.Supplier;
 
 public class ModItems {
 
-    private static final ArrayList<RegistryObject<BlockItem>> registeredItems = new ArrayList<>();
+    private static final ArrayList<RegistryObject<BlockItem>> registeredBlockItems = new ArrayList<>();
+    private static final ArrayList<RegistryObject<Item>> registeredItems = new ArrayList<>();
 
     static <T extends BlockItem> RegistryObject<BlockItem> registerBlockItem(String name, Supplier<BlockItem> itemSupplier) {
         var r = AdvancedComputers.ITEMS.register(name, itemSupplier);
-        registeredItems.add(r);
+        registeredBlockItems.add(r);
         return r;
     }
 
-    public static void registerCreativeTabItems(BuildCreativeModeTabContentsEvent event) {
-        for (var i : registeredItems){
-            event.accept(i);
-        }
+    static void registerItem(RegistryObject<Item> il) {
+        registeredItems.add(il);
     }
 
-    public static  ArrayList<RegistryObject<BlockItem>> getRegisteredItems() {
+    public static void registerCreativeTabItems(BuildCreativeModeTabContentsEvent event) {
+        for (var i : registeredBlockItems)
+            event.accept(i);
+
+        for (var i : registeredItems)
+            event.accept(i);
+    }
+
+    public static ArrayList<RegistryObject<BlockItem>> getRegisteredBlockItems() {
+        return registeredBlockItems;
+    }
+
+    public static ArrayList<RegistryObject<Item>> getRegisteredItems() {
         return registeredItems;
     }
 }

@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ComputerBlockEntity extends BlockEntity implements MenuProvider {
-    public final ItemStackHandler itemHandler = new ItemStackHandler(2);
+    public final ItemStackHandler itemHandler = new ItemStackHandler(ComputerBlockMenu.TE_INVENTORY_SLOT_COUNT);
     private LazyOptional<IItemHandler> lazyItemhandler = LazyOptional.empty();
 
     protected final ContainerData data;
@@ -111,31 +111,20 @@ public class ComputerBlockEntity extends BlockEntity implements MenuProvider {
     @Override
     public void onLoad() {
         super.onLoad();
+        System.out.println("ON LOAD COMPUTER");
         lazyItemhandler = LazyOptional.of(() -> itemHandler);
         // create LVM
-        lvm = new LuaSandbox(Integer.MAX_VALUE);
+        lvm = new LuaSandbox(this, Integer.MAX_VALUE);
     }
 
     @Override
     public void onChunkUnloaded() {
         super.onChunkUnloaded();
         // crash LVM
-        lvm.tryKill();
+        lvm.tryKill("Chunk unloaded");
     }
 
-    public void toggleOnOff() {
-
-    }
-
-    public void startLVM() {
-        lvm.start();
-    }
-
-    public void stopLVM() {
-        lvm.tryKill();
-    }
-
-    public int getLVMState() {
-        return lvm.getState();
+    public LuaSandbox getLvm() {
+        return lvm;
     }
 }

@@ -1,4 +1,9 @@
+-- sandbox setup
 print("Setting up LUA sandbox")
+
+local _setStopCode
+local _luaShellCode
+
 local function init()
     local oldPrint = _G["print"]
     _G["print"] = function(...)
@@ -37,6 +42,7 @@ local function init()
 
     local sandboxCountHookCallback = GetAndClearGlobal("sandboxCountHookCallback")
     local sandboxCountHookCallbackInterval = GetAndClearGlobal("sandboxCountHookCallbackInterval")
+    _setStopCode = GetAndClearGlobal("setStopCode")
     oldDebug.sethook(sandboxCountHookCallback, "c", sandboxCountHookCallbackInterval)
 
 
@@ -47,7 +53,13 @@ local function init()
     metatables?
     ]]--
 
+    -- build 'computer' table
+    local computer = {};
+    computer["getMachineEvent"] = GetAndClearGlobal("getMachineEvent")
+    computer["waitForMachineEvent"] = GetAndClearGlobal("waitForMachineEvent")
+    _G["computer"] = computer;
 
+    _luaShellCode = GetAndClearGlobal("luaShell")
 
     local function arrayContains(t, obj)
         for i=1,#t do
@@ -63,7 +75,10 @@ local function init()
         "rawset","rawget","ipairs","next","type","collectgarbage", "coroutine",
 
         -- already sanitized
-        "debug"
+        "debug",
+
+        -- custom objects
+        "computer", "clear", "printInline"
     }
 
     for k,v in pairs(_G) do
@@ -75,15 +90,29 @@ local function init()
         print(tostring(k),":",tostring(_G[k]))
     end
 
-
     print("init ended")
 end
-
 
 print("Testing!")
 local ok, rv = pcall(init)
 if not ok then
-    printErr("ERROR:", rv)
+    print("SANDBOX ERROR:", rv)
+    _setStopCode("SANDBOX ERROR:", rv)
+    error(rv)
+end
+
+local _luaShell, err = _G.load(_luaShellCode, "luaShell", "t", _G)
+print(_luaShell)
+if _luaShell == nil then
+    error("shell compilation error: " .. err)
+end
+print("starting shell")
+ok, rv = xpcall(_luaShell, debug.traceback)
+if not ok then
+    print("ERROR:", rv)
+    _setStopCode("ERROR:", rv)
+    error(rv)
 end
 
 print("lua done!")
+_setStopCode("")

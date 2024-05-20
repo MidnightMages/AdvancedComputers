@@ -3,11 +3,15 @@
 	
 	"block.advancedcomputers.computer_block": "Computer",
 	"gui.advancedcomputers.computer_block.button.onoff": "On/Off",
-	"gui.advancedcomputers.computer_block.title": "Computer Title",
+	"gui.advancedcomputers.computer_block.title": "Computer",
 	
 	"block.advancedcomputers.screen_block": "Screen",
+	
+	"block.advancedcomputers.keycard_reader_block": "Keycard Reader",
 
 	"item.advancedcomputers.example_item": "Example Item",
+	"item.advancedcomputers.keycard_basic_item": "Basic %s Keycard",
+	"item.advancedcomputers.keycard_advanced_item": "Advanced %s Keycard",
 
 	"item_group.advancedcomputers.tab_name": "Advanced Computers"
 }

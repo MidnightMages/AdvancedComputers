@@ -4,13 +4,14 @@ import dev.asdf00.mc.advcomp.AdvancedComputers;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.*;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class ScreenMenu extends AbstractContainerMenu {
-    public final ScreenEntity blockEntity;
+    public final ScreenBlockEntity blockEntity;
     private final Level level;
 
     public ScreenMenu(int pContainerId, Inventory inv, FriendlyByteBuf extraData) {
@@ -20,7 +21,7 @@ public class ScreenMenu extends AbstractContainerMenu {
     public ScreenMenu(int pContainerId, Inventory playerInv, BlockEntity be) {
         super(AdvancedComputers.SCREEN_MENU.get(), pContainerId);
 //        checkContainerSize(playerInv, 2);
-        blockEntity = (ScreenEntity) be;
+        blockEntity = (ScreenBlockEntity) be;
         level = playerInv.player.level();
     }
 

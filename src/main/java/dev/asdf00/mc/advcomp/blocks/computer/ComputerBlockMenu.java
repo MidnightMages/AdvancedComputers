@@ -9,6 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
 public class ComputerBlockMenu extends AbstractContainerMenu {
@@ -17,12 +18,12 @@ public class ComputerBlockMenu extends AbstractContainerMenu {
     private final ContainerData data;
 
     public ComputerBlockMenu(int pContainerId, Inventory inv, FriendlyByteBuf extraData) {
-        this(pContainerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()), new SimpleContainerData(2));
+        this(pContainerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()), new SimpleContainerData(TE_INVENTORY_SLOT_COUNT));
     }
 
     public ComputerBlockMenu(int pContainerId, Inventory playerInv, BlockEntity be, ContainerData cd) {
         super(AdvancedComputers.COMPUTER_MENU.get(), pContainerId);
-        checkContainerSize(playerInv, 2);
+        checkContainerSize(playerInv, TE_INVENTORY_SLOT_COUNT);
         blockEntity = (ComputerBlockEntity) be;
         level = playerInv.player.level();
         data = cd;
@@ -30,9 +31,17 @@ public class ComputerBlockMenu extends AbstractContainerMenu {
         addPlayerInventory(playerInv);
         addPlayerHotbar(playerInv);
         this.blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(iItemHandler -> {
-            this.addSlot(new SlotItemHandler(iItemHandler, 0, 20, 10));
-            this.addSlot(new SlotItemHandler(iItemHandler, 1, 40, 10));
+            this.addSlot(new SlotItemHandler(iItemHandler, 0, 78, 10));
+            addSlotRow(iItemHandler, 1, 98, 10, 4);
+            addSlotRow(iItemHandler, 5, 98, 30, 4);
+            addSlotRow(iItemHandler, 9, 62, 50, 6);
         });
+    }
+
+    void addSlotRow(IItemHandler iItemHandler, int indexStart, int xPos, int yPos, int count) {
+        for (int i = 0; i < count; i++) {
+            this.addSlot(new SlotItemHandler(iItemHandler, indexStart + i, xPos + 18 * i, yPos));
+        }
     }
 
     // CREDIT GOES TO: diesieben07 | https://github.com/diesieben07/SevenCommons
@@ -51,7 +60,7 @@ public class ComputerBlockMenu extends AbstractContainerMenu {
     private static final int TE_INVENTORY_FIRST_SLOT_INDEX = VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT;
 
     // THIS YOU HAVE TO DEFINE!
-    private static final int TE_INVENTORY_SLOT_COUNT = 2;  // must be the number of slots you have!
+    public static final int TE_INVENTORY_SLOT_COUNT = 15;  // must be the number of slots you have!
 
     @Override
     public ItemStack quickMoveStack(Player playerIn, int pIndex) {
@@ -67,19 +76,22 @@ public class ComputerBlockMenu extends AbstractContainerMenu {
                     + TE_INVENTORY_SLOT_COUNT, false)) {
                 return ItemStack.EMPTY;  // EMPTY_ITEM
             }
-        } else if (pIndex < TE_INVENTORY_FIRST_SLOT_INDEX + TE_INVENTORY_SLOT_COUNT) {
+        }
+        else if (pIndex < TE_INVENTORY_FIRST_SLOT_INDEX + TE_INVENTORY_SLOT_COUNT) {
             // This is a TE slot so merge the stack into the players inventory
             if (!moveItemStackTo(sourceStack, VANILLA_FIRST_SLOT_INDEX, VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT, false)) {
                 return ItemStack.EMPTY;
             }
-        } else {
+        }
+        else {
             System.out.println("Invalid slotIndex:" + pIndex);
             return ItemStack.EMPTY;
         }
         // If stack size == 0 (the entire stack was moved) set slot contents to null
         if (sourceStack.getCount() == 0) {
             sourceSlot.set(ItemStack.EMPTY);
-        } else {
+        }
+        else {
             sourceSlot.setChanged();
         }
         sourceSlot.onTake(playerIn, sourceStack);

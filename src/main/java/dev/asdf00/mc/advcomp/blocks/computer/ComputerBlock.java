@@ -1,6 +1,7 @@
 package dev.asdf00.mc.advcomp.blocks.computer;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
@@ -9,6 +10,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
@@ -17,11 +19,7 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
-import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
@@ -89,5 +87,15 @@ public class ComputerBlock extends BaseEntityBlock {
 
         return createTickerHelper(pBlockEntityType, AdvancedComputers.COMPUTER_BE.get(),
                 (pLevel1, pPos, pState1, pBlockEntity) -> pBlockEntity.tick(pLevel1, pPos, pState1));
+    }
+
+    @Override
+    public void destroy(LevelAccessor pLevel, BlockPos pPos, BlockState pState) {
+        var upPos = pPos.relative(Direction.UP);
+        var upState = pLevel.getBlockState(upPos);
+        if (upState.getBlock() instanceof ScreenBlock screenBlock) {
+            screenBlock.destroy(pLevel, upPos, upState);
+        }
+        super.destroy(pLevel, pPos, pState);
     }
 }
