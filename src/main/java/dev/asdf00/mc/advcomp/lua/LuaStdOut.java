@@ -43,7 +43,11 @@ public final class LuaStdOut {
                     }
                     case '\r' -> caret = 0;
                     default -> {
-                        curLine.addChar(c);
+                        if (caret < curLine.size()) {
+                            curLine.set(caret, c);
+                        } else {
+                            curLine.addChar(c);
+                        }
                         caret++;
                     }
                 }
