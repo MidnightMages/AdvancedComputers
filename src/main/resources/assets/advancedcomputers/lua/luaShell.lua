@@ -24,10 +24,10 @@ while true do
             if not res then
                 print("Error: ", err)
             else
-                -- TODO table.pack
-                local ok, rv = xpcall(res,function() print(debug.traceback("Execution error:\n")) end)
-                -- TODO only print if non-empty
-                if ok then print(rv) end
+                local rvs = table.pack(xpcall(res,function() print(debug.traceback("Execution error:\n")) end))
+                if rvs[1] and #rvs>1 then
+                    print(table.unpack(rvs, 2))
+                end
             end
             printInline(">> ")
         elseif key ~= "\b" then
