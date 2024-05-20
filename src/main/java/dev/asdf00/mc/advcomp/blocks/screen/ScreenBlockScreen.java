@@ -60,7 +60,7 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
             var txt = stdOut.getLastLines(LINE_CNT);
             x += 6;
             y += 6;
-            for (int i = 0; i < LINE_CNT; i++) {
+            for (int i = 0; i < txt.length; i++) {
                 pGuiGraphics.drawString(font, txt[i], x, y, -1);
                 y += font.lineHeight;
             }
