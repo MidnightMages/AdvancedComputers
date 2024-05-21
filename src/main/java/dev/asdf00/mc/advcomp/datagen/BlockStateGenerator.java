@@ -1,16 +1,18 @@
 package dev.asdf00.mc.advcomp.datagen;
 
+import com.google.gson.JsonObject;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.RegistryBlockItemPair;
+import dev.asdf00.mc.advcomp.blocks.cables.CableModelLoader;
 import net.minecraft.data.PackOutput;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraftforge.client.model.generators.BlockStateProvider;
-import net.minecraftforge.client.model.generators.ConfiguredModel;
-import net.minecraftforge.client.model.generators.ModelFile;
+import net.minecraftforge.client.model.generators.*;
 import net.minecraftforge.common.data.ExistingFileHelper;
 
 import static dev.asdf00.mc.advcomp.datagen.ItemModelGenerator.rl;
+import static dev.asdf00.mc.advcomp.datagen.ItemModelGenerator.rl_mc;
 
 public class BlockStateGenerator extends BlockStateProvider {
     private final ExistingFileHelper exFileHelper;
@@ -26,6 +28,18 @@ public class BlockStateGenerator extends BlockStateProvider {
         orientedBlock(AdvancedComputers.SCREEN_BLOCK);
         orientedBlock(AdvancedComputers.COMPUTER_BLOCK);
         orientedBlock(AdvancedComputers.KEYCARD_READER_BLOCK);
+
+        BlockModelBuilder model = models().getBuilder("cable")
+                .parent(models().getExistingFile(rl_mc("cube")))
+                .customLoader((builder,existingFileHelper) -> new CustomLoaderBuilder<BlockModelBuilder>(CableModelLoader.GENERATOR_LOADER, builder, existingFileHelper) {
+                    @Override
+                    public JsonObject toJson(JsonObject json) {
+                        return super.toJson(json);
+                    }
+                })
+                .end();
+
+        simpleBlock(AdvancedComputers.CABLE_BLOCK.block().get(), model);
     }
 
     private void orientedBlock(RegistryBlockItemPair<Block> b) {
@@ -49,4 +63,21 @@ public class BlockStateGenerator extends BlockStateProvider {
     private ModelFile.ExistingModelFile mf(String s) {
         return new ModelFile.ExistingModelFile(rl(s), this.exFileHelper);
     }
+
+//    private static class CableLoaderBuilder extends CustomLoaderBuilder<BlockModelBuilder> {
+//        private final boolean facade;
+//
+//        public CableLoaderBuilder(ResourceLocation loader, BlockModelBuilder parent, ExistingFileHelper existingFileHelper,
+//                                  boolean facade) {
+//            super(loader, parent, existingFileHelper);
+//            this.facade = facade;
+//        }
+//
+//        @Override
+//        public JsonObject toJson(JsonObject json) {
+//            JsonObject obj = super.toJson(json);
+//            obj.addProperty("facade", facade);
+//            return obj;
+//        }
+//    }
 }

@@ -1,6 +1,9 @@
 package dev.asdf00.mc.advcomp;
 
 import com.mojang.logging.LogUtils;
+import dev.asdf00.mc.advcomp.blocks.cables.CableBlock;
+import dev.asdf00.mc.advcomp.blocks.cables.CableBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.cables.CableModelLoader;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlock;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockMenu;
@@ -18,6 +21,7 @@ import dev.asdf00.mc.advcomp.datagen.RecipeGenerator;
 import dev.asdf00.mc.advcomp.items.KeycardAdvancedItem;
 import dev.asdf00.mc.advcomp.items.KeycardBasicItem;
 import dev.asdf00.mc.advcomp.items.StorageItem;
+import dev.asdf00.mc.advcomp.types.AcCapabilities;
 import dev.asdf00.mc.advcomp.types.DualLayerItemColorHandler;
 import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
 import net.minecraft.client.Minecraft;
@@ -41,8 +45,10 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.data.event.GatherDataEvent;
@@ -101,6 +107,9 @@ public class AdvancedComputers {
     public static final RegistryBlockItemPair<Block> KEYCARD_READER_BLOCK = registerBlockWithItem("keycard_reader_block",
             () -> new KeyCardReaderBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
 
+    public static final RegistryBlockItemPair<Block> CABLE_BLOCK = registerBlockWithItem("cable_block",
+            () -> new CableBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
+
     public static final RegistryObject<BlockEntityType<ComputerBlockEntity>> COMPUTER_BE = BLOCK_ENTITY_TYPES.register("computer_be",
             () -> BlockEntityType.Builder.of(ComputerBlockEntity::new, COMPUTER_BLOCK.block().get()).build(null));
 
@@ -109,6 +118,9 @@ public class AdvancedComputers {
 
     public static final RegistryObject<BlockEntityType<KeyCardReaderBlockEntity>> KEYCARD_READER_BE = BLOCK_ENTITY_TYPES.register("keycard_reader_be",
             () -> BlockEntityType.Builder.of(KeyCardReaderBlockEntity::new, KEYCARD_READER_BLOCK.block().get()).build(null));
+
+    public static final RegistryObject<BlockEntityType<CableBlockEntity>> CABLE_BE = BLOCK_ENTITY_TYPES.register("cable_be",
+            () -> BlockEntityType.Builder.of(CableBlockEntity::new, CABLE_BLOCK.block().get()).build(null));
 
     public static final RegistryObject<MenuType<ComputerBlockMenu>> COMPUTER_MENU =
             registerMenuType("computer_menu", ComputerBlockMenu::new);
@@ -220,7 +232,6 @@ public class AdvancedComputers {
         gen.addProvider(event.includeClient(), new BlockModelGenerator(packOut, MODID, event.getExistingFileHelper()));
         gen.addProvider(event.includeClient(), new ItemModelGenerator(packOut, MODID, event.getExistingFileHelper()));
         gen.addProvider(event.includeClient(), new BlockStateGenerator(packOut, MODID, event.getExistingFileHelper()));
-
     }
 
     // Add the example block item to the building blocks tab
@@ -244,6 +255,7 @@ public class AdvancedComputers {
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class ClientModEvents {
+
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
             // Some client setup code
@@ -252,6 +264,12 @@ public class AdvancedComputers {
 
             MenuScreens.register(COMPUTER_MENU.get(), ComputerBlockScreen::new);
             MenuScreens.register(SCREEN_MENU.get(), ScreenBlockScreen::new);
+        }
+
+        @SubscribeEvent
+        public static void modelInit(ModelEvent.RegisterGeometryLoaders event)
+        {
+            CableModelLoader.register(event);
         }
     }
 }

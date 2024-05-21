@@ -3,6 +3,8 @@ package dev.asdf00.mc.advcomp.blocks.computer;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.lua.LuaSandbox;
+import dev.asdf00.mc.advcomp.types.AcCapabilities;
+import dev.asdf00.mc.advcomp.types.IAcCableConnectable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -20,14 +22,16 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.common.util.NonNullSupplier;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ComputerBlockEntity extends BlockEntity implements MenuProvider {
+public class ComputerBlockEntity extends BlockEntity implements MenuProvider, IAcCableConnectable {
     public final ItemStackHandler itemHandler = new ItemStackHandler(ComputerBlockMenu.TE_INVENTORY_SLOT_COUNT);
     private LazyOptional<IItemHandler> lazyItemhandler = LazyOptional.empty();
+    private final LazyOptional<IAcCableConnectable> lazyCableConnectable;
 
     protected final ContainerData data;
     private int computerState = 0;
@@ -60,6 +64,8 @@ public class ComputerBlockEntity extends BlockEntity implements MenuProvider {
                 return 1;
             }
         };
+
+        this.lazyCableConnectable = LazyOptional.of(() -> this);
     }
 
     @Override
@@ -72,6 +78,9 @@ public class ComputerBlockEntity extends BlockEntity implements MenuProvider {
         if (cap == ForgeCapabilities.ITEM_HANDLER)
             return lazyItemhandler.cast();
 
+        if (cap == AcCapabilities.CABLE_CONNECTABLE)
+            return lazyCableConnectable.cast();
+
         return super.getCapability(cap, side);
     }
 
@@ -79,6 +88,7 @@ public class ComputerBlockEntity extends BlockEntity implements MenuProvider {
     public void invalidateCaps() {
         super.invalidateCaps();
         lazyItemhandler.invalidate();
+        lazyCableConnectable.invalidate();
     }
 
     public void drops() {

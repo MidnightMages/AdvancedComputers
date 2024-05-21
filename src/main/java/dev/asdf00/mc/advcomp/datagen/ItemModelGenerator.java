@@ -35,10 +35,15 @@ public class ItemModelGenerator extends ItemModelProvider {
         this.withExistingParent("screen_block", rl("block/screen_block"));
         this.withExistingParent("keycard_reader_block", rl("block/keycard_reader_block"));
         this.withExistingParent("example_block", rl("block/example_block"));
+        //this.withExistingParent("cable_block", rl("block/example_block")); // TODO make texture
     }
 
     static ResourceLocation rl(String s) {
         return new ResourceLocation("advancedcomputers:" + s);
+    }
+
+    static ResourceLocation rl_mc(String s) {
+        return new ResourceLocation("minecraft:" + s);
     }
 
     static ItemModelBuilder scaleThirdPerson(ItemModelBuilder b) {
