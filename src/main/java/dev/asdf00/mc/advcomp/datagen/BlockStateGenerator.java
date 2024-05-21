@@ -31,7 +31,7 @@ public class BlockStateGenerator extends BlockStateProvider {
 
         BlockModelBuilder model = models().getBuilder("cable")
                 .parent(models().getExistingFile(rl_mc("cube")))
-                .customLoader((builder,existingFileHelper) -> new CustomLoaderBuilder<BlockModelBuilder>(CableModelLoader.GENERATOR_LOADER, builder, existingFileHelper) {
+                .customLoader((builder,existingFileHelper) -> new CableLoaderBuilder(CableModelLoader.GENERATOR_LOADER, builder, existingFileHelper, false) {
                     @Override
                     public JsonObject toJson(JsonObject json) {
                         return super.toJson(json);
@@ -64,20 +64,20 @@ public class BlockStateGenerator extends BlockStateProvider {
         return new ModelFile.ExistingModelFile(rl(s), this.exFileHelper);
     }
 
-//    private static class CableLoaderBuilder extends CustomLoaderBuilder<BlockModelBuilder> {
-//        private final boolean facade;
-//
-//        public CableLoaderBuilder(ResourceLocation loader, BlockModelBuilder parent, ExistingFileHelper existingFileHelper,
-//                                  boolean facade) {
-//            super(loader, parent, existingFileHelper);
-//            this.facade = facade;
-//        }
-//
-//        @Override
-//        public JsonObject toJson(JsonObject json) {
-//            JsonObject obj = super.toJson(json);
-//            obj.addProperty("facade", facade);
-//            return obj;
-//        }
-//    }
+    private static class CableLoaderBuilder extends CustomLoaderBuilder<BlockModelBuilder> {
+        private final boolean facade;
+
+        public CableLoaderBuilder(ResourceLocation loader, BlockModelBuilder parent, ExistingFileHelper existingFileHelper,
+                                  boolean facade) {
+            super(loader, parent, existingFileHelper);
+            this.facade = facade;
+        }
+
+        @Override
+        public JsonObject toJson(JsonObject json) {
+            JsonObject obj = super.toJson(json);
+            obj.addProperty("facade", facade);
+            return obj;
+        }
+    }
 }

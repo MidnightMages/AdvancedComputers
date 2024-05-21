@@ -35,7 +35,9 @@ public class ItemModelGenerator extends ItemModelProvider {
         this.withExistingParent("screen_block", rl("block/screen_block"));
         this.withExistingParent("keycard_reader_block", rl("block/keycard_reader_block"));
         this.withExistingParent("example_block", rl("block/example_block"));
-        //this.withExistingParent("cable_block", rl("block/example_block")); // TODO make texture
+//        this.withExistingParent("cable_block","advancedcomputers:block/cable");
+
+       //this.withExistingParent("cable_block", rl("block/cable")); // TODO make texture //missing cable_block.json
     }
 
     static ResourceLocation rl(String s) {
