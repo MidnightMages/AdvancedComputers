@@ -2,7 +2,7 @@ package dev.asdf00.mc.advcomp.blocks.cables;
 
 import java.util.HashMap;
 import java.util.Map;
-import static dev.asdf00.mc.advcomp.blocks.cables.ConnectorType.NONE;
+import static dev.asdf00.mc.advcomp.blocks.cables.ConnectionDir.NONE;
 
 // a lot of stuff taken from https://www.mcjty.eu/docs/1.20/ep5; Thank you :)
 public class CablePatterns {
@@ -13,7 +13,7 @@ public class CablePatterns {
 
     // Given a pattern of four directions (excluding the one we are looking at) we return the sprite index and rotation
     // for the quad that we are looking at.
-    public static QuadSetting findPattern(ConnectorType s1, ConnectorType s2, ConnectorType s3, ConnectorType s4) {
+    public static QuadSetting findPattern(ConnectionDir s1, ConnectionDir s2, ConnectionDir s3, ConnectionDir s4) {
         return PATTERNS.get(new Pattern(s1 != NONE, s2 != NONE, s3 != NONE, s4 != NONE));
     }
 

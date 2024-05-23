@@ -28,8 +28,8 @@ import java.util.function.Function;
 import static dev.asdf00.mc.advcomp.blocks.cables.BakedModelHelper.quad;
 import static dev.asdf00.mc.advcomp.blocks.cables.BakedModelHelper.v;
 import static dev.asdf00.mc.advcomp.blocks.cables.CablePatterns.SpriteIdx.*;
-import static dev.asdf00.mc.advcomp.blocks.cables.ConnectorType.BLOCK;
-import static dev.asdf00.mc.advcomp.blocks.cables.ConnectorType.CABLE;
+import static dev.asdf00.mc.advcomp.blocks.cables.ConnectionDir.BLOCK;
+import static dev.asdf00.mc.advcomp.blocks.cables.ConnectionDir.CABLE;
 
 // a lot of stuff taken from https://www.mcjty.eu/docs/1.20/ep5; Thank you :)
 public class CableBakedModel implements IDynamicBakedModel {
@@ -118,7 +118,7 @@ public class CableBakedModel implements IDynamicBakedModel {
             // Called with the blockstate from our block. Here we get the values of the six properties and pass that to
             // our baked model implementation. If state == null we are called from the inventory and we use the default
             // values for the properties
-            ConnectorType north, south, west, east, up, down;
+            ConnectionDir north, south, west, east, up, down;
             if (state != null) {
                 north = state.getValue(CableBlock.NORTH);
                 south = state.getValue(CableBlock.SOUTH);
@@ -138,7 +138,7 @@ public class CableBakedModel implements IDynamicBakedModel {
                     quads.add(quad(v(0, 0, 1), v(1, 0, 1), v(1, 1, 1), v(0, 1, 1), spriteSide));
                     return quads;
                 }
-                north = south = west = east = up = down = ConnectorType.NONE;
+                north = south = west = east = up = down = ConnectionDir.NONE;
             }
 
             TextureAtlasSprite spriteCable = spriteNormalCable;

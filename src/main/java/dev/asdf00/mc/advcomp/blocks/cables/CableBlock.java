@@ -27,7 +27,6 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.ticks.ScheduledTick;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,13 +34,12 @@ import org.jetbrains.annotations.Nullable;
 public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityBlock {
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
-    // TODO rename connectorType to ConnectionType
-    public static final EnumProperty<ConnectorType> NORTH = EnumProperty.create("north", ConnectorType.class);
-    public static final EnumProperty<ConnectorType> SOUTH = EnumProperty.create("south", ConnectorType.class);
-    public static final EnumProperty<ConnectorType> WEST = EnumProperty.create("west", ConnectorType.class);
-    public static final EnumProperty<ConnectorType> EAST = EnumProperty.create("east", ConnectorType.class);
-    public static final EnumProperty<ConnectorType> UP = EnumProperty.create("up", ConnectorType.class);
-    public static final EnumProperty<ConnectorType> DOWN = EnumProperty.create("down", ConnectorType.class);
+    public static final EnumProperty<ConnectionDir> NORTH = EnumProperty.create("north", ConnectionDir.class);
+    public static final EnumProperty<ConnectionDir> SOUTH = EnumProperty.create("south", ConnectionDir.class);
+    public static final EnumProperty<ConnectionDir> WEST = EnumProperty.create("west", ConnectionDir.class);
+    public static final EnumProperty<ConnectionDir> EAST = EnumProperty.create("east", ConnectionDir.class);
+    public static final EnumProperty<ConnectionDir> UP = EnumProperty.create("up", ConnectionDir.class);
+    public static final EnumProperty<ConnectionDir> DOWN = EnumProperty.create("down", ConnectionDir.class);
 //
 //    private Property<Boolean> WATERLOGGED;
 
@@ -60,22 +58,22 @@ public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityB
     private static final VoxelShape SHAPE_BLOCK_UP = Shapes.box(.2, .9, .2, .8, 1, .8);
     private static final VoxelShape SHAPE_BLOCK_DOWN = Shapes.box(.2, 0, .2, .8, .1, .8);
 
-    private int calculateShapeIndex(ConnectorType north, ConnectorType south, ConnectorType west, ConnectorType east, ConnectorType up, ConnectorType down) {
-        int l = ConnectorType.values().length;
+    private int calculateShapeIndex(ConnectionDir north, ConnectionDir south, ConnectionDir west, ConnectionDir east, ConnectionDir up, ConnectionDir down) {
+        int l = ConnectionDir.values().length;
         return ((((south.ordinal() * l + north.ordinal()) * l + west.ordinal()) * l + east.ordinal()) * l + up.ordinal()) * l + down.ordinal();
     }
 
     private void makeShapes() {
         if (shapeCache == null) {
-            int length = ConnectorType.values().length;
+            int length = ConnectionDir.values().length;
             shapeCache = new VoxelShape[length * length * length * length * length * length];
 
-            for (ConnectorType up : ConnectorType.VALUES) {
-                for (ConnectorType down : ConnectorType.VALUES) {
-                    for (ConnectorType north : ConnectorType.VALUES) {
-                        for (ConnectorType south : ConnectorType.VALUES) {
-                            for (ConnectorType east : ConnectorType.VALUES) {
-                                for (ConnectorType west : ConnectorType.VALUES) {
+            for (ConnectionDir up : ConnectionDir.VALUES) {
+                for (ConnectionDir down : ConnectionDir.VALUES) {
+                    for (ConnectionDir north : ConnectionDir.VALUES) {
+                        for (ConnectionDir south : ConnectionDir.VALUES) {
+                            for (ConnectionDir east : ConnectionDir.VALUES) {
+                                for (ConnectionDir west : ConnectionDir.VALUES) {
                                     int idx = calculateShapeIndex(north, south, west, east, up, down);
                                     shapeCache[idx] = makeShape(north, south, west, east, up, down);
                                 }
@@ -88,7 +86,7 @@ public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityB
         }
     }
 
-    private VoxelShape makeShape(ConnectorType north, ConnectorType south, ConnectorType west, ConnectorType east, ConnectorType up, ConnectorType down) {
+    private VoxelShape makeShape(ConnectionDir north, ConnectionDir south, ConnectionDir west, ConnectionDir east, ConnectionDir up, ConnectionDir down) {
         VoxelShape shape = Shapes.box(.4, .4, .4, .6, .6, .6);
         shape = combineShape(shape, north, SHAPE_CABLE_NORTH, SHAPE_BLOCK_NORTH);
         shape = combineShape(shape, south, SHAPE_CABLE_SOUTH, SHAPE_BLOCK_SOUTH);
@@ -99,11 +97,11 @@ public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityB
         return shape;
     }
 
-    private VoxelShape combineShape(VoxelShape shape, ConnectorType connectorType, VoxelShape cableShape, VoxelShape blockShape) {
-        if (connectorType == ConnectorType.CABLE) {
+    private VoxelShape combineShape(VoxelShape shape, ConnectionDir connectorType, VoxelShape cableShape, VoxelShape blockShape) {
+        if (connectorType == ConnectionDir.CABLE) {
             return Shapes.join(shape, cableShape, BooleanOp.OR);
         }
-        else if (connectorType == ConnectorType.BLOCK) {
+        else if (connectorType == ConnectionDir.BLOCK) {
             return Shapes.join(shape, Shapes.join(blockShape, cableShape, BooleanOp.OR), BooleanOp.OR);
         }
         else {
@@ -113,12 +111,12 @@ public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityB
 
     @Override
     public @NotNull VoxelShape getShape(@NotNull BlockState state, @NotNull BlockGetter world, @NotNull BlockPos pos, @NotNull CollisionContext context) {
-        ConnectorType north = getConnectorType(world, pos, Direction.NORTH);
-        ConnectorType south = getConnectorType(world, pos, Direction.SOUTH);
-        ConnectorType west = getConnectorType(world, pos, Direction.WEST);
-        ConnectorType east = getConnectorType(world, pos, Direction.EAST);
-        ConnectorType up = getConnectorType(world, pos, Direction.UP);
-        ConnectorType down = getConnectorType(world, pos, Direction.DOWN);
+        ConnectionDir north = getConnectorType(world, pos, Direction.NORTH);
+        ConnectionDir south = getConnectorType(world, pos, Direction.SOUTH);
+        ConnectionDir west = getConnectorType(world, pos, Direction.WEST);
+        ConnectionDir east = getConnectorType(world, pos, Direction.EAST);
+        ConnectionDir up = getConnectorType(world, pos, Direction.UP);
+        ConnectionDir down = getConnectorType(world, pos, Direction.DOWN);
         int index = calculateShapeIndex(north, south, west, east, up, down);
         return shapeCache[index];
     }
@@ -180,18 +178,18 @@ public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityB
     }
 
     // Return the connector type for the given position and facing direction
-    private ConnectorType getConnectorType(BlockGetter world, BlockPos connectorPos, Direction facing) {
+    private ConnectionDir getConnectorType(BlockGetter world, BlockPos connectorPos, Direction facing) {
         BlockPos pos = connectorPos.relative(facing);
         BlockState state = world.getBlockState(pos);
         Block block = state.getBlock();
         if (block instanceof CableBlock) {
-            return ConnectorType.CABLE;
+            return ConnectionDir.CABLE;
         }
         else if (isConnectable(world, connectorPos, facing)) {
-            return ConnectorType.BLOCK;
+            return ConnectionDir.BLOCK;
         }
         else {
-            return ConnectorType.NONE;
+            return ConnectionDir.NONE;
         }
     }
 
@@ -226,12 +224,12 @@ public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityB
     }
 
     private @NotNull BlockState calculateState(LevelAccessor world, BlockPos pos, BlockState state) {
-        ConnectorType north = getConnectorType(world, pos, Direction.NORTH);
-        ConnectorType south = getConnectorType(world, pos, Direction.SOUTH);
-        ConnectorType west = getConnectorType(world, pos, Direction.WEST);
-        ConnectorType east = getConnectorType(world, pos, Direction.EAST);
-        ConnectorType up = getConnectorType(world, pos, Direction.UP);
-        ConnectorType down = getConnectorType(world, pos, Direction.DOWN);
+        ConnectionDir north = getConnectorType(world, pos, Direction.NORTH);
+        ConnectionDir south = getConnectorType(world, pos, Direction.SOUTH);
+        ConnectionDir west = getConnectorType(world, pos, Direction.WEST);
+        ConnectionDir east = getConnectorType(world, pos, Direction.EAST);
+        ConnectionDir up = getConnectorType(world, pos, Direction.UP);
+        ConnectionDir down = getConnectorType(world, pos, Direction.DOWN);
 
         return state
                 .setValue(NORTH, north)
