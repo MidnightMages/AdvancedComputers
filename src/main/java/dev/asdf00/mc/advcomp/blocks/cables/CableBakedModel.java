@@ -76,9 +76,9 @@ public class CableBakedModel implements IDynamicBakedModel {
     private void initTextures() {
         if (spriteConnector == null) {
             spriteConnector = getTexture("block/cable/connector");
-            spriteSide = getTexture("block/cable/side");
+            spriteSide = getTexture("block/cable/connector_side");
 
-            spriteNormalCable = getTexture("block/cable/normal");
+            spriteNormalCable = getTexture("block/cable/side");
             spriteNoneCable = getTexture("block/cable/none");
             spriteEndCable = getTexture("block/cable/end");
             spriteCornerCable = getTexture("block/cable/corner");
@@ -164,8 +164,8 @@ public class CableBakedModel implements IDynamicBakedModel {
 
                 quads.add(quad(v(1 - q, 1 - p, q), v(1 - q, 1, q), v(1 - q, 1, 1 - q), v(1 - q, 1 - p, 1 - q), spriteSide));
                 quads.add(quad(v(q, 1 - p, 1 - q), v(q, 1, 1 - q), v(q, 1, q), v(q, 1 - p, q), spriteSide));
-                quads.add(quad(v(q, 1, q), v(1 - q, 1, q), v(1 - q, 1 - p, q), v(q, 1 - p, q), spriteSide));
-                quads.add(quad(v(q, 1 - p, 1 - q), v(1 - q, 1 - p, 1 - q), v(1 - q, 1, 1 - q), v(q, 1, 1 - q), spriteSide));
+                quads.add(quad(v(q, 1 - p, q), v(q, 1, q), v(1 - q, 1, q), v(1 - q, 1 - p, q), spriteSide));
+                quads.add(quad(v(q, 1, 1 - q), v(q, 1 - p, 1 - q), v(1 - q, 1 - p, 1 - q), v(1 - q, 1, 1 - q), spriteSide));
 
                 quads.add(quad(v(q, 1 - p, q), v(1 - q, 1 - p, q), v(1 - q, 1 - p, 1 - q), v(q, 1 - p, 1 - q), spriteConnector));
                 quads.add(quad(v(q, 1, q), v(q, 1, 1 - q), v(1 - q, 1, 1 - q), v(1 - q, 1, q), spriteSide));
@@ -189,8 +189,8 @@ public class CableBakedModel implements IDynamicBakedModel {
 
                 quads.add(quad(v(1 - q, 0, q), v(1 - q, p, q), v(1 - q, p, 1 - q), v(1 - q, 0, 1 - q), spriteSide));
                 quads.add(quad(v(q, 0, 1 - q), v(q, p, 1 - q), v(q, p, q), v(q, 0, q), spriteSide));
-                quads.add(quad(v(q, p, q), v(1 - q, p, q), v(1 - q, 0, q), v(q, 0, q), spriteSide));
-                quads.add(quad(v(q, 0, 1 - q), v(1 - q, 0, 1 - q), v(1 - q, p, 1 - q), v(q, p, 1 - q), spriteSide));
+                quads.add(quad(v(q, 0, q), v(q, p, q), v(1 - q, p, q), v(1 - q, 0, q), spriteSide));
+                quads.add(quad(v(q, p, 1 - q), v(q, 0, 1 - q), v(1 - q, 0, 1 - q), v(1 - q, p, 1 - q), spriteSide));
 
                 quads.add(quad(v(q, p, 1 - q), v(1 - q, p, 1 - q), v(1 - q, p, q), v(q, p, q), spriteConnector));
                 quads.add(quad(v(q, 0, 1 - q), v(q, 0, q), v(1 - q, 0, q), v(1 - q, 0, 1 - q), spriteSide));
@@ -262,10 +262,10 @@ public class CableBakedModel implements IDynamicBakedModel {
                 quads.add(quad(v(1 - o, o, p), v(1 - o, 1 - o, p), v(1 - o, 1 - o, o), v(1 - o, o, o), spriteCable));
                 quads.add(quad(v(o, o, o), v(o, 1 - o, o), v(o, 1 - o, p), v(o, o, p), spriteCable));
 
-                quads.add(quad(v(q, 1 - q, p), v(1 - q, 1 - q, p), v(1 - q, 1 - q, 0), v(q, 1 - q, 0), spriteSide));
-                quads.add(quad(v(q, q, 0), v(1 - q, q, 0), v(1 - q, q, p), v(q, q, p), spriteSide));
-                quads.add(quad(v(1 - q, q, 0), v(1 - q, 1 - q, 0), v(1 - q, 1 - q, p), v(1 - q, q, p), spriteSide));
-                quads.add(quad(v(q, q, p), v(q, 1 - q, p), v(q, 1 - q, 0), v(q, q, 0), spriteSide));
+                quads.add(quad(v(q, 1 - q, 0), v(q, 1 - q, p), v(1 - q, 1 - q, p), v(1 - q, 1 - q, 0), spriteSide));
+                quads.add(quad(v(q, q, p), v(q, q, 0), v(1 - q, q, 0), v(1 - q, q, p), spriteSide));
+                quads.add(quad(v(1 - q, q, p), v(1 - q, q, 0), v(1 - q, 1 - q, 0), v(1 - q, 1 - q, p), spriteSide));
+                quads.add(quad(v(q, q, 0), v(q, q, p), v(q, 1 - q, p), v(q, 1 - q, 0), spriteSide));
 
                 quads.add(quad(v(q, q, p), v(1 - q, q, p), v(1 - q, 1 - q, p), v(q, 1 - q, p), spriteConnector));
                 quads.add(quad(v(q, q, 0), v(q, 1 - q, 0), v(1 - q, 1 - q, 0), v(1 - q, q, 0), spriteSide));
@@ -287,10 +287,10 @@ public class CableBakedModel implements IDynamicBakedModel {
                 quads.add(quad(v(1 - o, o, 1 - o), v(1 - o, 1 - o, 1 - o), v(1 - o, 1 - o, 1 - p), v(1 - o, o, 1 - p), spriteCable));
                 quads.add(quad(v(o, o, 1 - p), v(o, 1 - o, 1 - p), v(o, 1 - o, 1 - o), v(o, o, 1 - o), spriteCable));
 
-                quads.add(quad(v(q, 1 - q, 1), v(1 - q, 1 - q, 1), v(1 - q, 1 - q, 1 - p), v(q, 1 - q, 1 - p), spriteSide));
-                quads.add(quad(v(q, q, 1 - p), v(1 - q, q, 1 - p), v(1 - q, q, 1), v(q, q, 1), spriteSide));
-                quads.add(quad(v(1 - q, q, 1 - p), v(1 - q, 1 - q, 1 - p), v(1 - q, 1 - q, 1), v(1 - q, q, 1), spriteSide));
-                quads.add(quad(v(q, q, 1), v(q, 1 - q, 1), v(q, 1 - q, 1 - p), v(q, q, 1 - p), spriteSide));
+                quads.add(quad(v(q, 1 - q, 1 - p), v(q, 1 - q, 1), v(1 - q, 1 - q, 1), v(1 - q, 1 - q, 1 - p), spriteSide));
+                quads.add(quad(v(q, q, 1), v(q, q, 1 - p), v(1 - q, q, 1 - p), v(1 - q, q, 1), spriteSide));
+                quads.add(quad(v(1 - q, q, 1), v(1 - q, q, 1 - p), v(1 - q, 1 - q, 1 - p), v(1 - q, 1 - q, 1), spriteSide));
+                quads.add(quad(v(q, q, 1 - p), v(q, q, 1), v(q, 1 - q, 1), v(q, 1 - q, 1 - p), spriteSide));
 
                 quads.add(quad(v(q, 1 - q, 1 - p), v(1 - q, 1 - q, 1 - p), v(1 - q, q, 1 - p), v(q, q, 1 - p), spriteConnector));
                 quads.add(quad(v(q, 1 - q, 1), v(q, q, 1), v(1 - q, q, 1), v(1 - q, 1 - q, 1), spriteSide));
