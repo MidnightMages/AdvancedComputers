@@ -76,11 +76,11 @@ public class CableBakedModel implements IDynamicBakedModel {
     private void initTextures() {
         if (spriteConnector == null) {
             spriteConnector = getTexture("block/cable/connector");
+            spriteSide = getTexture("block/cable/side");
+
             spriteNormalCable = getTexture("block/cable/normal");
             spriteNoneCable = getTexture("block/cable/none");
-
             spriteEndCable = getTexture("block/cable/end");
-            spriteSide = getTexture("block/cable/side");
             spriteCornerCable = getTexture("block/cable/corner");
             spriteThreeCable = getTexture("block/cable/three");
             spriteCrossCable = getTexture("block/cable/cross");
