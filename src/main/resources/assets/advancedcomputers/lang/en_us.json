@@ -9,6 +9,8 @@
 	
 	"block.advancedcomputers.keycard_reader_block": "Keycard Reader",
 
+	"block.advancedcomputers.cable_block": "Cable",
+
 	"item.advancedcomputers.example_item": "Example Item",
 	"item.advancedcomputers.keycard_basic_item": "Basic %s Keycard",
 	"item.advancedcomputers.keycard_advanced_item": "Advanced %s Keycard",

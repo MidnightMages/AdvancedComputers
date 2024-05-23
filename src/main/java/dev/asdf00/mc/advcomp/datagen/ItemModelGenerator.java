@@ -5,6 +5,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraftforge.client.model.generators.ItemModelBuilder;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
+import net.minecraftforge.client.model.generators.ModelFile;
 import net.minecraftforge.common.data.ExistingFileHelper;
 
 public class ItemModelGenerator extends ItemModelProvider {
@@ -35,10 +36,16 @@ public class ItemModelGenerator extends ItemModelProvider {
         this.withExistingParent("screen_block", rl("block/screen_block"));
         this.withExistingParent("keycard_reader_block", rl("block/keycard_reader_block"));
         this.withExistingParent("example_block", rl("block/example_block"));
+
+        this.getBuilder("cable_block").parent(new ModelFile.UncheckedModelFile(rl("block/cable")));
     }
 
     static ResourceLocation rl(String s) {
         return new ResourceLocation("advancedcomputers:" + s);
+    }
+
+    static ResourceLocation rl_mc(String s) {
+        return new ResourceLocation("minecraft:" + s);
     }
 
     static ItemModelBuilder scaleThirdPerson(ItemModelBuilder b) {
