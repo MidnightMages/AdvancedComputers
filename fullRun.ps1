@@ -1,0 +1,1 @@
+(./copyAssets.ps1); (./gradlew.bat runData) -and (./gradlew.bat runClient)
