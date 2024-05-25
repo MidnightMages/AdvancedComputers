@@ -1,4 +1,4 @@
-package dev.asdf00.mc.advcomp.lua.fs;
+package dev.asdf00.mc.advcomp.lua.components.fs;
 
 import com.mojang.logging.LogUtils;
 import dev.asdf00.mc.advcomp.AdvancedComputers;

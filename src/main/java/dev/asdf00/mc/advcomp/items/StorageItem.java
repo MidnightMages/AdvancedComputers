@@ -2,8 +2,7 @@ package dev.asdf00.mc.advcomp.items;
 
 import dev.asdf00.mc.advcomp.lua.IAcComponent;
 import dev.asdf00.mc.advcomp.lua.LuaComponentRegistry;
-import dev.asdf00.mc.advcomp.lua.fs.UnmanagedStorageHandler;
-import net.minecraft.server.MinecraftServer;
+import dev.asdf00.mc.advcomp.lua.components.fs.UnmanagedStorageHandler;
 import net.minecraft.world.item.Item;
 
 public class StorageItem extends Item implements IAcComponent {
