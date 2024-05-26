@@ -49,17 +49,11 @@ public class GraphicsBuffer {
     }
 
     public GraphicsBuffer(int width, int height) {
-        RuntimeAssert(width > 0 && height > 0, "invalid width or height %s %s".formatted(width, height));
+        RuntimeAssert(width > 0 && height > 0, "invalid width or height %s %s", width, height);
 
         this.width = width;
         this.height = height;
         data = new byte[width * height];
-    }
-
-
-    private void RuntimeAssert(boolean ok, String message) {
-        if (!ok)
-            throw new IllegalStateException("Assertion failed: " + message);
     }
 
     public void constFill(int xStart, int yStart, int xEnd, int yEnd, byte color) {
