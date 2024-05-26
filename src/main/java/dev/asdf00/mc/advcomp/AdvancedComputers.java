@@ -21,7 +21,6 @@ import dev.asdf00.mc.advcomp.datagen.RecipeGenerator;
 import dev.asdf00.mc.advcomp.items.KeycardAdvancedItem;
 import dev.asdf00.mc.advcomp.items.KeycardBasicItem;
 import dev.asdf00.mc.advcomp.items.StorageItem;
-import dev.asdf00.mc.advcomp.types.AcCapabilities;
 import dev.asdf00.mc.advcomp.types.DualLayerItemColorHandler;
 import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
 import net.minecraft.client.Minecraft;
@@ -48,8 +47,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
-import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
@@ -267,8 +264,7 @@ public class AdvancedComputers {
         }
 
         @SubscribeEvent
-        public static void modelInit(ModelEvent.RegisterGeometryLoaders event)
-        {
+        public static void modelInit(ModelEvent.RegisterGeometryLoaders event) {
             CableModelLoader.register(event);
         }
     }
