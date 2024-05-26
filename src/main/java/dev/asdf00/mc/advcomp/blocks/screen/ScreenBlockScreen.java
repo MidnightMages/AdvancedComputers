@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(AdvancedComputers.MODID, "textures/gui/screen_gui.png");
-    private static final Style MONOFONT = Style.EMPTY.withFont(new ResourceLocation(AdvancedComputers.MODID, "pixeloidmono"));
+    private static final Style MONOFONT = Style.EMPTY.withFont(new ResourceLocation(AdvancedComputers.MODID, "pixelcodepro")); // otf font
 
     private static final int LINE_CNT = 15;
 

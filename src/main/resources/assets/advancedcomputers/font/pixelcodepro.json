@@ -2,7 +2,7 @@
 	"providers": [
 		{
 			"type":"ttf",
-			"file":"minecraft:pixeloidmono.ttf",
+			"file":"advancedcomputers:pixelcodepro.ttf",
 			"shift":[0,0],
 			"size":16,
 			"oversample":20
