@@ -1,48 +1,15 @@
 package dev.asdf00.mc.advcomp.lua.components;
 
-import dev.asdf00.mc.advcomp.lua.LuaMain;
-
-import java.awt.*;
-import java.awt.font.FontRenderContext;
-import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Map;
-import java.util.Objects;
+
+import static dev.asdf00.mc.advcomp.types.RuntimeAssert.RuntimeAssert;
 
 public class GraphicsBuffer {
     private final int width; // x axis (left)
     private final int height; // y axis (top)
-    private final byte[] data;
-
-    private static GraphicsBuffer bakedCharacterAtlas;
-    private static Map<Character, Integer> bakedCharacterAtlasIndexLut;
-
-    private void BakeCharacterAtlas()
-    {
-        Font f;
-        try (var stream = LuaMain.class.getClassLoader().getResourceAsStream("fonts/PixeloidMono.otf")) {
-            Objects.requireNonNull(stream, "Error loading font!");
-            f =  Font.createFont(Font.TRUETYPE_FONT, stream);
-        } catch (IOException | FontFormatException e) {
-            throw new IllegalStateException("Font not found or failed to load!");
-        }
-
-        var letterCount = f.getNumGlyphs();
-        var frc = new FontRenderContext(new AffineTransform(), false, false);
-        var glyphSize = f.getStringBounds(" ", frc);
-
-        var width = (int)Math.ceil(Math.sqrt(letterCount));
-        var height = (int)Math.ceil((double)letterCount/width);
-        var bi = new BufferedImage((int)Math.ceil(width*glyphSize.getX()),(int)Math.ceil(height*glyphSize.getY()), BufferedImage.TYPE_BYTE_GRAY);
-
-        for (int i = 0; i < letterCount; i++) {
-            if (f.canDisplay(i))
-        }
-        bi.createGraphics().drawGlyphVector(f.createGlyphVector(frc, ));
-    }
+    private final char[] charData;
+    private final byte[] colorData;
+    private byte currentColor = 0;
 
     private int getIndex(int x, int y) {
         return y * width + x;
@@ -53,10 +20,11 @@ public class GraphicsBuffer {
 
         this.width = width;
         this.height = height;
-        data = new byte[width * height];
+        charData = new char[width * height];
+        colorData = new byte[charData.length];
     }
 
-    public void constFill(int xStart, int yStart, int xEnd, int yEnd, byte color) {
+    public void constFill(int xStart, int yStart, int xEnd, int yEnd, char chr) {
         RuntimeAssert(xStart >= 0, "xStart must be non-negative");
         RuntimeAssert(yStart >= 0, "yStart must be non-negative");
         RuntimeAssert(xEnd < width, "xEnd must be < width");
@@ -68,7 +36,8 @@ public class GraphicsBuffer {
         final int fillLen = xEnd - xStart;
         final int rowCnt = yEnd - yStart;
         for (int i = 0; i <= rowCnt; i++) {
-            Arrays.fill(data, fillStart, fillStart + fillLen, color);
+            Arrays.fill(charData, fillStart, fillStart + fillLen, chr);
+            Arrays.fill(colorData, fillStart, fillStart + fillLen, currentColor);
             fillStart += width;
         }
     }
@@ -93,28 +62,47 @@ public class GraphicsBuffer {
         int srcCopyIndex = getIndex(xSrcStart, ySrcStart);
         int dstCopyIndex = dst.getIndex(xDstStart, yDstStart);
         for (int i = 0; i < height; i++) {
-            System.arraycopy(this.data, srcCopyIndex, dst.data, dstCopyIndex, width);
+            System.arraycopy(this.charData, srcCopyIndex, dst.charData, dstCopyIndex, width);
+            System.arraycopy(this.colorData, srcCopyIndex, dst.colorData, dstCopyIndex, width);
             srcCopyIndex += width;
             dstCopyIndex += width;
         }
     }
 
     public void writeText(int x, int y, String text, byte color) {
-        var g = new Graphics2D();
-        g.setFont(new Font("Serif", Font.PLAIN, 24));
 
-        Font.createFont().createGlyphVector()
     }
 
     public byte getColor(int x, int y) {
-        return data[getIndex(x, y)];
+        return colorData[getIndex(x, y)];
     }
 
-    public void setColor(int x, int y, byte color) {
+    public char getChar(int x, int y) {
+        return charData[getIndex(x, y)];
+    }
+
+    public void recolor(int x, int y, byte color) {
         RuntimeAssert(x >= 0, "x must be non-negative");
         RuntimeAssert(y >= 0, "y must be non-negative");
         RuntimeAssert(x < width, "x must be < buffer_width");
         RuntimeAssert(y < height, "y must be < buffer_height");
-        data[getIndex(x, y)] = color;
+        colorData[getIndex(x, y)] = color;
+    }
+
+    public void setDrawColor(byte color) {
+        currentColor = color;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public String getRow(int row) {
+        RuntimeAssert(row >= 0 && row < height, "row index out of range");
+        return new String(charData, getIndex(0, row), width);
     }
 }
