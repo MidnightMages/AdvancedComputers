@@ -5,6 +5,7 @@ import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.lua.LuaStdOut;
 import dev.asdf00.mc.advcomp.lua.components.GraphicsBuffer;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
@@ -16,11 +17,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(AdvancedComputers.MODID, "textures/gui/screen_gui.png");
-    private static final Style MONOFONT = Style.EMPTY.withFont(new ResourceLocation(AdvancedComputers.MODID, "pixelcodepro")); // otf font
+    private static final Style MONOFONT = Style.EMPTY.withFont(new ResourceLocation(AdvancedComputers.MODID, "pixeloidmono")); // otf font
 
     private static final int LINE_CNT = 15;
 
-    private GraphicsBuffer gb;
+    private final GraphicsBuffer gb;
     private ComputerBlockEntity computerEntity;
 
     public ScreenBlockScreen(ScreenMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
@@ -52,8 +53,9 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
     }
 
     private void renderScreenContents(@NotNull GuiGraphics pGuiGraphics) {
+
         int x = (width - imageWidth) / 2 + 6;
-        int y = (height - imageHeight) / 2 + 6;
+        int y = (height - imageHeight) / 2 + 11;
         for (int i = 0; i < gb.getHeight(); i++) {
             var s = "testString!!aaaaaaaaa";
             var s2 = /*Minecraft.getInstance().font.getSplitter().headByWidth(*/Component.literal(s).withStyle(MONOFONT);//, gb.getWidth(), Style.EMPTY) ;
