@@ -1,6 +1,4 @@
-package dev.asdf00.mc.advcomp.lua.fs;
-
-import java.nio.file.Path;
+package dev.asdf00.mc.advcomp.lua.components.fs;
 
 public interface StorageHandler {
 

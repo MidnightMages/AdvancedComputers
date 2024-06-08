@@ -1,0 +1,11 @@
+{
+	"providers": [
+		{
+			"type":"ttf",
+			"file":"advancedcomputers:topaz8.ttf",
+			"shift":[0,0],
+			"size":8,
+			"oversample":20
+		}
+	]
+}

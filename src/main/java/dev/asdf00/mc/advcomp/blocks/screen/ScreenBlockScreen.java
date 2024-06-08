@@ -1,27 +1,27 @@
 package dev.asdf00.mc.advcomp.blocks.screen;
 
-import com.mojang.blaze3d.platform.ClipboardManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.lua.LuaStdOut;
+import dev.asdf00.mc.advcomp.lua.components.GraphicsBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
-
-import java.awt.*;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.io.IOException;
+import org.jetbrains.annotations.NotNull;
 
 public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(AdvancedComputers.MODID, "textures/gui/screen_gui.png");
+    private static final Style MONOFONT = Style.EMPTY.withFont(new ResourceLocation(AdvancedComputers.MODID, "pixeloidmono")); // otf font
+
     private static final int LINE_CNT = 15;
 
+    private final GraphicsBuffer gb;
     private ComputerBlockEntity computerEntity;
 
     public ScreenBlockScreen(ScreenMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
@@ -29,6 +29,8 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
         computerEntity = null;
         this.imageWidth = 256;
         this.imageHeight = 149;
+        this.gb = new GraphicsBuffer(50, 15);
+//        MONOFONT = AdvancedComputers.GetFont();
     }
 
     @Override
@@ -46,10 +48,23 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
         int x = (width - imageWidth) / 2;
         int y = (height - imageHeight) / 2;
         pGuiGraphics.blit(TEXTURE, x, y, 0, 0, imageWidth, imageHeight);
+
+        renderScreenContents(pGuiGraphics);
+    }
+
+    private void renderScreenContents(@NotNull GuiGraphics pGuiGraphics) {
+
+        int x = (width - imageWidth) / 2 + 6;
+        int y = (height - imageHeight) / 2 + 11;
+        for (int i = 0; i < gb.getHeight(); i++) {
+            var s = "testString!!aaaaaaaaa";
+            var s2 = /*Minecraft.getInstance().font.getSplitter().headByWidth(*/Component.literal(s).withStyle(MONOFONT);//, gb.getWidth(), Style.EMPTY) ;
+            pGuiGraphics.drawString(font, s2 /*gb.getRow(i)*/, x, y + font.lineHeight * i, -1);
+        }
     }
 
     @Override
-    public void render(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    public void render(@NotNull GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         renderBackground(pGuiGraphics);
         // TODO: render image, not stdout
         renderStdOut(pGuiGraphics);
