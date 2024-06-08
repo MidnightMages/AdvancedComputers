@@ -125,8 +125,8 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
 
     @Override
     public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
-        if (pButton == 2) {
-            // middle-click to paste
+        if (pButton == 1) {
+            // right-click to paste
             String clip = Minecraft.getInstance().keyboardHandler.getClipboard();
             if (clip != null && clip.length() > 0) {
                 getComputerEntity().getLvm().pushMachineEvent("textPasted", clip);
