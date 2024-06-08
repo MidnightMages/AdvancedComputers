@@ -9,9 +9,7 @@ import party.iroiro.luajava.value.RefLuaValue;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
 
@@ -55,6 +53,7 @@ public class LuaSandbox {
     }
 
     private final ArrayDeque<MachineEvent> machineEvents = new ArrayDeque<>();
+    private final Set<String> subbedEvents = new HashSet<>();
 
     public LuaSandbox(ComputerBlockEntity computer, int instructionsPerSecond) {
         this.computer = computer;
@@ -200,6 +199,9 @@ public class LuaSandbox {
             System.out.println("setStopCode: " + msg);
             stopCode = msg;
         }));
+
+        setGlobalFunction("unsubMachineEvent", new LuaFunctionProxy(this::unsubMachineEvent));
+        setGlobalFunction("subMachineEvent", new LuaFunctionProxy(this::subMachineEvent));
         setGlobalFunction("getMachineEvent", new LuaFunctionProxy(this::getMachineEvent));
         setGlobalFunction("waitForMachineEvent", new LuaFunctionProxy(this::waitForMachineEvent));
         setGlobalFunction("sleep", new LuaFunctionProxy((Object[] args) -> {
@@ -270,10 +272,43 @@ public class LuaSandbox {
         }
     }
 
-    public void pushMachineEvent(String name, Object event) {
+    public void subMachineEvent(Object[] args) {
+        String name;
+        try {
+            name = (String) args[0];
+        } catch (ClassCastException | ArrayIndexOutOfBoundsException ex) {
+            throw new AcLuaException("Syntax: subMachineEvent(<name>)");
+        }
         synchronized (machineEvents) {
-            machineEvents.add(new MachineEvent(name, event));
-            machineEvents.notifyAll();
+            subbedEvents.add(name);
+        }
+    }
+
+    public void unsubMachineEvent(Object[] args) {
+        String name;
+        boolean evict;
+        try {
+            name = (String) args[0];
+            evict = args.length > 1 ? (Boolean) args[1] : false;
+        } catch (ClassCastException | ArrayIndexOutOfBoundsException ex) {
+            throw new AcLuaException("Syntax: unsubMachineEvent(<name> [, <evict>])");
+        }
+        synchronized (machineEvents) {
+            subbedEvents.remove(name);
+            if (evict) {
+                machineEvents.removeIf(e -> e.name().equals(name));
+            }
+        }
+    }
+
+    public boolean pushMachineEvent(String name, Object event) {
+        synchronized (machineEvents) {
+            if (subbedEvents.contains(name)) {
+                machineEvents.add(new MachineEvent(name, event));
+                machineEvents.notifyAll();
+                return true;
+            }
+            return false;
         }
     }
 

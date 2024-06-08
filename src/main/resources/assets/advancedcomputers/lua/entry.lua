@@ -55,6 +55,8 @@ local function init()
 
     -- build 'computer' table
     local computer = {};
+    computer["unsubMachineEvent"] = GetAndClearGlobal("unsubMachineEvent")
+    computer["subMachineEvent"] = GetAndClearGlobal("subMachineEvent")
     computer["getMachineEvent"] = GetAndClearGlobal("getMachineEvent")
     computer["waitForMachineEvent"] = GetAndClearGlobal("waitForMachineEvent")
     _G["computer"] = computer;

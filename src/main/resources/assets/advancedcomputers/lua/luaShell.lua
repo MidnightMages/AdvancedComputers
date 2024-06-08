@@ -1,3 +1,5 @@
+computer.subMachineEvent("keyTyped")
+computer.subMachineEvent("textPasted")
 local stringBuffer = ""
 clear()
 print("LUA Shell:")

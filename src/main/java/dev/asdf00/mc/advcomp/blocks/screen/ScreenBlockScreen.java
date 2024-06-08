@@ -1,15 +1,22 @@
 package dev.asdf00.mc.advcomp.blocks.screen;
 
+import com.mojang.blaze3d.platform.ClipboardManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.lua.LuaStdOut;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+
+import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.IOException;
 
 public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(AdvancedComputers.MODID, "textures/gui/screen_gui.png");
@@ -99,5 +106,17 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
         }
         getComputerEntity().getLvm().pushMachineEvent("keyTyped", String.valueOf(pCodePoint));
         return true;
+    }
+
+    @Override
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+        if (pButton == 2) {
+            // middle-click to paste
+            String clip = Minecraft.getInstance().keyboardHandler.getClipboard();
+            if (clip != null && clip.length() > 0) {
+                getComputerEntity().getLvm().pushMachineEvent("textPasted", clip);
+            }
+        }
+        return super.mouseClicked(pMouseX, pMouseY, pButton);
     }
 }
