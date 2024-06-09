@@ -113,6 +113,13 @@ public class LuaSandbox {
         }
     }
 
+    public void startIfOff() {
+        synchronized (startStopLock) {
+            if (!isRunning)
+                start();
+        }
+    }
+
     public void start() {
         AdvancedComputers.LOGGER.info("Starting LVM");
         synchronized (startStopLock) {
