@@ -70,9 +70,12 @@ public class ComputerBlock extends BaseEntityBlock {
     public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
         if (!pLevel.isClientSide()) {
             var be = pLevel.getBlockEntity(pPos);
-            if (be instanceof ComputerBlockEntity cbe)
-                NetworkHooks.openScreen((ServerPlayer) pPlayer, cbe, pPos); // will likely break in 1.20.2+
-            else
+            if (be instanceof ComputerBlockEntity cbe) {
+                if (pPlayer.isShiftKeyDown())
+                    cbe.getLvm().startIfOff();
+                else
+                    NetworkHooks.openScreen((ServerPlayer) pPlayer, cbe, pPos); // will likely break in 1.20.2+
+            } else
                 throw new IllegalStateException("Tile entity missing?");
         }
 
