@@ -19,7 +19,12 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(AdvancedComputers.MODID, "textures/gui/screen_gui.png");
     private static final Style MONOFONT = Style.EMPTY.withFont(new ResourceLocation(AdvancedComputers.MODID, "pixeloidmono")); // otf font
 
-    private static final int LINE_CNT = 15;
+    private static final int LINE_CNT = 27;
+    private static final int SCREENSIZEY = 253;
+    private static final int SCREENSIZEX = SCREENSIZEY * 16 / 9;
+
+    private static final int CORNERSZ = 5;
+
 
     private final GraphicsBuffer gb;
     private ComputerBlockEntity computerEntity;
@@ -27,8 +32,8 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
     public ScreenBlockScreen(ScreenMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
         computerEntity = null;
-        this.imageWidth = 256;
-        this.imageHeight = 149;
+        this.imageHeight = SCREENSIZEY;
+        this.imageWidth = SCREENSIZEX;
         this.gb = new GraphicsBuffer(50, 15);
 //        MONOFONT = AdvancedComputers.GetFont();
     }
@@ -41,15 +46,13 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
     }
 
     @Override
-    protected void renderBg(GuiGraphics pGuiGraphics, float pPartialTick, int pMouseX, int pMouseY) {
+    protected void renderBg(@NotNull GuiGraphics pGuiGraphics, float pPartialTick, int pMouseX, int pMouseY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1, 1, 1, 1);
         RenderSystem.setShaderTexture(0, TEXTURE);
-        int x = (width - imageWidth) / 2;
-        int y = (height - imageHeight) / 2;
-        pGuiGraphics.blit(TEXTURE, x, y, 0, 0, imageWidth, imageHeight);
-
-        //renderScreenContents(pGuiGraphics);
+        int topLDrawPosX = (width - SCREENSIZEX) / 2;
+        int TopLDrawPosY = (height - SCREENSIZEY) / 2;
+        pGuiGraphics.blitWithBorder(TEXTURE, topLDrawPosX, TopLDrawPosY, 0, 0, SCREENSIZEX, SCREENSIZEY, 256, 256, CORNERSZ);
     }
 
     private void renderScreenContents(@NotNull GuiGraphics pGuiGraphics) {
