@@ -49,7 +49,7 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
         int y = (height - imageHeight) / 2;
         pGuiGraphics.blit(TEXTURE, x, y, 0, 0, imageWidth, imageHeight);
 
-        renderScreenContents(pGuiGraphics);
+        //renderScreenContents(pGuiGraphics);
     }
 
     private void renderScreenContents(@NotNull GuiGraphics pGuiGraphics) {
