@@ -2,6 +2,7 @@ package dev.asdf00.mc.advcomp.blocks.computer;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.TranslationMap;
+import dev.asdf00.mc.advcomp.blocks.cables.CableNetwork;
 import dev.asdf00.mc.advcomp.lua.LuaSandbox;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
 import dev.asdf00.mc.advcomp.types.IAcCableConnectable;
@@ -22,7 +23,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.common.util.NonNullSupplier;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +36,7 @@ public class ComputerBlockEntity extends BlockEntity implements MenuProvider, IA
     protected final ContainerData data;
     private int computerState = 0;
     private LuaSandbox lvm;
+    private CableNetwork cableNetwork;
 
     public void tick(Level pLevel, BlockPos pPos, BlockState pState) {
         // todo add logic
@@ -125,6 +126,7 @@ public class ComputerBlockEntity extends BlockEntity implements MenuProvider, IA
         lazyItemhandler = LazyOptional.of(() -> itemHandler);
         // create LVM
         lvm = new LuaSandbox(this, Integer.MAX_VALUE);
+        CableNetwork.rebuildNetwork(level, this.getBlockPos());
     }
 
     @Override
@@ -136,5 +138,13 @@ public class ComputerBlockEntity extends BlockEntity implements MenuProvider, IA
 
     public LuaSandbox getLvm() {
         return lvm;
+    }
+
+    @Override
+    public void setNetwork(CableNetwork cableNetwork) {
+        if (cableNetwork.getComputerCount() > 1)
+            lvm.tryKill("Too many computers connected to this network");
+
+        this.cableNetwork = cableNetwork;
     }
 }

@@ -1,6 +1,7 @@
 package dev.asdf00.mc.advcomp.blocks.keycard_reader;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.blocks.cables.CableNetwork;
 import dev.asdf00.mc.advcomp.items.BaseKeycardItem;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
 import dev.asdf00.mc.advcomp.types.IAcCableConnectable;
@@ -16,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class KeyCardReaderBlockEntity extends BlockEntity implements IAcCableConnectable {
     private final LazyOptional<IAcCableConnectable> lazyCableConnectable;
+    private CableNetwork cableNetwork;
 
     public KeyCardReaderBlockEntity(BlockPos pPos, BlockState pBlockState) {
         super(AdvancedComputers.KEYCARD_READER_BE.get(), pPos, pBlockState);
@@ -49,5 +51,10 @@ public class KeyCardReaderBlockEntity extends BlockEntity implements IAcCableCon
 
     public void tick(Level pLevel1, BlockPos pPos, BlockState pState1) {
 
+    }
+
+    @Override
+    public void setNetwork(CableNetwork cableNetwork) {
+        this.cableNetwork = cableNetwork;
     }
 }

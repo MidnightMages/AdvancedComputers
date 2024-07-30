@@ -12,7 +12,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.EnergyStorage;
-import net.minecraftforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -114,6 +113,13 @@ public class CableBlockEntity extends BlockEntity {
         }
     }
 
+    private void RebuildNetwork() {
+        var newNet = CableNetwork.buildNetwork(this.level, this.getBlockPos());
+        newNet.updateDevices();
+    }
+
+
+
     public void tickServer() {
         if (energy.getEnergyStored() > 0) {
             // Only do something if we have energy
@@ -161,7 +167,7 @@ public class CableBlockEntity extends BlockEntity {
         if (cap == AcCapabilities.CABLE_CONNECTABLE) {
             return lazyCableConnectable.cast();
         }
-            return super.getCapability(cap, side);
+        return super.getCapability(cap, side);
     }
 }
 
