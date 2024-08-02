@@ -5,6 +5,6 @@ import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
 
 public class AcCapabilities {
-    public static final Capability<IAcCableConnectable> CABLE_CONNECTABLE = CapabilityManager.get(new CapabilityToken<>() {
+    public static final Capability<IAcCableConnectableEntity> CABLE_CONNECTABLE = CapabilityManager.get(new CapabilityToken<>() {
     });
 }

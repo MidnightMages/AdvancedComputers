@@ -5,7 +5,8 @@ import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.blocks.cables.CableNetwork;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
-import dev.asdf00.mc.advcomp.types.IAcCableConnectable;
+import dev.asdf00.mc.advcomp.types.BaseAcCableConnectableEntityBlock;
+import dev.asdf00.mc.advcomp.types.IAcCableConnectableEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -23,11 +24,12 @@ import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ScreenBlockEntity extends BlockEntity implements MenuProvider, IAcCableConnectable {
+import java.util.Set;
+
+public class ScreenBlockEntity extends BaseAcCableConnectableEntityBlock implements MenuProvider {
     public final ItemStackHandler itemHandler = new ItemStackHandler(2);
     private LazyOptional<IItemHandler> lazyItemhandler = LazyOptional.empty();
-    private final LazyOptional<IAcCableConnectable> lazyCableConnectable;
-    private CableNetwork cableNetwork;
+    private final LazyOptional<IAcCableConnectableEntity> lazyCableConnectable;
 
     public void tick(Level pLevel, BlockPos pPos, BlockState pState) {
         // todo add logic
@@ -74,10 +76,5 @@ public class ScreenBlockEntity extends BlockEntity implements MenuProvider, IAcC
 
     protected ComputerBlockEntity getComputerBlockEntity() {
         return (ComputerBlockEntity) level.getBlockEntity(getBlockPos().relative(Direction.DOWN));
-    }
-
-    @Override
-    public void setNetwork(CableNetwork cableNetwork) {
-        this.cableNetwork = cableNetwork;
     }
 }

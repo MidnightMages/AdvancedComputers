@@ -3,8 +3,9 @@ package dev.asdf00.mc.advcomp.types;
 import dev.asdf00.mc.advcomp.blocks.cables.CableNetwork;
 import net.minecraftforge.common.capabilities.AutoRegisterCapability;
 
-@AutoRegisterCapability
-public interface IAcCableConnectable {
+import java.util.Set;
 
-    void setNetwork(CableNetwork cableNetwork);
+@AutoRegisterCapability
+public interface IAcCableConnectableEntity {
+    Set<CableNetwork> getNetworkList();
 }

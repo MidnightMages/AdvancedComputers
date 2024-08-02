@@ -5,7 +5,8 @@ import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.blocks.cables.CableNetwork;
 import dev.asdf00.mc.advcomp.lua.LuaSandbox;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
-import dev.asdf00.mc.advcomp.types.IAcCableConnectable;
+import dev.asdf00.mc.advcomp.types.BaseAcCableConnectableEntityBlock;
+import dev.asdf00.mc.advcomp.types.IAcCableConnectableEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -28,15 +29,16 @@ import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ComputerBlockEntity extends BlockEntity implements MenuProvider, IAcCableConnectable {
+import java.util.Set;
+
+public class ComputerBlockEntity extends BaseAcCableConnectableEntityBlock implements MenuProvider {
     public final ItemStackHandler itemHandler = new ItemStackHandler(ComputerBlockMenu.TE_INVENTORY_SLOT_COUNT);
     private LazyOptional<IItemHandler> lazyItemhandler = LazyOptional.empty();
-    private final LazyOptional<IAcCableConnectable> lazyCableConnectable;
+    private final LazyOptional<IAcCableConnectableEntity> lazyCableConnectable;
 
     protected final ContainerData data;
     private int computerState = 0;
     private LuaSandbox lvm;
-    private CableNetwork cableNetwork;
 
     public void tick(Level pLevel, BlockPos pPos, BlockState pState) {
         // todo add logic
@@ -126,7 +128,6 @@ public class ComputerBlockEntity extends BlockEntity implements MenuProvider, IA
         lazyItemhandler = LazyOptional.of(() -> itemHandler);
         // create LVM
         lvm = new LuaSandbox(this, Integer.MAX_VALUE);
-        CableNetwork.rebuildNetwork(level, this.getBlockPos());
     }
 
     @Override
@@ -140,11 +141,18 @@ public class ComputerBlockEntity extends BlockEntity implements MenuProvider, IA
         return lvm;
     }
 
-    @Override
-    public void setNetwork(CableNetwork cableNetwork) {
-        if (cableNetwork.getComputerCount() > 1)
-            lvm.tryKill("Too many computers connected to this network");
+    public void onNetworkUpdated() {
+        if (connectedNetworks.size() > 1)
+            lvm.tryKill("Too many networks connected to thsi computer??");
 
-        this.cableNetwork = cableNetwork;
+        if (connectedNetworks.size() == 1) {
+            var net = connectedNetworks.iterator().next();
+            if (net.getComputerCount() > 1) {
+                lvm.tryKill("Too many computers connected to this network");
+            } else {
+                AdvancedComputers.LOGGER.info("valid network for computer at bp %s was updated. Peripheral count: %s"
+                        .formatted(this.getBlockPos(), net.getPeripheralCount()));
+            }
+        }
     }
 }

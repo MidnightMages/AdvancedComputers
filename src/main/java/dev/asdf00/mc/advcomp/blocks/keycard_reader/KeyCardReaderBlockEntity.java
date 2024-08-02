@@ -4,7 +4,8 @@ import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.cables.CableNetwork;
 import dev.asdf00.mc.advcomp.items.BaseKeycardItem;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
-import dev.asdf00.mc.advcomp.types.IAcCableConnectable;
+import dev.asdf00.mc.advcomp.types.BaseAcCableConnectableEntityBlock;
+import dev.asdf00.mc.advcomp.types.IAcCableConnectableEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -15,9 +16,10 @@ import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class KeyCardReaderBlockEntity extends BlockEntity implements IAcCableConnectable {
-    private final LazyOptional<IAcCableConnectable> lazyCableConnectable;
-    private CableNetwork cableNetwork;
+import java.util.Set;
+
+public class KeyCardReaderBlockEntity extends BaseAcCableConnectableEntityBlock {
+    private final LazyOptional<IAcCableConnectableEntity> lazyCableConnectable;
 
     public KeyCardReaderBlockEntity(BlockPos pPos, BlockState pBlockState) {
         super(AdvancedComputers.KEYCARD_READER_BE.get(), pPos, pBlockState);
@@ -51,10 +53,5 @@ public class KeyCardReaderBlockEntity extends BlockEntity implements IAcCableCon
 
     public void tick(Level pLevel1, BlockPos pPos, BlockState pState1) {
 
-    }
-
-    @Override
-    public void setNetwork(CableNetwork cableNetwork) {
-        this.cableNetwork = cableNetwork;
     }
 }

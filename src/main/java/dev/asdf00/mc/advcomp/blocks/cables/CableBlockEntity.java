@@ -2,7 +2,7 @@ package dev.asdf00.mc.advcomp.blocks.cables;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
-import dev.asdf00.mc.advcomp.types.IAcCableConnectable;
+import dev.asdf00.mc.advcomp.types.IAcCableConnectableEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -28,7 +28,7 @@ public class CableBlockEntity extends BlockEntity {
     public static final int CAPACITY = 1000;
 
     private final EnergyStorage energy = createEnergyStorage();
-    private final LazyOptional<IAcCableConnectable> lazyCableConnectable = null; /* LazyOptional.of(() -> new AdaptedEnergyStorage(energy) {
+    private final LazyOptional<IAcCableConnectableEntity> lazyCableConnectable = null; /* LazyOptional.of(() -> new AdaptedEnergyStorage(energy) {
         @Override
         public int extractEnergy(int maxExtract, boolean simulate) {
             return 0;
@@ -112,13 +112,6 @@ public class CableBlockEntity extends BlockEntity {
             }
         }
     }
-
-    private void RebuildNetwork() {
-        var newNet = CableNetwork.buildNetwork(this.level, this.getBlockPos());
-        newNet.updateDevices();
-    }
-
-
 
     public void tickServer() {
         if (energy.getEnergyStored() > 0) {

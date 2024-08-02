@@ -40,12 +40,6 @@ public class ComputerBlock extends BaseEntityBlock {
         pBuilder.add(FACING);
     }
 
-    @Override
-    public void onNeighborChange(BlockState state, LevelReader level, BlockPos pos, BlockPos neighbor) {
-        super.onNeighborChange(state, level, pos, neighbor);
-        CableNetwork.rebuildNetwork(level, pos);
-    }
-
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
