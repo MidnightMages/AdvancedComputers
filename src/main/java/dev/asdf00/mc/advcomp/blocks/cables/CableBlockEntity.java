@@ -2,6 +2,7 @@ package dev.asdf00.mc.advcomp.blocks.cables;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
+import dev.asdf00.mc.advcomp.types.BaseAcCableEntityBlock;
 import dev.asdf00.mc.advcomp.types.IAcCableConnectableEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -20,7 +21,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 // a lot of stuff taken from https://www.mcjty.eu/docs/1.20/ep5; Thank you :)
-public class CableBlockEntity extends BlockEntity {
+public class CableBlockEntity extends BaseAcCableEntityBlock {
 
     public static final String ENERGY_TAG = "Energy";
 
