@@ -18,6 +18,7 @@ public class CableNetwork {
     public int getComputerCount() {
         return connectedComputers.size();
     }
+
     public int getPeripheralCount() {
         return connectedPeripherals.size();
     }
@@ -43,6 +44,8 @@ public class CableNetwork {
         HashSet<BlockPos> alreadyChecked = new HashSet<>();
         while (!neighborStartPosesToCheck.isEmpty()) {
             var networkRebuildStartpoint = neighborStartPosesToCheck.removeFirst(); // startpoint for an initial rebuild
+            if (level.getBlockEntity(networkRebuildStartpoint) == null) // if there is no tileentity then we can skip this startpoint
+                continue;
 
             Stack<BlockPos> posesToCheck = new Stack<>();
             posesToCheck.add(networkRebuildStartpoint); // add rebuild startpoint
@@ -55,9 +58,10 @@ public class CableNetwork {
 
             while (!posesToCheck.empty()) {
                 var pos = posesToCheck.pop();
-                if (!alreadyChecked.add(pos)) // we have already checked this pos --> we are done
+                if (alreadyChecked.contains(pos)) // we have already checked this pos --> we are done
                     continue;
 
+                boolean addToAlreadyChecked = true;
                 var posBe = level.getBlockEntity(pos);
                 if (posBe == null) // blockPos has no tileentity --> cant interact with cable ever --> we are done
                     continue;
@@ -69,7 +73,11 @@ public class CableNetwork {
                     addNeighborsFunc.accept(pos);
                 } else if (posBe instanceof IAcCableConnectableEntity connectableBe) { // peripheral device --> keep track of it so we can set refs later
                     connectedDevices.add(connectableBe);
+                    addToAlreadyChecked = false;
                 }
+
+                if (addToAlreadyChecked)
+                    alreadyChecked.add(pos);
             }
 
             var newNet = new CableNetwork(connectedDevices, connectedComputers);
