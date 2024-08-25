@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 import static dev.asdf00.mc.advcomp.lua.LuaUtils.setGlobalField;
 
-public class LuaSandbox {
+public class LuaVirtualMachine {
     private static final int TPS = 20;
     private static final String luaEntryScript;
     private static final String luaShellScript;
@@ -24,8 +24,7 @@ public class LuaSandbox {
         try (var stream = LuaMain.class.getClassLoader().getResourceAsStream("assets/advancedcomputers/lua/" + name)) {
             Objects.requireNonNull(stream, "Error reading resource '%s'".formatted(name));
             return new String(stream.readAllBytes(), StandardCharsets.UTF_8);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new IllegalStateException("Resource '%s' not found!".formatted(name));
         }
     }
@@ -56,7 +55,7 @@ public class LuaSandbox {
     private final ArrayDeque<MachineEvent> machineEvents = new ArrayDeque<>();
     private final Set<String> subbedEvents = new HashSet<>();
 
-    public LuaSandbox(ComputerBlockEntity computer, int instructionsPerSecond) {
+    public LuaVirtualMachine(ComputerBlockEntity computer, int instructionsPerSecond) {
         this.computer = computer;
         L = new Lua54();
         ipt = Math.max(instructionsPerSecond / 20, 1);
@@ -219,8 +218,7 @@ public class LuaSandbox {
             if (args[0] instanceof Double d) {
                 try {
                     Thread.sleep((long) (d * 1000));
-                }
-                catch (InterruptedException e) {
+                } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
             } else {
@@ -285,8 +283,7 @@ public class LuaSandbox {
         String name;
         try {
             name = (String) args[0];
-        }
-        catch (ClassCastException | ArrayIndexOutOfBoundsException ex) {
+        } catch (ClassCastException | ArrayIndexOutOfBoundsException ex) {
             throw new AcLuaException("Syntax: subMachineEvent(<name>)");
         }
         synchronized (machineEvents) {
@@ -300,8 +297,7 @@ public class LuaSandbox {
         try {
             name = (String) args[0];
             evict = args.length > 1 ? (Boolean) args[1] : false;
-        }
-        catch (ClassCastException | ArrayIndexOutOfBoundsException ex) {
+        } catch (ClassCastException | ArrayIndexOutOfBoundsException ex) {
             throw new AcLuaException("Syntax: unsubMachineEvent(<name> [, <evict>])");
         }
         synchronized (machineEvents) {
@@ -348,8 +344,7 @@ public class LuaSandbox {
                     }
                 }
             }
-        }
-        catch (InterruptedException e) {
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
     }
