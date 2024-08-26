@@ -36,7 +36,6 @@ public class CableBakedModel implements IDynamicBakedModel {
 
     private final IGeometryBakingContext context;
     private final boolean facade;
-    private final boolean isInventoryVariant;
 
     private TextureAtlasSprite spriteConnector;
     private TextureAtlasSprite spriteNoneCable;
@@ -69,10 +68,9 @@ public class CableBakedModel implements IDynamicBakedModel {
         CablePatterns.PATTERNS.put(Pattern.of(true, true, true, true), QuadSetting.of(SPRITE_CROSS, 0));
     }
 
-    public CableBakedModel(IGeometryBakingContext context, boolean facade, boolean isInventoryVariant) {
+    public CableBakedModel(IGeometryBakingContext context, boolean facade) {
         this.context = context;
         this.facade = facade;
-        this.isInventoryVariant = isInventoryVariant;
     }
 
     private void initTextures() {
@@ -120,17 +118,32 @@ public class CableBakedModel implements IDynamicBakedModel {
             // Called with the blockstate from our block. Here we get the values of the six properties and pass that to
             // our baked model implementation. If state == null we are called from the inventory and we use the default
             // values for the properties
+
+            TextureAtlasSprite spriteCable = spriteNormalCable;
+            Function<CablePatterns.SpriteIdx, TextureAtlasSprite> spriteGetter = this::getSpriteNormal;
+
+            double o = .4;      // Thickness of the cable. .0 would be full block, .5 is infinitely thin.
+            double p = .1;      // Thickness of the connector as it is put on the connecting block
+            double q = .2;      // The wideness of the connector
+
             ConnectionDir north, south, west, east, up, down;
-            if (isInventoryVariant) { // the inventory variant simply connects to all directions so that it is bigger
+            if (state == null) { // the item variant (for inventory and ground) simply connects to all directions so that it is bigger
                 north = south = west = east = up = down = CABLE;
-            } else if (state != null) {
+
+                quads.add(quad(v(o, 1, 1 - o), v(1 - o, 1, 1 - o), v(1 - o, 1, o), v(o, 1, o), spriteCrossCable));
+                quads.add(quad(v(o, 0, o), v(1 - o, 0, o), v(1 - o, 0, 1 - o), v(o, 0, 1 - o), spriteCrossCable));
+                quads.add(quad(v(1, o, o), v(1, 1 - o, o), v(1, 1 - o, 1 - o), v(1, o, 1 - o), spriteCrossCable));
+                quads.add(quad(v(0, o, 1 - o), v(0, 1 - o, 1 - o), v(0, 1 - o, o), v(0, o, o), spriteCrossCable));
+                quads.add(quad(v(o, 1 - o, 0), v(1 - o, 1 - o, 0), v(1 - o, o, 0), v(o, o, 0), spriteCrossCable));
+                quads.add(quad(v(o, o, 1), v(1 - o, o, 1), v(1 - o, 1 - o, 1), v(o, 1 - o, 1), spriteCrossCable));
+            } else /*if (state != null)*/ {
                 north = state.getValue(CableBlock.NORTH);
                 south = state.getValue(CableBlock.SOUTH);
                 west = state.getValue(CableBlock.WEST);
                 east = state.getValue(CableBlock.EAST);
                 up = state.getValue(CableBlock.UP);
                 down = state.getValue(CableBlock.DOWN);
-            } else {
+            }/* else {
                 // If we are a facade and we are an item then we render as the 'side' texture as a full block
                 if (facade) {
                     quads.add(quad(v(0, 1, 1), v(1, 1, 1), v(1, 1, 0), v(0, 1, 0), spriteSide));
@@ -142,14 +155,7 @@ public class CableBakedModel implements IDynamicBakedModel {
                     return quads;
                 }
                 north = south = west = east = up = down = ConnectionDir.NONE;
-            }
-
-            TextureAtlasSprite spriteCable = spriteNormalCable;
-            Function<CablePatterns.SpriteIdx, TextureAtlasSprite> spriteGetter = this::getSpriteNormal;
-
-            double o = .4;      // Thickness of the cable. .0 would be full block, .5 is infinitely thin.
-            double p = .1;      // Thickness of the connector as it is put on the connecting block
-            double q = .2;      // The wideness of the connector
+            }*/
 
             // For each side we either cap it off if there is no similar block adjacent on that side
             // or else we extend so that we touch the adjacent block:
@@ -289,15 +295,6 @@ public class CableBakedModel implements IDynamicBakedModel {
             } else {
                 CablePatterns.QuadSetting pattern = CablePatterns.findPattern(west, down, east, up);
                 quads.add(quad(v(o, o, 1 - o), v(1 - o, o, 1 - o), v(1 - o, 1 - o, 1 - o), v(o, 1 - o, 1 - o), spriteGetter.apply(pattern.sprite()), pattern.rotation()));
-            }
-
-            if (isInventoryVariant) {
-                quads.add(quad(v(o, 1, 1 - o), v(1 - o, 1, 1 - o), v(1 - o, 1, o), v(o, 1, o), spriteCrossCable));
-                quads.add(quad(v(o, 0, o), v(1 - o, 0, o), v(1 - o, 0, 1 - o), v(o, 0, 1 - o), spriteCrossCable));
-                quads.add(quad(v(1, o, o), v(1, 1 - o, o), v(1, 1 - o, 1 - o), v(1, o, 1 - o), spriteCrossCable));
-                quads.add(quad(v(0, o, 1 - o), v(0, 1 - o, 1 - o), v(0, 1 - o, o), v(0, o, o), spriteCrossCable));
-                quads.add(quad(v(o, 1 - o, 0), v(1 - o, 1 - o, 0), v(1 - o, o, 0), v(o, o, 0), spriteCrossCable));
-                quads.add(quad(v(o, o, 1), v(1 - o, o, 1), v(1 - o, 1 - o, 1), v(o, 1 - o, 1), spriteCrossCable));
             }
         }
 
