@@ -1,6 +1,6 @@
 package dev.asdf00.mc.advcomp.types;
 
-import dev.asdf00.mc.advcomp.CableNetworkHandler;
+import dev.asdf00.mc.advcomp.CableClusterHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -25,7 +25,7 @@ public class BaseAcCableEntityBlock extends BlockEntity {
         alreadyCreated = false;
         if (!alreadyDestroyed) {
             alreadyDestroyed = true;
-            CableNetworkHandler.markBlockPosForUpdateIfExists(this.level, this.getBlockPos());
+            CableClusterHandler.markBlockPosForUpdateIfExists(this.level, this.getBlockPos());
         }
     }
 
@@ -37,7 +37,7 @@ public class BaseAcCableEntityBlock extends BlockEntity {
         alreadyDestroyed = false;
         if (!alreadyCreated) {
             alreadyCreated = true;
-            CableNetworkHandler.markBlockPosForUpdate(this.level, this.getBlockPos());
+            CableClusterHandler.markBlockPosForUpdate(this.level, this.getBlockPos());
         }
     }
 

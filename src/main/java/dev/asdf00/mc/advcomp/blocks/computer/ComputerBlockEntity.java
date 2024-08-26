@@ -139,16 +139,15 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
     }
 
     public void onNetworkUpdated() {
-        if (connectedNetworks.size() > 1){
+        if (connectedNetworks.size() > 1) {
             lvm.tryKill("Too many networks connected to thsi computer??");
             AdvancedComputers.LOGGER.warn("invalid network count for computer at bp %s. Network count: %s"
                     .formatted(this.getBlockPos(), connectedNetworks.size()));
-        }
-        else if (connectedNetworks.size() == 1) {
+        } else if (connectedNetworks.size() == 1) {
             var net = connectedNetworks.iterator().next();
             var cc = net.getHostCount();
             if (cc > 1) {
-                if(lvm != null)
+                if (lvm != null)
                     lvm.tryKill("Too many computers connected to this network"); // TODO make sure lvm checks how many computers are part of this net whne lvm is started, as lvm is null on world load
 
                 AdvancedComputers.LOGGER.info("invalid network for computer at bp %s. Computer count: %s"

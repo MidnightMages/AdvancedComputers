@@ -83,7 +83,7 @@ public class CableCluster {
 
                 if (posBe instanceof CableBlockEntity) // cable --> keep scanning neighbors
                     addNeighborsFunc.accept(pos);
-                else if (posBe instanceof IAcBaseCableConnectableEntity bcce){ // TE is relevant to this network/cluster --> process it
+                else if (posBe instanceof IAcBaseCableConnectableEntity bcce) { // TE is relevant to this network/cluster --> process it
                     if (isHostBlock.apply(bcce))
                         connectedComputers.add(bcce);
                     else

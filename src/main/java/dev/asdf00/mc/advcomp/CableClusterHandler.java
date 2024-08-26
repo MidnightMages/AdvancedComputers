@@ -14,23 +14,23 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class CableNetworkHandler {
-    private static final HashMap<DimensionType, CableNetworkHandler> handlers = new HashMap<>();
+public class CableClusterHandler {
+    private static final HashMap<DimensionType, CableClusterHandler> handlers = new HashMap<>();
 
     private final LevelReader level;
 
     // OPTIM: could wipe out elements here in case a network rebuild happens to check them anyway out of pure luck
     private final Queue<BlockPos> rebuildQueue = new LinkedList<>();
 
-    public CableNetworkHandler(LevelReader level) {
+    public CableClusterHandler(LevelReader level) {
         this.level = level;
     }
 
-    private static CableNetworkHandler getOrMakeNew(LevelAccessor level) {
+    private static CableClusterHandler getOrMakeNew(LevelAccessor level) {
         var dt = level.dimensionType();
         var val = handlers.get(dt);
         if (val == null) {
-            val = new CableNetworkHandler(level);
+            val = new CableClusterHandler(level);
             handlers.put(dt, val);
         }
         return val;
@@ -70,14 +70,14 @@ public class CableNetworkHandler {
     @SubscribeEvent
     public static void onTick(TickEvent.LevelTickEvent event) {
         if (event.side.isServer())
-            CableNetworkHandler.onLevelTick(event.level);
+            CableClusterHandler.onLevelTick(event.level);
     }
 
     @SubscribeEvent
     public static void OnLevelUnloaded(LevelEvent.Unload event) {
         var level = event.getLevel();
         if (!level.isClientSide()) // only run on serverside
-            CableNetworkHandler.cleanupHandlerIfExists(level);
+            CableClusterHandler.cleanupHandlerIfExists(level);
     }
 //    @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = false)
 //    // this is quite iffy. hopefully no mod with lowest priority cancels this event
