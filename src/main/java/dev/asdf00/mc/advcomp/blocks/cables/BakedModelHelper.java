@@ -43,7 +43,7 @@ public class BakedModelHelper {
         builder.vertex(x, y, z)
                 .uv(iu, iv)
                 .uv2(0, 0)
-                .color(1.0f, 1.0f, 1.0f, 1.0f)
+                .color(255, 255, 255, 255)
                 .normal((float) normal.x(), (float) normal.y(), (float) normal.z())
                 .endVertex();
     }
