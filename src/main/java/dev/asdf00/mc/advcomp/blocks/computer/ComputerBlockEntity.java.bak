@@ -33,9 +33,13 @@ import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+<<<<<<< HEAD
 import static dev.asdf00.mc.advcomp.exceptions.AdvancedComputersError.AssertRuntime;
 
+public class ComputerBlockEntity extends BlockEntity implements MenuProvider, IAcCableConnectable {
+=======
 public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock implements MenuProvider, IAcCableHostEntity {
+>>>>>>> origin/master
     public final ItemStackHandler itemHandler = new ItemStackHandler(ComputerBlockMenu.TE_INVENTORY_SLOT_COUNT);
     private LazyOptional<IItemHandler> lazyItemhandler = LazyOptional.empty();
     private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable;
@@ -144,27 +148,6 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
         lvm.tryKill("Chunk unloaded");
     }
 
-    public void onNetworkUpdated() {
-        if (connectedNetworks.size() > 1) {
-            lvm.tryKill("Too many networks connected to thsi computer??");
-            AdvancedComputers.LOGGER.warn("invalid network count for computer at bp %s. Network count: %s"
-                    .formatted(this.getBlockPos(), connectedNetworks.size()));
-        } else if (connectedNetworks.size() == 1) {
-            var net = connectedNetworks.iterator().next();
-            var cc = net.getHostCount();
-            if (cc > 1) {
-                if (lvm != null)
-                    lvm.tryKill("Too many computers connected to this network"); // TODO make sure lvm checks how many computers are part of this net whne lvm is started, as lvm is null on world load
-
-                AdvancedComputers.LOGGER.info("invalid network for computer at bp %s. Computer count: %s"
-                        .formatted(this.getBlockPos(), cc));
-            } else {
-                AdvancedComputers.LOGGER.info("valid network for computer at bp %s. Peripheral count: %s"
-                        .formatted(this.getBlockPos(), net.getEntityCount()));
-            }
-        }
-    }
-
     // =================================================================================================================
     //       Lua Interactions     Lua Interactions     Lua Interactions     Lua Interactions     Lua Interactions
     // =================================================================================================================
@@ -174,6 +157,7 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
         return lvm;
     }
 
+<<<<<<< HEAD
     public void toggleLVMPowerState() {
         if (isServer) {
             lvm.toggleOnOff();
@@ -229,4 +213,26 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
     static {
         NetCodeUtils.registerMessage(ClientOriginatingUiEvent.class, ClientOriginatingUiEvent::decode);
     }
+=======
+    public void onNetworkUpdated() {
+        if (connectedNetworks.size() > 1) {
+            lvm.tryKill("Too many networks connected to thsi computer??");
+            AdvancedComputers.LOGGER.warn("invalid network count for computer at bp %s. Network count: %s"
+                    .formatted(this.getBlockPos(), connectedNetworks.size()));
+        } else if (connectedNetworks.size() == 1) {
+            var net = connectedNetworks.iterator().next();
+            var cc = net.getHostCount();
+            if (cc > 1) {
+                if (lvm != null)
+                    lvm.tryKill("Too many computers connected to this network"); // TODO make sure lvm checks how many computers are part of this net whne lvm is started, as lvm is null on world load
+
+                AdvancedComputers.LOGGER.info("invalid network for computer at bp %s. Computer count: %s"
+                        .formatted(this.getBlockPos(), cc));
+            } else {
+                AdvancedComputers.LOGGER.info("valid network for computer at bp %s. Peripheral count: %s"
+                        .formatted(this.getBlockPos(), net.getEntityCount()));
+            }
+        }
+    }
+>>>>>>> origin/master
 }

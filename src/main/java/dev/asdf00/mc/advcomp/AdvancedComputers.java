@@ -194,6 +194,7 @@ public class AdvancedComputers {
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.register(CableClusterHandler.class);
 
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
