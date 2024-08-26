@@ -1,38 +1,49 @@
 package dev.asdf00.mc.advcomp.blocks.cables;
 
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
-import dev.asdf00.mc.advcomp.types.IAcCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.IAcBaseCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.IAcCableHostEntity;
+import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Stack;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
-public abstract class BaseCableCluster {
-    public final HashSet<IAcCableConnectableEntity> connectedPeripherals;
-    private final HashSet<ComputerBlockEntity> connectedComputers;
+public class CableCluster {
+    public final HashSet<IAcBaseCableConnectableEntity> connectedEntities;
+    private final HashSet<IAcBaseCableConnectableEntity> connectedHostEntities;
 
-    public int getComputerCount() {
-        return connectedComputers.size();
+    public int getHostCount() {
+        return connectedHostEntities.size();
     }
 
-    public int getPeripheralCount() {
-        return connectedPeripherals.size();
+    public int getEntityCount() {
+        return connectedEntities.size();
     }
 
-    public BaseCableCluster(HashSet<IAcCableConnectableEntity> connectedPeripherals, HashSet<ComputerBlockEntity> connectedComputers) {
-        this.connectedPeripherals = connectedPeripherals;
-        this.connectedComputers = connectedComputers;
+    public CableCluster(HashSet<IAcBaseCableConnectableEntity> connectedEntities, HashSet<IAcBaseCableConnectableEntity> connectedHostEntities) {
+        this.connectedEntities = connectedEntities;
+        this.connectedHostEntities = connectedHostEntities;
     }
-
-    protected abstract void doesBlockActAsCable(BlockEntity be);
-    protected  abstract BaseCableCluster ctorSelf(HashSet<IAcCableConnectableEntity> connectedPeripherals, HashSet<ComputerBlockEntity> connectedComputers);
 
     public static void onBlockPosChanged(LevelReader level, BlockPos initialBp) {
+        // peripheral cluster
+        CableCluster.onBlockPosChangedInternal(level, initialBp, (IAcBaseCableConnectableEntity be) -> be instanceof ComputerBlockEntity,
+                (IAcBaseCableConnectableEntity be) -> true);
+
+//        // network cluster
+//        CableCluster.onBlockPosChangedInternal(level, initialBp, (IAcBaseCableConnectableEntity be) -> false /* TODO instanceof RouterBlockEntity if connected to the host port side */,
+//                (IAcBaseCableConnectableEntity be) -> false);
+    }
+
+    public static void onBlockPosChangedInternal(LevelReader level, BlockPos initialBp,
+                                                 Function<IAcBaseCableConnectableEntity, Boolean> isHostBlock,
+                                                 Function<IAcBaseCableConnectableEntity, Boolean> actsAsCable) {
         // what this does is:
         // assume the given blockpos initialBp has been changing, meaining one of the following:
         // computer, cable or IAcCableConnectable was added, removed or somehow replaced
@@ -53,8 +64,8 @@ public abstract class BaseCableCluster {
 
             Stack<BlockPos> posesToCheck = new Stack<>();
             posesToCheck.add(networkRebuildStartpoint); // add rebuild startpoint
-            HashSet<IAcCableConnectableEntity> connectedDevices = new HashSet<>();
-            HashSet<ComputerBlockEntity> connectedComputers = new HashSet<>(1);
+            HashSet<IAcBaseCableConnectableEntity> connectedDevices = new HashSet<>();
+            HashSet<IAcBaseCableConnectableEntity> connectedComputers = new HashSet<>(1);
             Consumer<BlockPos> addNeighborsFunc = bpToAdd -> {
                 for (var dir : Direction.values())
                     posesToCheck.push(bpToAdd.relative(dir));
@@ -70,35 +81,51 @@ public abstract class BaseCableCluster {
                 if (posBe == null) // blockPos has no tileentity --> cant interact with cable ever --> we are done
                     continue;
 
-                if (posBe instanceof ComputerBlockEntity compBe) { // computer --> unregister old network later, store reference for curr network; keep scanning neighbors
-                    connectedComputers.add(compBe);
+                if (posBe instanceof CableBlockEntity) // cable --> keep scanning neighbors
                     addNeighborsFunc.accept(pos);
-                } else if (posBe instanceof CableBlockEntity) { // cable --> keep scanning neighbors
-                    addNeighborsFunc.accept(pos);
-                } else if (posBe instanceof IAcCableConnectableEntity connectableBe) { // peripheral device --> keep track of it so we can set refs later
-                    connectedDevices.add(connectableBe);
-                    addToAlreadyChecked = false;
-                }
+                else if (posBe instanceof IAcBaseCableConnectableEntity bcce){ // TE is relevant to this network/cluster --> process it
+                    if (isHostBlock.apply(bcce))
+                        connectedComputers.add(bcce);
+                    else
+                        connectedDevices.add(bcce);
 
-                if (addToAlreadyChecked)
-                    alreadyChecked.add(pos);
+                    if (actsAsCable.apply(bcce))
+                        addNeighborsFunc.accept(pos);
+                }
+                alreadyChecked.add(pos);
+
+//                if (posBe instanceof ComputerBlockEntity compBe) { // computer --> unregister old network later, store reference for curr network; keep scanning neighbors
+//                    connectedComputers.add(compBe);
+//                    addNeighborsFunc.accept(pos);
+//                } else if (posBe instanceof CableBlockEntity) { // cable --> keep scanning neighbors
+//                    addNeighborsFunc.accept(pos);
+//                } else if (posBe instanceof IAcDevCableConnectableEntity connectableBe) { // peripheral device --> keep track of it so we can set refs later
+//                    connectedDevices.add(connectableBe);
+//                    addToAlreadyChecked = false;
+//                }
+//
+//                if (addToAlreadyChecked)
+//                    alreadyChecked.add(pos);
             }
 
-            var newNet = ctorSelf(connectedDevices, connectedComputers);
-            for (var dev : newNet.connectedPeripherals) {
+            var newNet = new CableCluster(connectedDevices, connectedComputers);
+            for (var dev : newNet.connectedEntities) {
                 dev.getNetworkList().add(newNet);
             }
 
-            for (var comp : newNet.connectedComputers) { // go through all networks associated with the computers we found just now
-                var oldNet = comp.getNetworkList(); // should only contain one network, but just in case there is more, we iterate
+            for (var host : newNet.connectedHostEntities) { // go through all networks associated with the computers we found just now
+                var oldNet = host.getNetworkList(); // should only contain one network, but just in case there is more, we iterate
                 for (var on : oldNet) { // remove old references to this network from the nets that are being replaced
-                    for (var on_devs : on.connectedPeripherals)
+                    for (var on_devs : on.connectedEntities)
                         on_devs.getNetworkList().remove(on);
-                    for (var on_comps : on.connectedComputers)
+                    for (var on_comps : on.connectedHostEntities)
                         on_comps.getNetworkList().remove(on);
                 }
-                comp.getNetworkList().add(newNet);
-                comp.onNetworkUpdated(); // tell the computers that the net might has changed
+                host.getNetworkList().add(newNet);
+                if (host instanceof IAcCableHostEntity che)
+                    che.onNetworkUpdated(); // tell the cluster-host(s) that the net might have changed
+                else
+                    throw new RuntimeException("Class %s does not implement the interface %s".formatted(host.getClass().getName(), IAcCableHostEntity.class));
             }
 
             // last step remove all next potential startingpoints from that set if we have already checked them
