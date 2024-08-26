@@ -5,13 +5,14 @@ import dev.asdf00.mc.advcomp.types.IAcCableConnectableEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Stack;
 import java.util.function.Consumer;
 
-public class CableNetwork {
+public abstract class BaseCableCluster {
     public final HashSet<IAcCableConnectableEntity> connectedPeripherals;
     private final HashSet<ComputerBlockEntity> connectedComputers;
 
@@ -23,10 +24,13 @@ public class CableNetwork {
         return connectedPeripherals.size();
     }
 
-    public CableNetwork(HashSet<IAcCableConnectableEntity> connectedPeripherals, HashSet<ComputerBlockEntity> connectedComputers) {
+    public BaseCableCluster(HashSet<IAcCableConnectableEntity> connectedPeripherals, HashSet<ComputerBlockEntity> connectedComputers) {
         this.connectedPeripherals = connectedPeripherals;
         this.connectedComputers = connectedComputers;
     }
+
+    protected abstract void doesBlockActAsCable(BlockEntity be);
+    protected  abstract BaseCableCluster ctorSelf(HashSet<IAcCableConnectableEntity> connectedPeripherals, HashSet<ComputerBlockEntity> connectedComputers);
 
     public static void onBlockPosChanged(LevelReader level, BlockPos initialBp) {
         // what this does is:
@@ -80,7 +84,7 @@ public class CableNetwork {
                     alreadyChecked.add(pos);
             }
 
-            var newNet = new CableNetwork(connectedDevices, connectedComputers);
+            var newNet = ctorSelf(connectedDevices, connectedComputers);
             for (var dev : newNet.connectedPeripherals) {
                 dev.getNetworkList().add(newNet);
             }
