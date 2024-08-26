@@ -72,7 +72,7 @@ public class ComputerBlock extends BaseEntityBlock {
             var be = pLevel.getBlockEntity(pPos);
             if (be instanceof ComputerBlockEntity cbe) {
                 if (pPlayer.isShiftKeyDown())
-                    cbe.getLvm().startIfOff();
+                    cbe.toggleLVMPowerState();
                 else
                     NetworkHooks.openScreen((ServerPlayer) pPlayer, cbe, pPos); // will likely break in 1.20.2+
             } else

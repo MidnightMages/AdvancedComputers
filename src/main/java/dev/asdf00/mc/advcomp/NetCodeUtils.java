@@ -1,0 +1,52 @@
+package dev.asdf00.mc.advcomp;
+
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.network.simple.SimpleChannel;
+
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+
+public class NetCodeUtils {
+    private static final AtomicInteger MSG_ID_PROVIDER = new AtomicInteger(0);
+    private static final String PROTOCOL_VERSION = "0.1.a";
+    private static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
+            new ResourceLocation(AdvancedComputers.MODID, "simple_networking_channel"),
+            () -> PROTOCOL_VERSION,
+            PROTOCOL_VERSION::equals,
+            PROTOCOL_VERSION::equals
+    );
+
+    public static <MSG extends NetworkMessage> void registerMessage(Class<MSG> mscClazz, Function<FriendlyByteBuf, MSG> decoder) {
+        INSTANCE.registerMessage(MSG_ID_PROVIDER.getAndAdd(1), mscClazz, (msg, buf) -> msg.encode(buf), decoder, ((msg, ctx) -> msg.handle(ctx.get())));
+    }
+
+    public static <MSG> void sendToServer(MSG message) {
+        INSTANCE.sendToServer(message);
+    }
+
+    public static <MSG> void sendToClient(PacketDistributor.PacketTarget target, MSG message) {
+        INSTANCE.send(target, message);
+    }
+
+    private static void writeStringToBuf(FriendlyByteBuf buf, String data) {
+        var bytes = data.getBytes(StandardCharsets.UTF_8);
+        buf.writeInt(bytes.length);
+        buf.writeBytes(bytes);
+    }
+
+    private static String readStringToBuf(FriendlyByteBuf buf) {
+        int len = buf.readInt();
+        return new String(buf.readBytes(len).array(), StandardCharsets.UTF_8);
+    }
+
+    public interface NetworkMessage {
+        void encode(FriendlyByteBuf buffer);
+
+        void handle(NetworkEvent.Context ctx);
+    }
+}

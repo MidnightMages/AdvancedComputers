@@ -13,6 +13,30 @@ public abstract class AdvancedComputersError extends RuntimeException {
         }
     }
 
+    public static void AssertRuntime(boolean condition, String msg, Object o1) {
+        if (!condition) {
+            throw new AdvancedComputersRuntimeError(msg.formatted(o1));
+        }
+    }
+
+    public static void AssertRuntime(boolean condition, String msg, Object o1, Object o2) {
+        if (!condition) {
+            throw new AdvancedComputersRuntimeError(msg.formatted(o1, o2));
+        }
+    }
+
+    public static void AssertRuntime(boolean condition, String msg, Object o1, Object o2, Object o3) {
+        if (!condition) {
+            throw new AdvancedComputersRuntimeError(msg.formatted(o1, o2, o3));
+        }
+    }
+
+    public static void AssertRuntime(boolean condition, String msg, Object... args) {
+        if (!condition) {
+            throw new AdvancedComputersRuntimeError(msg.formatted(args));
+        }
+    }
+
     public static void AssertRuntime(boolean condition, Supplier<String> msg) {
         if (!condition) {
             throw new AdvancedComputersRuntimeError(msg.get());

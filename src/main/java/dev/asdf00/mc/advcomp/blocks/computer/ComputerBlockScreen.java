@@ -44,7 +44,7 @@ public class ComputerBlockScreen extends AbstractContainerScreen<ComputerBlockMe
     }
 
     private void handleOnOffButton(Button btn) {
-        getMenu().blockEntity.getLvm().toggleOnOff();
+        getMenu().blockEntity.toggleLVMPowerState();
         onMachineStateChanged();
     }
 
