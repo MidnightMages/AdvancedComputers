@@ -2,7 +2,8 @@ package dev.asdf00.mc.advcomp.blocks.cables;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
-import dev.asdf00.mc.advcomp.types.IAcCableConnectable;
+import dev.asdf00.mc.advcomp.types.BaseAcCableEntityBlock;
+import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -12,7 +13,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.EnergyStorage;
-import net.minecraftforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,7 +21,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 // a lot of stuff taken from https://www.mcjty.eu/docs/1.20/ep5; Thank you :)
-public class CableBlockEntity extends BlockEntity {
+public class CableBlockEntity extends BaseAcCableEntityBlock {
 
     public static final String ENERGY_TAG = "Energy";
 
@@ -29,7 +29,7 @@ public class CableBlockEntity extends BlockEntity {
     public static final int CAPACITY = 1000;
 
     private final EnergyStorage energy = createEnergyStorage();
-    private final LazyOptional<IAcCableConnectable> lazyCableConnectable = null; /* LazyOptional.of(() -> new AdaptedEnergyStorage(energy) {
+    private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable = null; /* LazyOptional.of(() -> new AdaptedEnergyStorage(energy) {
         @Override
         public int extractEnergy(int maxExtract, boolean simulate) {
             return 0;
@@ -161,7 +161,7 @@ public class CableBlockEntity extends BlockEntity {
         if (cap == AcCapabilities.CABLE_CONNECTABLE) {
             return lazyCableConnectable.cast();
         }
-            return super.getCapability(cap, side);
+        return super.getCapability(cap, side);
     }
 }
 

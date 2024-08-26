@@ -4,7 +4,9 @@ import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.lua.LuaSandbox;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
-import dev.asdf00.mc.advcomp.types.IAcCableConnectable;
+import dev.asdf00.mc.advcomp.types.BaseAcDevCableConnectableEntityBlock;
+import dev.asdf00.mc.advcomp.types.IAcCableHostEntity;
+import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -17,21 +19,19 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.common.util.NonNullSupplier;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ComputerBlockEntity extends BlockEntity implements MenuProvider, IAcCableConnectable {
+public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock implements MenuProvider, IAcCableHostEntity {
     public final ItemStackHandler itemHandler = new ItemStackHandler(ComputerBlockMenu.TE_INVENTORY_SLOT_COUNT);
     private LazyOptional<IItemHandler> lazyItemhandler = LazyOptional.empty();
-    private final LazyOptional<IAcCableConnectable> lazyCableConnectable;
+    private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable;
 
     protected final ContainerData data;
     private int computerState = 0;
@@ -136,5 +136,26 @@ public class ComputerBlockEntity extends BlockEntity implements MenuProvider, IA
 
     public LuaSandbox getLvm() {
         return lvm;
+    }
+
+    public void onNetworkUpdated() {
+        if (connectedNetworks.size() > 1) {
+            lvm.tryKill("Too many networks connected to thsi computer??");
+            AdvancedComputers.LOGGER.warn("invalid network count for computer at bp %s. Network count: %s"
+                    .formatted(this.getBlockPos(), connectedNetworks.size()));
+        } else if (connectedNetworks.size() == 1) {
+            var net = connectedNetworks.iterator().next();
+            var cc = net.getHostCount();
+            if (cc > 1) {
+                if (lvm != null)
+                    lvm.tryKill("Too many computers connected to this network"); // TODO make sure lvm checks how many computers are part of this net whne lvm is started, as lvm is null on world load
+
+                AdvancedComputers.LOGGER.info("invalid network for computer at bp %s. Computer count: %s"
+                        .formatted(this.getBlockPos(), cc));
+            } else {
+                AdvancedComputers.LOGGER.info("valid network for computer at bp %s. Peripheral count: %s"
+                        .formatted(this.getBlockPos(), net.getEntityCount()));
+            }
+        }
     }
 }
