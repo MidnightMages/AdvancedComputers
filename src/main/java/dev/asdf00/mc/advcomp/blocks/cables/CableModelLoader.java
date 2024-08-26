@@ -6,10 +6,7 @@ import com.google.gson.JsonParseException;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.model.Material;
-import net.minecraft.client.resources.model.ModelBaker;
-import net.minecraft.client.resources.model.ModelState;
+import net.minecraft.client.resources.model.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.client.model.geometry.IGeometryBakingContext;
@@ -43,7 +40,7 @@ public class CableModelLoader implements IGeometryLoader<CableModelLoader.CableM
 
         @Override
         public BakedModel bake(IGeometryBakingContext context, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelState, ItemOverrides overrides, ResourceLocation modelLocation) {
-            return new CableBakedModel(context, facade);
+            return new CableBakedModel(context, facade, ((modelLocation instanceof ModelResourceLocation mrl) && (mrl.getVariant().equals("inventory"))));
         }
     }
 }
