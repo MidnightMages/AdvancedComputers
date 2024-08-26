@@ -2,11 +2,10 @@ package dev.asdf00.mc.advcomp.blocks.screen;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.TranslationMap;
-import dev.asdf00.mc.advcomp.blocks.cables.CableNetwork;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
-import dev.asdf00.mc.advcomp.types.BaseAcCableConnectableEntityBlock;
-import dev.asdf00.mc.advcomp.types.IAcCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.BaseAcDevCableConnectableEntityBlock;
+import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -15,7 +14,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
@@ -24,12 +22,10 @@ import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Set;
-
-public class ScreenBlockEntity extends BaseAcCableConnectableEntityBlock implements MenuProvider {
+public class ScreenBlockEntity extends BaseAcDevCableConnectableEntityBlock implements MenuProvider {
     public final ItemStackHandler itemHandler = new ItemStackHandler(2);
     private LazyOptional<IItemHandler> lazyItemhandler = LazyOptional.empty();
-    private final LazyOptional<IAcCableConnectableEntity> lazyCableConnectable;
+    private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable;
 
     public void tick(Level pLevel, BlockPos pPos, BlockState pState) {
         // todo add logic

@@ -1,25 +1,21 @@
 package dev.asdf00.mc.advcomp.blocks.keycard_reader;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.blocks.cables.CableNetwork;
 import dev.asdf00.mc.advcomp.items.BaseKeycardItem;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
-import dev.asdf00.mc.advcomp.types.BaseAcCableConnectableEntityBlock;
-import dev.asdf00.mc.advcomp.types.IAcCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.BaseAcDevCableConnectableEntityBlock;
+import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Set;
-
-public class KeyCardReaderBlockEntity extends BaseAcCableConnectableEntityBlock {
-    private final LazyOptional<IAcCableConnectableEntity> lazyCableConnectable;
+public class KeyCardReaderBlockEntity extends BaseAcDevCableConnectableEntityBlock {
+    private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable;
 
     public KeyCardReaderBlockEntity(BlockPos pPos, BlockState pBlockState) {
         super(AdvancedComputers.KEYCARD_READER_BE.get(), pPos, pBlockState);

@@ -3,7 +3,7 @@ package dev.asdf00.mc.advcomp.blocks.cables;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
 import dev.asdf00.mc.advcomp.types.BaseAcCableEntityBlock;
-import dev.asdf00.mc.advcomp.types.IAcCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -29,7 +29,7 @@ public class CableBlockEntity extends BaseAcCableEntityBlock {
     public static final int CAPACITY = 1000;
 
     private final EnergyStorage energy = createEnergyStorage();
-    private final LazyOptional<IAcCableConnectableEntity> lazyCableConnectable = null; /* LazyOptional.of(() -> new AdaptedEnergyStorage(energy) {
+    private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable = null; /* LazyOptional.of(() -> new AdaptedEnergyStorage(energy) {
         @Override
         public int extractEnergy(int maxExtract, boolean simulate) {
             return 0;

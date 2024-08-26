@@ -8,10 +8,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.HashSet;
 import java.util.Set;
 
-public abstract class BaseAcCableConnectableEntityBlock extends BaseAcCableEntityBlock implements IAcBaseCableConnectableEntity {
+public abstract class BaseAcDevCableConnectableEntityBlock extends BaseAcCableEntityBlock implements IAcDevCableConnectableEntity {
     public Set<CableCluster> connectedNetworks;
 
-    public BaseAcCableConnectableEntityBlock(BlockEntityType<?> pType, BlockPos pPos, BlockState pBlockState) {
+    public BaseAcDevCableConnectableEntityBlock(BlockEntityType<?> pType, BlockPos pPos, BlockState pBlockState) {
         super(pType, pPos, pBlockState);
         connectedNetworks = new HashSet<>();
     }

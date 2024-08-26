@@ -1,17 +1,12 @@
 package dev.asdf00.mc.advcomp;
 
-import dev.asdf00.mc.advcomp.blocks.cables.CableBlockEntity;
-import dev.asdf00.mc.advcomp.blocks.cables.CableNetwork;
-import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
-import dev.asdf00.mc.advcomp.types.IAcCableConnectableEntity;
+import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,7 +52,7 @@ public class CableNetworkHandler {
     public void tick() {
         while (!rebuildQueue.isEmpty()) {
             var bp = rebuildQueue.remove();
-            CableNetwork.onBlockPosChanged(this.level, bp);
+            CableCluster.onBlockPosChanged(this.level, bp);
         }
     }
 
