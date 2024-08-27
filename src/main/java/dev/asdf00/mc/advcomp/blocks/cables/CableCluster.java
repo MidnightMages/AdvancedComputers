@@ -1,6 +1,7 @@
 package dev.asdf00.mc.advcomp.blocks.cables;
 
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
+import dev.asdf00.mc.advcomp.types.BaseAcCableEntityBlock;
 import dev.asdf00.mc.advcomp.types.IAcBaseCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.IAcCableHostEntity;
 import net.minecraft.core.BlockPos;
@@ -11,7 +12,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Stack;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public class CableCluster {
@@ -67,9 +68,34 @@ public class CableCluster {
             HashSet<IAcBaseCableConnectableEntity> connectedDevices = new HashSet<>();
             ArrayList<BlockPos> connectedCables = new ArrayList<>();
             HashSet<IAcBaseCableConnectableEntity> connectedComputers = new HashSet<>(1);
-            Consumer<BlockPos> addNeighborsFunc = bpToAdd -> {
-                for (var dir : Direction.values())
-                    posesToCheck.push(bpToAdd.relative(dir));
+            BiConsumer<BlockPos, IAcBaseCableConnectableEntity> addNeighborsOfBeFunc = (bpToAdd, be) -> {
+                for (var dir : Direction.values()) {
+                    var rel = bpToAdd.relative(dir);
+                    var relBe = level.getBlockEntity(rel);
+                    if (relBe instanceof IAcBaseCableConnectableEntity be2) { // check blocks
+                        if (be.canConnectTo(be2, dir))
+                            posesToCheck.push(rel);
+                    } else if (relBe instanceof BaseAcCableEntityBlock cablebe) // new thing is a cable
+                    {
+                        if (be.canConnectTo(cablebe, dir))
+                            posesToCheck.push(rel);
+                    }
+                }
+            };
+            BiConsumer<BlockPos, BaseCableBlockEntity> addNeighborsOfCableFunc = (bpToAdd, bcce) -> {
+                for (var dir : Direction.values()) {
+                    var rel = bpToAdd.relative(dir);
+                    var relBe = level.getBlockEntity(rel);
+                    if (relBe instanceof IAcBaseCableConnectableEntity be) { // check blocks
+                        if (be.canConnectTo(bcce, dir.getOpposite()))
+                            posesToCheck.push(rel);
+                    } else if (relBe instanceof BaseAcCableEntityBlock cablebe) // add cables of same type
+                    {
+                        if (cablebe.getClass().equals(bcce.getClass()))
+                            posesToCheck.push(rel);
+                    }
+                    // if block entity is null then there is no point in even adding it to the candidates
+                }
             };
 
             while (!posesToCheck.empty()) {
@@ -82,8 +108,8 @@ public class CableCluster {
                 if (posBe == null) // blockPos has no tileentity --> cant interact with cable ever --> we are done
                     continue;
 
-                if (posBe instanceof CableBlockEntity) { // cable --> keep scanning neighbors
-                    addNeighborsFunc.accept(pos);
+                if (posBe instanceof BaseCableBlockEntity bcce) { // cable --> keep scanning neighbors
+                    addNeighborsOfCableFunc.accept(pos, bcce);
                     connectedCables.add(pos);
                 } else if (posBe instanceof IAcBaseCableConnectableEntity bcce) { // TE is relevant to this network/cluster --> process it
                     if (isHostBlock.apply(bcce))
@@ -92,7 +118,7 @@ public class CableCluster {
                         connectedDevices.add(bcce);
 
                     if (actsAsCable.apply(bcce))
-                        addNeighborsFunc.accept(pos);
+                        addNeighborsOfBeFunc.accept(pos, bcce);
                 }
                 alreadyChecked.add(pos);
 
@@ -141,7 +167,7 @@ public class CableCluster {
 
     private static void UpdateCableBlockStates(ArrayList<BlockPos> connectedCables, boolean netIsOk, Level level) {
         for (var c : connectedCables) {
-            var bs = level.getBlockState(c).setValue(CableBlock.NETWORK_ERROR, !netIsOk);
+            var bs = level.getBlockState(c).setValue(BaseCableBlock.NETWORK_ERROR, !netIsOk);
             level.setBlock(c, bs, 2); // flags: 2 = sendToClient (NO block update)
         }
     }

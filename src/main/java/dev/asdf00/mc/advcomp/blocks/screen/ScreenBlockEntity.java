@@ -3,9 +3,7 @@ package dev.asdf00.mc.advcomp.blocks.screen;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
-import dev.asdf00.mc.advcomp.types.AcCapabilities;
-import dev.asdf00.mc.advcomp.types.BaseAcDevCableConnectableEntityBlock;
-import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -72,5 +70,15 @@ public class ScreenBlockEntity extends BaseAcDevCableConnectableEntityBlock impl
 
     protected ComputerBlockEntity getComputerBlockEntity() {
         return (ComputerBlockEntity) level.getBlockEntity(getBlockPos().relative(Direction.DOWN));
+    }
+
+    @Override
+    public boolean canConnectTo(IAcBaseCableConnectableEntity entity, Direction side) {
+        return true; // TODO check for the two cable caps
+    }
+
+    @Override
+    public boolean canConnectTo(BaseAcCableEntityBlock entity, Direction side) {
+        return true; // TODO check for the two cable caps
     }
 }

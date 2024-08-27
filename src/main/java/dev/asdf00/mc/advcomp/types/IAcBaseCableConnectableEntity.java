@@ -1,6 +1,8 @@
 package dev.asdf00.mc.advcomp.types;
 
+import dev.asdf00.mc.advcomp.blocks.cables.BaseCableBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
+import net.minecraft.core.Direction;
 
 import java.util.Set;
 
@@ -10,4 +12,8 @@ import java.util.Set;
  */
 public interface IAcBaseCableConnectableEntity {
     Set<CableCluster> getNetworkList();
+    /** more speific --> only applies to blocks */
+    boolean canConnectTo(IAcBaseCableConnectableEntity entity, Direction side);
+    /** less specific --> applies to blocks and cables */
+    boolean canConnectTo(BaseAcCableEntityBlock entity, Direction side);
 }

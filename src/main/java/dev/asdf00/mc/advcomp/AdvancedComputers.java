@@ -1,9 +1,11 @@
 package dev.asdf00.mc.advcomp;
 
 import com.mojang.logging.LogUtils;
-import dev.asdf00.mc.advcomp.blocks.cables.CableBlock;
-import dev.asdf00.mc.advcomp.blocks.cables.CableBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.CableModelLoader;
+import dev.asdf00.mc.advcomp.blocks.cables.device.DeviceCableBlock;
+import dev.asdf00.mc.advcomp.blocks.cables.device.DeviceCableBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.cables.device.NetworkCableBlock;
+import dev.asdf00.mc.advcomp.blocks.cables.device.NetworkCableBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlock;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockMenu;
@@ -104,8 +106,11 @@ public class AdvancedComputers {
     public static final RegistryBlockItemPair<Block> KEYCARD_READER_BLOCK = registerBlockWithItem("keycard_reader_block",
             () -> new KeyCardReaderBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
 
-    public static final RegistryBlockItemPair<Block> CABLE_BLOCK = registerBlockWithItem("cable_block",
-            () -> new CableBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
+    public static final RegistryBlockItemPair<Block> DEVICE_CABLE_BLOCK = registerBlockWithItem("device_cable_block",
+            () -> new DeviceCableBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
+
+    public static final RegistryBlockItemPair<Block> NETWORK_CABLE_BLOCK = registerBlockWithItem("network_cable_block",
+            () -> new NetworkCableBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
 
     public static final RegistryObject<BlockEntityType<ComputerBlockEntity>> COMPUTER_BE = BLOCK_ENTITY_TYPES.register("computer_be",
             () -> BlockEntityType.Builder.of(ComputerBlockEntity::new, COMPUTER_BLOCK.block().get()).build(null));
@@ -116,8 +121,11 @@ public class AdvancedComputers {
     public static final RegistryObject<BlockEntityType<KeyCardReaderBlockEntity>> KEYCARD_READER_BE = BLOCK_ENTITY_TYPES.register("keycard_reader_be",
             () -> BlockEntityType.Builder.of(KeyCardReaderBlockEntity::new, KEYCARD_READER_BLOCK.block().get()).build(null));
 
-    public static final RegistryObject<BlockEntityType<CableBlockEntity>> CABLE_BE = BLOCK_ENTITY_TYPES.register("cable_be",
-            () -> BlockEntityType.Builder.of(CableBlockEntity::new, CABLE_BLOCK.block().get()).build(null));
+    public static final RegistryObject<BlockEntityType<DeviceCableBlockEntity>> DEV_CABLE_BE = BLOCK_ENTITY_TYPES.register("device_cable_be",
+            () -> BlockEntityType.Builder.of(DeviceCableBlockEntity::new, DEVICE_CABLE_BLOCK.block().get()).build(null));
+
+    public static final RegistryObject<BlockEntityType<NetworkCableBlockEntity>> NET_CABLE_BE = BLOCK_ENTITY_TYPES.register("network_cable_be",
+            () -> BlockEntityType.Builder.of(NetworkCableBlockEntity::new, NETWORK_CABLE_BLOCK.block().get()).build(null));
 
     public static final RegistryObject<MenuType<ComputerBlockMenu>> COMPUTER_MENU =
             registerMenuType("computer_menu", ComputerBlockMenu::new);

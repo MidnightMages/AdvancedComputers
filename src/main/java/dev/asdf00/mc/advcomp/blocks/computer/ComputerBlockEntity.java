@@ -3,10 +3,7 @@ package dev.asdf00.mc.advcomp.blocks.computer;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.lua.LuaSandbox;
-import dev.asdf00.mc.advcomp.types.AcCapabilities;
-import dev.asdf00.mc.advcomp.types.BaseAcDevCableConnectableEntityBlock;
-import dev.asdf00.mc.advcomp.types.IAcCableHostEntity;
-import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -161,5 +158,15 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
             }
         }
         return true; // shouldnt be hit anyway
+    }
+
+    @Override
+    public boolean canConnectTo(IAcBaseCableConnectableEntity entity, Direction side) {
+        return true; // TODO check for the two cable caps
+    }
+
+    @Override
+    public boolean canConnectTo(BaseAcCableEntityBlock entity, Direction side) {
+        return true; // TODO check for the two cable caps
     }
 }

@@ -9,7 +9,7 @@ import net.minecraft.world.level.block.state.BlockState;
 /**
  * IMPORTANT: This is NOT the right class to extend if you are writing a peripheral. Use BaseAcCableConnectableEntityBlock instead!
  */
-public class BaseAcCableEntityBlock extends BlockEntity {
+public abstract class BaseAcCableEntityBlock extends BlockEntity {
     public BaseAcCableEntityBlock(BlockEntityType<?> pType, BlockPos pPos, BlockState pBlockState) {
         super(pType, pPos, pBlockState);
     }

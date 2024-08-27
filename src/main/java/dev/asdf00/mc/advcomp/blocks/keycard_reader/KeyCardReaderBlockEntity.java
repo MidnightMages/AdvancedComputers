@@ -2,9 +2,7 @@ package dev.asdf00.mc.advcomp.blocks.keycard_reader;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.items.BaseKeycardItem;
-import dev.asdf00.mc.advcomp.types.AcCapabilities;
-import dev.asdf00.mc.advcomp.types.BaseAcDevCableConnectableEntityBlock;
-import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -49,5 +47,15 @@ public class KeyCardReaderBlockEntity extends BaseAcDevCableConnectableEntityBlo
 
     public void tick(Level pLevel1, BlockPos pPos, BlockState pState1) {
 
+    }
+
+    @Override
+    public boolean canConnectTo(IAcBaseCableConnectableEntity entity, Direction side) {
+        return true; // TODO check for the two cable caps
+    }
+
+    @Override
+    public boolean canConnectTo(BaseAcCableEntityBlock entity, Direction side) {
+        return true; // TODO check for the two cable caps
     }
 }

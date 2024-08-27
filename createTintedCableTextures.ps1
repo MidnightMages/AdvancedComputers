@@ -2,7 +2,7 @@ using namespace System.Drawing.Imaging
 Add-Type -Assembly System.Drawing
 $ErrorActionPreference = "Stop"
 
-foreach ($subfolder in @("device")){
+foreach ($subfolder in @("device","network")){
 	$basefolder = "./assetSources/textures/block/tcable/"
 	$infolder = $basefolder+$subfolder+"/"
 	$outfolder = $basefolder+$subfolder+"_red/"

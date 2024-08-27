@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube",
+  "cableVariant": "device",
+  "facade": false,
+  "loader": "advancedcomputers:cableloader"
+}

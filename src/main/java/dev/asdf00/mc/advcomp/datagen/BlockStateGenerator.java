@@ -29,17 +29,21 @@ public class BlockStateGenerator extends BlockStateProvider {
         orientedBlock(AdvancedComputers.COMPUTER_BLOCK);
         orientedBlock(AdvancedComputers.KEYCARD_READER_BLOCK);
 
-        BlockModelBuilder model = models().getBuilder("cable")
+        cable(AdvancedComputers.DEVICE_CABLE_BLOCK, "device");
+        cable(AdvancedComputers.NETWORK_CABLE_BLOCK, "network");
+    }
+
+    private void cable(RegistryBlockItemPair<Block> cableRegDef, String variantName) {
+        BlockModelBuilder model = models().getBuilder("block/tcable/"+variantName)
                 .parent(models().getExistingFile(rl_mc("cube")))
-                .customLoader((builder,existingFileHelper) -> new CableLoaderBuilder(CableModelLoader.GENERATOR_LOADER, builder, existingFileHelper, false) {
+                .customLoader((builder, existingFileHelper) -> new CableLoaderBuilder(CableModelLoader.GENERATOR_LOADER, builder, existingFileHelper, variantName, false) {
                     @Override
                     public JsonObject toJson(JsonObject json) {
                         return super.toJson(json);
                     }
                 })
                 .end();
-
-        simpleBlock(AdvancedComputers.CABLE_BLOCK.block().get(), model);
+        simpleBlock(cableRegDef.block().get(), model);
     }
 
     private void orientedBlock(RegistryBlockItemPair<Block> b) {
@@ -65,11 +69,13 @@ public class BlockStateGenerator extends BlockStateProvider {
     }
 
     private static class CableLoaderBuilder extends CustomLoaderBuilder<BlockModelBuilder> {
+        private final String cableVariant;
         private final boolean facade;
 
         public CableLoaderBuilder(ResourceLocation loader, BlockModelBuilder parent, ExistingFileHelper existingFileHelper,
-                                  boolean facade) {
+                                  String cableVariant, boolean facade) {
             super(loader, parent, existingFileHelper);
+            this.cableVariant = cableVariant;
             this.facade = facade;
         }
 
@@ -77,6 +83,7 @@ public class BlockStateGenerator extends BlockStateProvider {
         public JsonObject toJson(JsonObject json) {
             JsonObject obj = super.toJson(json);
             obj.addProperty("facade", facade);
+            obj.addProperty("cableVariant", cableVariant);
             return obj;
         }
     }

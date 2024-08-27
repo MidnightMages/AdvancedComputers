@@ -36,6 +36,7 @@ import static dev.asdf00.mc.advcomp.blocks.cables.ConnectionDir.CABLE;
 public class CableBakedModel implements IDynamicBakedModel {
 
     private final IGeometryBakingContext context;
+    private final String cableVariant;
     private final boolean facade;
 
     static {
@@ -60,15 +61,11 @@ public class CableBakedModel implements IDynamicBakedModel {
         CablePatterns.PATTERNS.put(Pattern.of(true, true, true, true), QuadSetting.of(SPRITE_CROSS, 0));
     }
 
-    public CableBakedModel(IGeometryBakingContext context, boolean facade) {
+    public CableBakedModel(IGeometryBakingContext context, String cableVariant, boolean facade) {
         this.context = context;
+        this.cableVariant = cableVariant;
         this.facade = facade;
     }
-
-//    private void initTextures(String variant) {
-//        initTextureBatch(variant);
-//        initTextureBatch(variant + "_red");
-//    }
 
     private final HashMap<String, TextureAtlasSprite> getTexture_cache = new HashMap<>();
 
@@ -85,25 +82,6 @@ public class CableBakedModel implements IDynamicBakedModel {
 
         return getTexture_cache.get(key);
     }
-
-//    private void initTextureBatch(String variant) {
-//        if (spriteConnector == null) {
-//            spriteConnector = getTexture("block/tcable/" + variant + "/connector");
-//            spriteSide = getTexture("block/tcable/" + variant + "/connector_side");
-//
-//            spriteNormalCable = getTexture("block/tcable/" + variant + "/side");
-//            spriteNoneCable = getTexture("block/tcable/" + variant + "/none");
-//            spriteEndCable = getTexture("block/tcable/" + variant + "/end");
-//            spriteCornerCable = getTexture("block/tcable/" + variant + "/corner");
-//            spriteThreeCable = getTexture("block/tcable/" + variant + "/three");
-//            spriteCrossCable = getTexture("block/tcable/" + variant + "/cross");
-//        }
-//    }
-
-    // All textures are baked on a big texture atlas. This function gets the texture from that atlas
-//    private TextureAtlasSprite getTexture(String path) {
-//        return Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(new ResourceLocation(AdvancedComputers.MODID, path));
-//    }
 
     private TextureAtlasSprite getSpriteNormal(String cableType, String colorVariant, CablePatterns.SpriteIdx idx) {
         var variant = switch (idx) {
@@ -128,20 +106,15 @@ public class CableBakedModel implements IDynamicBakedModel {
     @NotNull
     public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @NotNull RandomSource rand, @NotNull ModelData extraData, @Nullable RenderType layer) {
         List<BakedQuad> quads = new ArrayList<>();
-        String colorVariant = (state != null && state.getValue(CableBlock.NETWORK_ERROR)) ? "red" : null;
+        String colorVariant = (state != null && state.getValue(BaseCableBlock.NETWORK_ERROR)) ? "red" : null;
         if (side == null && (layer == null || layer.equals(RenderType.solid()))) {
             // Called with the blockstate from our block. Here we get the values of the six properties and pass that to
             // our baked model implementation. If state == null we are called from the inventory and we use the default
             // values for the properties
-            Function<CablePatterns.SpriteIdx, TextureAtlasSprite> spriteGetter = (sidx) -> this.getSpriteNormal("device", colorVariant, sidx);
+            Function<CablePatterns.SpriteIdx, TextureAtlasSprite> spriteGetter = (sidx) -> this.getSpriteNormal(cableVariant, colorVariant, sidx);
             TextureAtlasSprite spriteConnector = spriteGetter.apply(SPRITE_CONNECTOR);
             TextureAtlasSprite spriteSide = spriteGetter.apply(SPRITE_CONNECTOR_SIDE);
-
-            TextureAtlasSprite spriteNoneCable = spriteGetter.apply(SPRITE_NONE);
             TextureAtlasSprite spriteNormalCable = spriteGetter.apply(SPRITE_STRAIGHT);
-            TextureAtlasSprite spriteEndCable = spriteGetter.apply(SPRITE_END);
-            TextureAtlasSprite spriteCornerCable = spriteGetter.apply(SPRITE_CORNER);
-            TextureAtlasSprite spriteThreeCable = spriteGetter.apply(SPRITE_THREE);
             TextureAtlasSprite spriteCrossCable = spriteGetter.apply(SPRITE_CROSS);
 
             double o = .4;      // Thickness of the cable. .0 would be full block, .5 is infinitely thin.
@@ -159,12 +132,12 @@ public class CableBakedModel implements IDynamicBakedModel {
                 quads.add(quad(v(o, 1 - o, 0), v(1 - o, 1 - o, 0), v(1 - o, o, 0), v(o, o, 0), spriteCrossCable));
                 quads.add(quad(v(o, o, 1), v(1 - o, o, 1), v(1 - o, 1 - o, 1), v(o, 1 - o, 1), spriteCrossCable));
             } else /*if (state != null)*/ {
-                north = state.getValue(CableBlock.NORTH);
-                south = state.getValue(CableBlock.SOUTH);
-                west = state.getValue(CableBlock.WEST);
-                east = state.getValue(CableBlock.EAST);
-                up = state.getValue(CableBlock.UP);
-                down = state.getValue(CableBlock.DOWN);
+                north = state.getValue(BaseCableBlock.NORTH);
+                south = state.getValue(BaseCableBlock.SOUTH);
+                west = state.getValue(BaseCableBlock.WEST);
+                east = state.getValue(BaseCableBlock.EAST);
+                up = state.getValue(BaseCableBlock.UP);
+                down = state.getValue(BaseCableBlock.DOWN);
             }/* else {
                 // If we are a facade and we are an item then we render as the 'side' texture as a full block
                 if (facade) {
@@ -360,7 +333,7 @@ public class CableBakedModel implements IDynamicBakedModel {
 
     @Override
     public @NotNull TextureAtlasSprite getParticleIcon() {
-        var spriteNormalCable = getSpriteNormal("device", null, SPRITE_STRAIGHT);
+        var spriteNormalCable = getSpriteNormal(cableVariant, null, SPRITE_STRAIGHT);
         return spriteNormalCable == null
                 ? Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply((new ResourceLocation("minecraft", "missingno")))
                 : spriteNormalCable;

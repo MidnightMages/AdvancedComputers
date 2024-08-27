@@ -1,6 +1,6 @@
 package dev.asdf00.mc.advcomp.blocks.cables;
 
-import dev.asdf00.mc.advcomp.types.AcCapabilities;
+import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
@@ -27,11 +27,12 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.ticks.ScheduledTick;
+import net.minecraftforge.common.capabilities.Capability;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 // a lot of stuff taken from https://www.mcjty.eu/docs/1.20/ep5; Thank you :)
-public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityBlock {
+public abstract class BaseCableBlock extends Block implements SimpleWaterloggedBlock, EntityBlock {
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     public static final BooleanProperty NETWORK_ERROR = BooleanProperty.create("networkerror");
 
@@ -58,6 +59,7 @@ public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityB
     private static final VoxelShape SHAPE_BLOCK_EAST = Shapes.box(.9, .2, .2, 1, .8, .8);
     private static final VoxelShape SHAPE_BLOCK_UP = Shapes.box(.2, .9, .2, .8, 1, .8);
     private static final VoxelShape SHAPE_BLOCK_DOWN = Shapes.box(.2, 0, .2, .8, .1, .8);
+    private final Capability<IAcDevCableConnectableEntity> cableConnectableCapability; // TODO split caps among derived classes
 
     private int calculateShapeIndex(ConnectionDir north, ConnectionDir south, ConnectionDir west, ConnectionDir east, ConnectionDir up, ConnectionDir down) {
         int l = ConnectionDir.values().length;
@@ -83,7 +85,6 @@ public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityB
                     }
                 }
             }
-
         }
     }
 
@@ -122,33 +123,28 @@ public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityB
 
 
     @Override
-    public BlockState updateShape(BlockState state, @NotNull Direction direction, @NotNull BlockState neighbourState, @NotNull LevelAccessor world, @NotNull BlockPos current, @NotNull BlockPos offset) {
+    public @NotNull BlockState updateShape(BlockState state, @NotNull Direction direction, @NotNull BlockState neighbourState, @NotNull LevelAccessor world, @NotNull BlockPos current, @NotNull BlockPos offset) {
         if (state.getValue(WATERLOGGED)) {
             world.getFluidTicks().schedule(new ScheduledTick<>(Fluids.WATER, current, Fluids.WATER.getTickDelay(world), 0L));   // @todo 1.18 what is this last parameter exactly?
         }
         return calculateState(world, current, state);
     }
 
-    public CableBlock(Properties pProperties) {
+    public BaseCableBlock(Capability<IAcDevCableConnectableEntity> cableConnectableCapability, Properties pProperties) {
         super(pProperties);
+        this.cableConnectableCapability = cableConnectableCapability;
 
         makeShapes();
         registerDefaultState(defaultBlockState().setValue(WATERLOGGED, false).setValue(NETWORK_ERROR, false));
     }
 
     @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
-        return new CableBlockEntity(blockPos, blockState);
-    }
-
-
-    @Override
-    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> type) {
         if (level.isClientSide) {
             return null;
         } else {
             return (lvl, pos, st, be) -> {
-                if (be instanceof CableBlockEntity cable) {
+                if (be instanceof BaseCableBlockEntity cable) {
                     cable.tickServer();
                 }
             };
@@ -158,7 +154,7 @@ public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityB
     @Override
     public void neighborChanged(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Block block, @NotNull BlockPos fromPos, boolean isMoving) {
         super.neighborChanged(state, level, pos, block, fromPos, isMoving);
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof CableBlockEntity cable) {
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof BaseCableBlockEntity cable) {
             cable.markDirty();
         }
     }
@@ -166,7 +162,7 @@ public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityB
     @Override
     public void setPlacedBy(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState state, @Nullable LivingEntity placer, @NotNull ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof CableBlockEntity cable) {
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof BaseCableBlockEntity cable) {
             cable.markDirty();
         }
         BlockState blockState = calculateState(level, pos, state);
@@ -180,9 +176,9 @@ public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityB
         BlockPos pos = connectorPos.relative(facing);
         BlockState state = world.getBlockState(pos);
         Block block = state.getBlock();
-        if (block instanceof CableBlock) {
+        if (block.getDescriptionId().equals(this.getDescriptionId())) {
             return ConnectionDir.CABLE;
-        } else if (isConnectable(world, connectorPos, facing)) {
+        } else if (!(block instanceof BaseCableBlock) && isConnectable(world, connectorPos, facing)) {
             return ConnectionDir.BLOCK;
         } else {
             return ConnectionDir.NONE;
@@ -191,7 +187,7 @@ public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityB
 
     // Return true if the block at the given position is connectable to a cable. This is the
     // case if the block supports forge energy
-    public static boolean isConnectable(BlockGetter world, BlockPos connectorPos, Direction facing) {
+    public boolean isConnectable(BlockGetter world, BlockPos connectorPos, Direction facing) {
         BlockPos pos = connectorPos.relative(facing);
         BlockState state = world.getBlockState(pos);
         if (state.isAir()) {
@@ -201,7 +197,7 @@ public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityB
         if (te == null) {
             return false;
         }
-        return te.getCapability(AcCapabilities.CABLE_CONNECTABLE).isPresent();
+        return te.getCapability(cableConnectableCapability).isPresent();
     }
 
     @Override
