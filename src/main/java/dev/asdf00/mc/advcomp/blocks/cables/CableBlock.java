@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 // a lot of stuff taken from https://www.mcjty.eu/docs/1.20/ep5; Thank you :)
 public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityBlock {
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
+    public static final BooleanProperty NETWORK_ERROR = BooleanProperty.create("networkerror");
 
     public static final EnumProperty<ConnectionDir> NORTH = EnumProperty.create("north", ConnectionDir.class);
     public static final EnumProperty<ConnectionDir> SOUTH = EnumProperty.create("south", ConnectionDir.class);
@@ -100,11 +101,9 @@ public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityB
     private VoxelShape combineShape(VoxelShape shape, ConnectionDir connectorType, VoxelShape cableShape, VoxelShape blockShape) {
         if (connectorType == ConnectionDir.CABLE) {
             return Shapes.join(shape, cableShape, BooleanOp.OR);
-        }
-        else if (connectorType == ConnectionDir.BLOCK) {
+        } else if (connectorType == ConnectionDir.BLOCK) {
             return Shapes.join(shape, Shapes.join(blockShape, cableShape, BooleanOp.OR), BooleanOp.OR);
-        }
-        else {
+        } else {
             return shape;
         }
     }
@@ -134,7 +133,7 @@ public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityB
         super(pProperties);
 
         makeShapes();
-        registerDefaultState(defaultBlockState().setValue(WATERLOGGED, false));
+        registerDefaultState(defaultBlockState().setValue(WATERLOGGED, false).setValue(NETWORK_ERROR, false));
     }
 
     @Override
@@ -147,8 +146,7 @@ public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityB
     public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         if (level.isClientSide) {
             return null;
-        }
-        else {
+        } else {
             return (lvl, pos, st, be) -> {
                 if (be instanceof CableBlockEntity cable) {
                     cable.tickServer();
@@ -184,11 +182,9 @@ public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityB
         Block block = state.getBlock();
         if (block instanceof CableBlock) {
             return ConnectionDir.CABLE;
-        }
-        else if (isConnectable(world, connectorPos, facing)) {
+        } else if (isConnectable(world, connectorPos, facing)) {
             return ConnectionDir.BLOCK;
-        }
-        else {
+        } else {
             return ConnectionDir.NONE;
         }
     }
@@ -211,7 +207,7 @@ public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityB
     @Override
     protected void createBlockStateDefinition(@NotNull StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
-        builder.add(WATERLOGGED, NORTH, SOUTH, EAST, WEST, UP, DOWN);
+        builder.add(WATERLOGGED, NORTH, SOUTH, EAST, WEST, UP, DOWN, NETWORK_ERROR);
     }
 
 
@@ -220,7 +216,8 @@ public class CableBlock extends Block implements SimpleWaterloggedBlock, EntityB
         Level world = context.getLevel();
         BlockPos pos = context.getClickedPos();
         return calculateState(world, pos, defaultBlockState())
-                .setValue(WATERLOGGED, world.getFluidState(pos).getType() == Fluids.WATER);
+                .setValue(WATERLOGGED, world.getFluidState(pos).getType() == Fluids.WATER)
+                .setValue(NETWORK_ERROR, false);
     }
 
     private @NotNull BlockState calculateState(LevelAccessor world, BlockPos pos, BlockState state) {

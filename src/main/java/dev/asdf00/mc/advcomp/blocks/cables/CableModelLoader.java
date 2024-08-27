@@ -40,7 +40,7 @@ public class CableModelLoader implements IGeometryLoader<CableModelLoader.CableM
 
         @Override
         public BakedModel bake(IGeometryBakingContext context, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelState, ItemOverrides overrides, ResourceLocation modelLocation) {
-            return new CableBakedModel(context, facade, ((modelLocation instanceof ModelResourceLocation mrl) && (mrl.getVariant().equals("inventory"))));
+            return new CableBakedModel(context, facade);
         }
     }
 }

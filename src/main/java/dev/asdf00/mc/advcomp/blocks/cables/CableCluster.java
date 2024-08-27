@@ -3,11 +3,11 @@ package dev.asdf00.mc.advcomp.blocks.cables;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.types.IAcBaseCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.IAcCableHostEntity;
-import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.Level;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Stack;
@@ -31,7 +31,7 @@ public class CableCluster {
         this.connectedHostEntities = connectedHostEntities;
     }
 
-    public static void onBlockPosChanged(LevelReader level, BlockPos initialBp) {
+    public static void onBlockPosChanged(Level level, BlockPos initialBp) {
         // peripheral cluster
         CableCluster.onBlockPosChangedInternal(level, initialBp, (IAcBaseCableConnectableEntity be) -> be instanceof ComputerBlockEntity,
                 (IAcBaseCableConnectableEntity be) -> true);
@@ -41,7 +41,7 @@ public class CableCluster {
 //                (IAcBaseCableConnectableEntity be) -> false);
     }
 
-    public static void onBlockPosChangedInternal(LevelReader level, BlockPos initialBp,
+    public static void onBlockPosChangedInternal(Level level, BlockPos initialBp,
                                                  Function<IAcBaseCableConnectableEntity, Boolean> isHostBlock,
                                                  Function<IAcBaseCableConnectableEntity, Boolean> actsAsCable) {
         // what this does is:
@@ -65,6 +65,7 @@ public class CableCluster {
             Stack<BlockPos> posesToCheck = new Stack<>();
             posesToCheck.add(networkRebuildStartpoint); // add rebuild startpoint
             HashSet<IAcBaseCableConnectableEntity> connectedDevices = new HashSet<>();
+            ArrayList<BlockPos> connectedCables = new ArrayList<>();
             HashSet<IAcBaseCableConnectableEntity> connectedComputers = new HashSet<>(1);
             Consumer<BlockPos> addNeighborsFunc = bpToAdd -> {
                 for (var dir : Direction.values())
@@ -81,9 +82,10 @@ public class CableCluster {
                 if (posBe == null) // blockPos has no tileentity --> cant interact with cable ever --> we are done
                     continue;
 
-                if (posBe instanceof CableBlockEntity) // cable --> keep scanning neighbors
+                if (posBe instanceof CableBlockEntity) { // cable --> keep scanning neighbors
                     addNeighborsFunc.accept(pos);
-                else if (posBe instanceof IAcBaseCableConnectableEntity bcce) { // TE is relevant to this network/cluster --> process it
+                    connectedCables.add(pos);
+                } else if (posBe instanceof IAcBaseCableConnectableEntity bcce) { // TE is relevant to this network/cluster --> process it
                     if (isHostBlock.apply(bcce))
                         connectedComputers.add(bcce);
                     else
@@ -113,6 +115,7 @@ public class CableCluster {
                 dev.getNetworkList().add(newNet);
             }
 
+            boolean isNetworkValid = true;// default: no computers -> no update -> show cables as white aka normal
             for (var host : newNet.connectedHostEntities) { // go through all networks associated with the computers we found just now
                 var oldNet = host.getNetworkList(); // should only contain one network, but just in case there is more, we iterate
                 for (var on : oldNet) { // remove old references to this network from the nets that are being replaced
@@ -122,14 +125,24 @@ public class CableCluster {
                         on_comps.getNetworkList().remove(on);
                 }
                 host.getNetworkList().add(newNet);
-                if (host instanceof IAcCableHostEntity che)
-                    che.onNetworkUpdated(); // tell the cluster-host(s) that the net might have changed
-                else
+                if (host instanceof IAcCableHostEntity che) {
+                    // tell the cluster-host(s) that the net might have changed;
+                    // if any computer deems the network as invalid, show it as red
+                    isNetworkValid &= che.onNetworkUpdated();
+                } else
                     throw new RuntimeException("Class %s does not implement the interface %s".formatted(host.getClass().getName(), IAcCableHostEntity.class));
             }
+            UpdateCableBlockStates(connectedCables, isNetworkValid, level);
 
             // last step remove all next potential startingpoints from that set if we have already checked them
             neighborStartPosesToCheck.removeIf(alreadyChecked::contains);
+        }
+    }
+
+    private static void UpdateCableBlockStates(ArrayList<BlockPos> connectedCables, boolean netIsOk, Level level) {
+        for (var c : connectedCables) {
+            var bs = level.getBlockState(c).setValue(CableBlock.NETWORK_ERROR, !netIsOk);
+            level.setBlock(c, bs, 2); // flags: 2 = sendToClient (NO block update)
         }
     }
 }
