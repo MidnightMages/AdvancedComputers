@@ -138,11 +138,12 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
         return lvm;
     }
 
-    public void onNetworkUpdated() {
+    public boolean onNetworkUpdated() {
         if (connectedNetworks.size() > 1) {
             lvm.tryKill("Too many networks connected to thsi computer??");
             AdvancedComputers.LOGGER.warn("invalid network count for computer at bp %s. Network count: %s"
                     .formatted(this.getBlockPos(), connectedNetworks.size()));
+            return false; // ultra weird state --> return false
         } else if (connectedNetworks.size() == 1) {
             var net = connectedNetworks.iterator().next();
             var cc = net.getHostCount();
@@ -152,10 +153,13 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
 
                 AdvancedComputers.LOGGER.info("invalid network for computer at bp %s. Computer count: %s"
                         .formatted(this.getBlockPos(), cc));
+                return false; // invalid network as there are two computers --> return false
             } else {
                 AdvancedComputers.LOGGER.info("valid network for computer at bp %s. Peripheral count: %s"
                         .formatted(this.getBlockPos(), net.getEntityCount()));
+                return true; // valid as there is one or 0 computers, so probably exactly one
             }
         }
+        return true; // shouldnt be hit anyway
     }
 }
