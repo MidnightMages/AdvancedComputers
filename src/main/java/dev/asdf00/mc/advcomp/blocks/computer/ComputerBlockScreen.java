@@ -36,7 +36,8 @@ public class ComputerBlockScreen extends AbstractContainerScreen<ComputerBlockMe
     }
 
     private boolean isMachineRunning() {
-        return menu.blockEntity.getLvm().getState() > 0;
+        // TODO: fetch state from server
+        return false;
     }
 
     private void onMachineStateChanged() {

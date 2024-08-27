@@ -77,6 +77,9 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
     }
 
     private void renderStdOut(GuiGraphics pGuiGraphics) {
+        if (true) {
+            return;
+        }
         var out = getComputerEntity().getLvm().getStdOut();
         int x = (width - imageWidth) / 2;
         int y = (height - imageHeight) / 2;
@@ -106,6 +109,9 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
 
     @Override
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (true) {
+            return super.keyPressed(pKeyCode, pScanCode, pModifiers);
+        }
         switch (pKeyCode) {
             case 256 -> onClose();
             case 257 -> getComputerEntity().getLvm().pushMachineEvent("keyTyped", "\n");
@@ -122,12 +128,18 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
         if (super.charTyped(pCodePoint, pModifiers)) {
             return true;
         }
+        if (true) {
+            return false;
+        }
         getComputerEntity().getLvm().pushMachineEvent("keyTyped", String.valueOf(pCodePoint));
         return true;
     }
 
     @Override
     public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+        if (true) {
+            return super.mouseClicked(pMouseX, pMouseY, pButton);
+        }
         if (pButton == 1) {
             // right-click to paste
             String clip = Minecraft.getInstance().keyboardHandler.getClipboard();

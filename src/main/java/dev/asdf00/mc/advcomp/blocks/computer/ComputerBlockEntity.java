@@ -40,7 +40,6 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
     private LazyOptional<IItemHandler> lazyItemhandler = LazyOptional.empty();
     private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable;
 
-    protected final boolean isServer;
     protected final ContainerData data;
     private int computerState = 0;
     private LuaVirtualMachine lvm;
@@ -52,7 +51,6 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
 
     public ComputerBlockEntity(BlockPos pPos, BlockState pBlockState) {
         super(AdvancedComputers.COMPUTER_BE.get(), pPos, pBlockState);
-        isServer = !getLevel().isClientSide();
         this.data = new ContainerData() {
             @Override
             public int get(int pIndex) {
@@ -76,6 +74,10 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
         };
 
         this.lazyCableConnectable = LazyOptional.of(() -> this);
+    }
+
+    private boolean isServer() {
+        return !getLevel().isClientSide();
     }
 
     @Override
@@ -133,15 +135,15 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
         super.onLoad();
         System.out.println("ON LOAD COMPUTER");
         lazyItemhandler = LazyOptional.of(() -> itemHandler);
-        // create LVM
-        lvm = new LuaVirtualMachine(this, Integer.MAX_VALUE);
     }
 
     @Override
     public void onChunkUnloaded() {
         super.onChunkUnloaded();
         // crash LVM
-        lvm.tryKill("Chunk unloaded");
+        if (isServer()) {
+            lvm.tryKill("Chunk unloaded");
+        }
     }
 
     public void onNetworkUpdated() {
@@ -169,16 +171,24 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
     //       Lua Interactions     Lua Interactions     Lua Interactions     Lua Interactions     Lua Interactions
     // =================================================================================================================
 
-    @Deprecated
     public LuaVirtualMachine getLvm() {
-        return lvm;
+        if (isServer()) {
+            synchronized (lockLVM) {
+                if (lvm == null) {
+                    lvm = new LuaVirtualMachine(this, Integer.MAX_VALUE);
+                }
+                return lvm;
+            }
+        } else {
+            return null;
+        }
     }
 
     public void toggleLVMPowerState() {
-        if (isServer) {
-            lvm.toggleOnOff();
+        if (isServer()) {
+            getLvm().toggleOnOff();
         } else {
-            NetCodeUtils.sendToServer(new ClientOriginatingUiEvent(this, 0));
+            NetCodeUtils.sendToServer(new ClientOriginatingUiEvent(this, 1));
         }
     }
 
@@ -190,9 +200,9 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
     //       Networking     Networking     Networking     Networking     Networking     Networking     Networking
     // =================================================================================================================
 
-    private static class ClientOriginatingUiEvent implements NetworkMessage {
+    public static class ClientOriginatingUiEvent implements NetworkMessage {
         private final BlockPos cbePos;
-        private final int btnId;  // 0 = On/Off-Btn
+        private final int btnId;  // 1 = On/Off-Btn
 
         public ClientOriginatingUiEvent(ComputerBlockEntity cbe, int btnId) {
             cbePos = cbe.worldPosition;
@@ -204,7 +214,7 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
             this.btnId = btnId;
         }
 
-        static ClientOriginatingUiEvent decode(FriendlyByteBuf buffer) {
+        public static ClientOriginatingUiEvent decode(FriendlyByteBuf buffer) {
             return new ClientOriginatingUiEvent(buffer.readBlockPos(), buffer.readInt());
         }
 
@@ -216,17 +226,26 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
 
         @Override
         public void handle(NetworkEvent.Context ctx) {
-            var obj = ctx.getSender().level().getBlockEntity(cbePos);
-            if (obj instanceof ComputerBlockEntity cbe) {
-                AssertRuntime(cbe.isServer, "Handling UI button event for ComputerBlockEntity client-side");
-                cbe.toggleLVMPowerState();
-            } else {
-                AdvancedComputers.LOGGER.warn("Received invalid package for toggling power state of ComputerBlockEntity");
-            }
+            ctx.enqueueWork(() -> {
+                var obj = ctx.getSender().level().getBlockEntity(cbePos);
+                if (obj instanceof ComputerBlockEntity cbe) {
+                    AssertRuntime(cbe.isServer(), "Handling UI button event for ComputerBlockEntity client-side");
+                    if (btnId == 1) {
+                        cbe.toggleLVMPowerState();
+                    }
+                } else {
+                    AdvancedComputers.LOGGER.warn("Received invalid package for toggling power state of ComputerBlockEntity");
+                }
+            });
+            ctx.setPacketHandled(true);
         }
-    }
 
-    static {
-        NetCodeUtils.registerMessage(ClientOriginatingUiEvent.class, ClientOriginatingUiEvent::decode);
+        @Override
+        public String toString() {
+            return "ClientOriginatingUiEvent{" +
+                    "cbePos=" + cbePos +
+                    ", btnId=" + btnId +
+                    '}';
+        }
     }
 }
