@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
 
@@ -36,15 +37,6 @@ public class CableBakedModel implements IDynamicBakedModel {
 
     private final IGeometryBakingContext context;
     private final boolean facade;
-
-    private TextureAtlasSprite spriteConnector;
-    private TextureAtlasSprite spriteNoneCable;
-    private TextureAtlasSprite spriteNormalCable;
-    private TextureAtlasSprite spriteEndCable;
-    private TextureAtlasSprite spriteCornerCable;
-    private TextureAtlasSprite spriteThreeCable;
-    private TextureAtlasSprite spriteCrossCable;
-    private TextureAtlasSprite spriteSide;
 
     static {
         // For all possible patterns we define the sprite to use and the rotation. Note that each
@@ -73,35 +65,58 @@ public class CableBakedModel implements IDynamicBakedModel {
         this.facade = facade;
     }
 
-    private void initTextures() {
-        if (spriteConnector == null) {
-            spriteConnector = getTexture("block/cable/connector");
-            spriteSide = getTexture("block/cable/connector_side");
+//    private void initTextures(String variant) {
+//        initTextureBatch(variant);
+//        initTextureBatch(variant + "_red");
+//    }
 
-            spriteNormalCable = getTexture("block/cable/side");
-            spriteNoneCable = getTexture("block/cable/none");
-            spriteEndCable = getTexture("block/cable/end");
-            spriteCornerCable = getTexture("block/cable/corner");
-            spriteThreeCable = getTexture("block/cable/three");
-            spriteCrossCable = getTexture("block/cable/cross");
+    private final HashMap<String, TextureAtlasSprite> getTexture_cache = new HashMap<>();
+
+    private TextureAtlasSprite getTexture(String cableType, String colorVariant, String variant) {
+        if (colorVariant != null)
+            cableType += "_" + colorVariant;
+
+        var key = cableType + "/" + variant;
+
+        if (!getTexture_cache.containsKey(key)) {
+            var path = "block/tcable/" + cableType + "/" + variant;
+            getTexture_cache.put(key, Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(new ResourceLocation(AdvancedComputers.MODID, path)));
         }
+
+        return getTexture_cache.get(key);
     }
+
+//    private void initTextureBatch(String variant) {
+//        if (spriteConnector == null) {
+//            spriteConnector = getTexture("block/tcable/" + variant + "/connector");
+//            spriteSide = getTexture("block/tcable/" + variant + "/connector_side");
+//
+//            spriteNormalCable = getTexture("block/tcable/" + variant + "/side");
+//            spriteNoneCable = getTexture("block/tcable/" + variant + "/none");
+//            spriteEndCable = getTexture("block/tcable/" + variant + "/end");
+//            spriteCornerCable = getTexture("block/tcable/" + variant + "/corner");
+//            spriteThreeCable = getTexture("block/tcable/" + variant + "/three");
+//            spriteCrossCable = getTexture("block/tcable/" + variant + "/cross");
+//        }
+//    }
 
     // All textures are baked on a big texture atlas. This function gets the texture from that atlas
-    private TextureAtlasSprite getTexture(String path) {
-        return Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(new ResourceLocation(AdvancedComputers.MODID, path));
-    }
+//    private TextureAtlasSprite getTexture(String path) {
+//        return Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(new ResourceLocation(AdvancedComputers.MODID, path));
+//    }
 
-    private TextureAtlasSprite getSpriteNormal(CablePatterns.SpriteIdx idx) {
-        initTextures();
-        return switch (idx) {
-            case SPRITE_NONE -> spriteNoneCable;
-            case SPRITE_END -> spriteEndCable;
-            case SPRITE_STRAIGHT -> spriteNormalCable;
-            case SPRITE_CORNER -> spriteCornerCable;
-            case SPRITE_THREE -> spriteThreeCable;
-            case SPRITE_CROSS -> spriteCrossCable;
+    private TextureAtlasSprite getSpriteNormal(String cableType, String colorVariant, CablePatterns.SpriteIdx idx) {
+        var variant = switch (idx) {
+            case SPRITE_NONE -> "none";
+            case SPRITE_END -> "end";
+            case SPRITE_STRAIGHT -> "side";
+            case SPRITE_CORNER -> "corner";
+            case SPRITE_THREE -> "three";
+            case SPRITE_CROSS -> "cross";
+            case SPRITE_CONNECTOR -> "connector";
+            case SPRITE_CONNECTOR_SIDE -> "connector_side";
         };
+        return getTexture(cableType, colorVariant, variant);
     }
 
     @Override
@@ -112,15 +127,22 @@ public class CableBakedModel implements IDynamicBakedModel {
     @Override
     @NotNull
     public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @NotNull RandomSource rand, @NotNull ModelData extraData, @Nullable RenderType layer) {
-        initTextures();
         List<BakedQuad> quads = new ArrayList<>();
+        String colorVariant = (state != null && state.getValue(CableBlock.NETWORK_ERROR)) ? "red" : null;
         if (side == null && (layer == null || layer.equals(RenderType.solid()))) {
             // Called with the blockstate from our block. Here we get the values of the six properties and pass that to
             // our baked model implementation. If state == null we are called from the inventory and we use the default
             // values for the properties
+            Function<CablePatterns.SpriteIdx, TextureAtlasSprite> spriteGetter = (sidx) -> this.getSpriteNormal("device", colorVariant, sidx);
+            TextureAtlasSprite spriteConnector = spriteGetter.apply(SPRITE_CONNECTOR);
+            TextureAtlasSprite spriteSide = spriteGetter.apply(SPRITE_CONNECTOR_SIDE);
 
-            TextureAtlasSprite spriteCable = spriteNormalCable;
-            Function<CablePatterns.SpriteIdx, TextureAtlasSprite> spriteGetter = this::getSpriteNormal;
+            TextureAtlasSprite spriteNoneCable = spriteGetter.apply(SPRITE_NONE);
+            TextureAtlasSprite spriteNormalCable = spriteGetter.apply(SPRITE_STRAIGHT);
+            TextureAtlasSprite spriteEndCable = spriteGetter.apply(SPRITE_END);
+            TextureAtlasSprite spriteCornerCable = spriteGetter.apply(SPRITE_CORNER);
+            TextureAtlasSprite spriteThreeCable = spriteGetter.apply(SPRITE_THREE);
+            TextureAtlasSprite spriteCrossCable = spriteGetter.apply(SPRITE_CROSS);
 
             double o = .4;      // Thickness of the cable. .0 would be full block, .5 is infinitely thin.
             double p = .1;      // Thickness of the connector as it is put on the connecting block
@@ -160,15 +182,15 @@ public class CableBakedModel implements IDynamicBakedModel {
             // For each side we either cap it off if there is no similar block adjacent on that side
             // or else we extend so that we touch the adjacent block:
             if (up == CABLE) {
-                quads.add(quad(v(1 - o, 1, o), v(1 - o, 1, 1 - o), v(1 - o, 1 - o, 1 - o), v(1 - o, 1 - o, o), spriteCable));
-                quads.add(quad(v(o, 1, 1 - o), v(o, 1, o), v(o, 1 - o, o), v(o, 1 - o, 1 - o), spriteCable));
-                quads.add(quad(v(o, 1, o), v(1 - o, 1, o), v(1 - o, 1 - o, o), v(o, 1 - o, o), spriteCable));
-                quads.add(quad(v(o, 1 - o, 1 - o), v(1 - o, 1 - o, 1 - o), v(1 - o, 1, 1 - o), v(o, 1, 1 - o), spriteCable));
+                quads.add(quad(v(1 - o, 1, o), v(1 - o, 1, 1 - o), v(1 - o, 1 - o, 1 - o), v(1 - o, 1 - o, o), spriteNormalCable));
+                quads.add(quad(v(o, 1, 1 - o), v(o, 1, o), v(o, 1 - o, o), v(o, 1 - o, 1 - o), spriteNormalCable));
+                quads.add(quad(v(o, 1, o), v(1 - o, 1, o), v(1 - o, 1 - o, o), v(o, 1 - o, o), spriteNormalCable));
+                quads.add(quad(v(o, 1 - o, 1 - o), v(1 - o, 1 - o, 1 - o), v(1 - o, 1, 1 - o), v(o, 1, 1 - o), spriteNormalCable));
             } else if (up == BLOCK) {
-                quads.add(quad(v(1 - o, 1 - p, o), v(1 - o, 1 - p, 1 - o), v(1 - o, 1 - o, 1 - o), v(1 - o, 1 - o, o), spriteCable));
-                quads.add(quad(v(o, 1 - p, 1 - o), v(o, 1 - p, o), v(o, 1 - o, o), v(o, 1 - o, 1 - o), spriteCable));
-                quads.add(quad(v(o, 1 - p, o), v(1 - o, 1 - p, o), v(1 - o, 1 - o, o), v(o, 1 - o, o), spriteCable));
-                quads.add(quad(v(o, 1 - o, 1 - o), v(1 - o, 1 - o, 1 - o), v(1 - o, 1 - p, 1 - o), v(o, 1 - p, 1 - o), spriteCable));
+                quads.add(quad(v(1 - o, 1 - p, o), v(1 - o, 1 - p, 1 - o), v(1 - o, 1 - o, 1 - o), v(1 - o, 1 - o, o), spriteNormalCable));
+                quads.add(quad(v(o, 1 - p, 1 - o), v(o, 1 - p, o), v(o, 1 - o, o), v(o, 1 - o, 1 - o), spriteNormalCable));
+                quads.add(quad(v(o, 1 - p, o), v(1 - o, 1 - p, o), v(1 - o, 1 - o, o), v(o, 1 - o, o), spriteNormalCable));
+                quads.add(quad(v(o, 1 - o, 1 - o), v(1 - o, 1 - o, 1 - o), v(1 - o, 1 - p, 1 - o), v(o, 1 - p, 1 - o), spriteNormalCable));
 
                 quads.add(quad(v(1 - q, 1 - p, q), v(1 - q, 1, q), v(1 - q, 1, 1 - q), v(1 - q, 1 - p, 1 - q), spriteSide));
                 quads.add(quad(v(q, 1 - p, 1 - q), v(q, 1, 1 - q), v(q, 1, q), v(q, 1 - p, q), spriteSide));
@@ -183,15 +205,15 @@ public class CableBakedModel implements IDynamicBakedModel {
             }
 
             if (down == CABLE) {
-                quads.add(quad(v(1 - o, o, o), v(1 - o, o, 1 - o), v(1 - o, 0, 1 - o), v(1 - o, 0, o), spriteCable));
-                quads.add(quad(v(o, o, 1 - o), v(o, o, o), v(o, 0, o), v(o, 0, 1 - o), spriteCable));
-                quads.add(quad(v(o, o, o), v(1 - o, o, o), v(1 - o, 0, o), v(o, 0, o), spriteCable));
-                quads.add(quad(v(o, 0, 1 - o), v(1 - o, 0, 1 - o), v(1 - o, o, 1 - o), v(o, o, 1 - o), spriteCable));
+                quads.add(quad(v(1 - o, o, o), v(1 - o, o, 1 - o), v(1 - o, 0, 1 - o), v(1 - o, 0, o), spriteNormalCable));
+                quads.add(quad(v(o, o, 1 - o), v(o, o, o), v(o, 0, o), v(o, 0, 1 - o), spriteNormalCable));
+                quads.add(quad(v(o, o, o), v(1 - o, o, o), v(1 - o, 0, o), v(o, 0, o), spriteNormalCable));
+                quads.add(quad(v(o, 0, 1 - o), v(1 - o, 0, 1 - o), v(1 - o, o, 1 - o), v(o, o, 1 - o), spriteNormalCable));
             } else if (down == BLOCK) {
-                quads.add(quad(v(1 - o, o, o), v(1 - o, o, 1 - o), v(1 - o, p, 1 - o), v(1 - o, p, o), spriteCable));
-                quads.add(quad(v(o, o, 1 - o), v(o, o, o), v(o, p, o), v(o, p, 1 - o), spriteCable));
-                quads.add(quad(v(o, o, o), v(1 - o, o, o), v(1 - o, p, o), v(o, p, o), spriteCable));
-                quads.add(quad(v(o, p, 1 - o), v(1 - o, p, 1 - o), v(1 - o, o, 1 - o), v(o, o, 1 - o), spriteCable));
+                quads.add(quad(v(1 - o, o, o), v(1 - o, o, 1 - o), v(1 - o, p, 1 - o), v(1 - o, p, o), spriteNormalCable));
+                quads.add(quad(v(o, o, 1 - o), v(o, o, o), v(o, p, o), v(o, p, 1 - o), spriteNormalCable));
+                quads.add(quad(v(o, o, o), v(1 - o, o, o), v(1 - o, p, o), v(o, p, o), spriteNormalCable));
+                quads.add(quad(v(o, p, 1 - o), v(1 - o, p, 1 - o), v(1 - o, o, 1 - o), v(o, o, 1 - o), spriteNormalCable));
 
                 quads.add(quad(v(1 - q, 0, q), v(1 - q, p, q), v(1 - q, p, 1 - q), v(1 - q, 0, 1 - q), spriteSide));
                 quads.add(quad(v(q, 0, 1 - q), v(q, p, 1 - q), v(q, p, q), v(q, 0, q), spriteSide));
@@ -206,15 +228,15 @@ public class CableBakedModel implements IDynamicBakedModel {
             }
 
             if (east == CABLE) {
-                quads.add(quad(v(1, 1 - o, 1 - o), v(1, 1 - o, o), v(1 - o, 1 - o, o), v(1 - o, 1 - o, 1 - o), spriteCable));
-                quads.add(quad(v(1, o, o), v(1, o, 1 - o), v(1 - o, o, 1 - o), v(1 - o, o, o), spriteCable));
-                quads.add(quad(v(1, 1 - o, o), v(1, o, o), v(1 - o, o, o), v(1 - o, 1 - o, o), spriteCable));
-                quads.add(quad(v(1, o, 1 - o), v(1, 1 - o, 1 - o), v(1 - o, 1 - o, 1 - o), v(1 - o, o, 1 - o), spriteCable));
+                quads.add(quad(v(1, 1 - o, 1 - o), v(1, 1 - o, o), v(1 - o, 1 - o, o), v(1 - o, 1 - o, 1 - o), spriteNormalCable));
+                quads.add(quad(v(1, o, o), v(1, o, 1 - o), v(1 - o, o, 1 - o), v(1 - o, o, o), spriteNormalCable));
+                quads.add(quad(v(1, 1 - o, o), v(1, o, o), v(1 - o, o, o), v(1 - o, 1 - o, o), spriteNormalCable));
+                quads.add(quad(v(1, o, 1 - o), v(1, 1 - o, 1 - o), v(1 - o, 1 - o, 1 - o), v(1 - o, o, 1 - o), spriteNormalCable));
             } else if (east == BLOCK) {
-                quads.add(quad(v(1 - p, 1 - o, 1 - o), v(1 - p, 1 - o, o), v(1 - o, 1 - o, o), v(1 - o, 1 - o, 1 - o), spriteCable));
-                quads.add(quad(v(1 - p, o, o), v(1 - p, o, 1 - o), v(1 - o, o, 1 - o), v(1 - o, o, o), spriteCable));
-                quads.add(quad(v(1 - p, 1 - o, o), v(1 - p, o, o), v(1 - o, o, o), v(1 - o, 1 - o, o), spriteCable));
-                quads.add(quad(v(1 - p, o, 1 - o), v(1 - p, 1 - o, 1 - o), v(1 - o, 1 - o, 1 - o), v(1 - o, o, 1 - o), spriteCable));
+                quads.add(quad(v(1 - p, 1 - o, 1 - o), v(1 - p, 1 - o, o), v(1 - o, 1 - o, o), v(1 - o, 1 - o, 1 - o), spriteNormalCable));
+                quads.add(quad(v(1 - p, o, o), v(1 - p, o, 1 - o), v(1 - o, o, 1 - o), v(1 - o, o, o), spriteNormalCable));
+                quads.add(quad(v(1 - p, 1 - o, o), v(1 - p, o, o), v(1 - o, o, o), v(1 - o, 1 - o, o), spriteNormalCable));
+                quads.add(quad(v(1 - p, o, 1 - o), v(1 - p, 1 - o, 1 - o), v(1 - o, 1 - o, 1 - o), v(1 - o, o, 1 - o), spriteNormalCable));
 
                 quads.add(quad(v(1 - p, 1 - q, 1 - q), v(1, 1 - q, 1 - q), v(1, 1 - q, q), v(1 - p, 1 - q, q), spriteSide));
                 quads.add(quad(v(1 - p, q, q), v(1, q, q), v(1, q, 1 - q), v(1 - p, q, 1 - q), spriteSide));
@@ -229,15 +251,15 @@ public class CableBakedModel implements IDynamicBakedModel {
             }
 
             if (west == CABLE) {
-                quads.add(quad(v(o, 1 - o, 1 - o), v(o, 1 - o, o), v(0, 1 - o, o), v(0, 1 - o, 1 - o), spriteCable));
-                quads.add(quad(v(o, o, o), v(o, o, 1 - o), v(0, o, 1 - o), v(0, o, o), spriteCable));
-                quads.add(quad(v(o, 1 - o, o), v(o, o, o), v(0, o, o), v(0, 1 - o, o), spriteCable));
-                quads.add(quad(v(o, o, 1 - o), v(o, 1 - o, 1 - o), v(0, 1 - o, 1 - o), v(0, o, 1 - o), spriteCable));
+                quads.add(quad(v(o, 1 - o, 1 - o), v(o, 1 - o, o), v(0, 1 - o, o), v(0, 1 - o, 1 - o), spriteNormalCable));
+                quads.add(quad(v(o, o, o), v(o, o, 1 - o), v(0, o, 1 - o), v(0, o, o), spriteNormalCable));
+                quads.add(quad(v(o, 1 - o, o), v(o, o, o), v(0, o, o), v(0, 1 - o, o), spriteNormalCable));
+                quads.add(quad(v(o, o, 1 - o), v(o, 1 - o, 1 - o), v(0, 1 - o, 1 - o), v(0, o, 1 - o), spriteNormalCable));
             } else if (west == BLOCK) {
-                quads.add(quad(v(o, 1 - o, 1 - o), v(o, 1 - o, o), v(p, 1 - o, o), v(p, 1 - o, 1 - o), spriteCable));
-                quads.add(quad(v(o, o, o), v(o, o, 1 - o), v(p, o, 1 - o), v(p, o, o), spriteCable));
-                quads.add(quad(v(o, 1 - o, o), v(o, o, o), v(p, o, o), v(p, 1 - o, o), spriteCable));
-                quads.add(quad(v(o, o, 1 - o), v(o, 1 - o, 1 - o), v(p, 1 - o, 1 - o), v(p, o, 1 - o), spriteCable));
+                quads.add(quad(v(o, 1 - o, 1 - o), v(o, 1 - o, o), v(p, 1 - o, o), v(p, 1 - o, 1 - o), spriteNormalCable));
+                quads.add(quad(v(o, o, o), v(o, o, 1 - o), v(p, o, 1 - o), v(p, o, o), spriteNormalCable));
+                quads.add(quad(v(o, 1 - o, o), v(o, o, o), v(p, o, o), v(p, 1 - o, o), spriteNormalCable));
+                quads.add(quad(v(o, o, 1 - o), v(o, 1 - o, 1 - o), v(p, 1 - o, 1 - o), v(p, o, 1 - o), spriteNormalCable));
 
                 quads.add(quad(v(0, 1 - q, 1 - q), v(p, 1 - q, 1 - q), v(p, 1 - q, q), v(0, 1 - q, q), spriteSide));
                 quads.add(quad(v(0, q, q), v(p, q, q), v(p, q, 1 - q), v(0, q, 1 - q), spriteSide));
@@ -252,15 +274,15 @@ public class CableBakedModel implements IDynamicBakedModel {
             }
 
             if (north == CABLE) {
-                quads.add(quad(v(o, 1 - o, o), v(1 - o, 1 - o, o), v(1 - o, 1 - o, 0), v(o, 1 - o, 0), spriteCable));
-                quads.add(quad(v(o, o, 0), v(1 - o, o, 0), v(1 - o, o, o), v(o, o, o), spriteCable));
-                quads.add(quad(v(1 - o, o, 0), v(1 - o, 1 - o, 0), v(1 - o, 1 - o, o), v(1 - o, o, o), spriteCable));
-                quads.add(quad(v(o, o, o), v(o, 1 - o, o), v(o, 1 - o, 0), v(o, o, 0), spriteCable));
+                quads.add(quad(v(o, 1 - o, o), v(1 - o, 1 - o, o), v(1 - o, 1 - o, 0), v(o, 1 - o, 0), spriteNormalCable));
+                quads.add(quad(v(o, o, 0), v(1 - o, o, 0), v(1 - o, o, o), v(o, o, o), spriteNormalCable));
+                quads.add(quad(v(1 - o, o, 0), v(1 - o, 1 - o, 0), v(1 - o, 1 - o, o), v(1 - o, o, o), spriteNormalCable));
+                quads.add(quad(v(o, o, o), v(o, 1 - o, o), v(o, 1 - o, 0), v(o, o, 0), spriteNormalCable));
             } else if (north == BLOCK) {
-                quads.add(quad(v(o, 1 - o, o), v(1 - o, 1 - o, o), v(1 - o, 1 - o, p), v(o, 1 - o, p), spriteCable));
-                quads.add(quad(v(o, o, p), v(1 - o, o, p), v(1 - o, o, o), v(o, o, o), spriteCable));
-                quads.add(quad(v(1 - o, o, p), v(1 - o, 1 - o, p), v(1 - o, 1 - o, o), v(1 - o, o, o), spriteCable));
-                quads.add(quad(v(o, o, o), v(o, 1 - o, o), v(o, 1 - o, p), v(o, o, p), spriteCable));
+                quads.add(quad(v(o, 1 - o, o), v(1 - o, 1 - o, o), v(1 - o, 1 - o, p), v(o, 1 - o, p), spriteNormalCable));
+                quads.add(quad(v(o, o, p), v(1 - o, o, p), v(1 - o, o, o), v(o, o, o), spriteNormalCable));
+                quads.add(quad(v(1 - o, o, p), v(1 - o, 1 - o, p), v(1 - o, 1 - o, o), v(1 - o, o, o), spriteNormalCable));
+                quads.add(quad(v(o, o, o), v(o, 1 - o, o), v(o, 1 - o, p), v(o, o, p), spriteNormalCable));
 
                 quads.add(quad(v(q, 1 - q, 0), v(q, 1 - q, p), v(1 - q, 1 - q, p), v(1 - q, 1 - q, 0), spriteSide));
                 quads.add(quad(v(q, q, p), v(q, q, 0), v(1 - q, q, 0), v(1 - q, q, p), spriteSide));
@@ -275,15 +297,15 @@ public class CableBakedModel implements IDynamicBakedModel {
             }
 
             if (south == CABLE) {
-                quads.add(quad(v(o, 1 - o, 1), v(1 - o, 1 - o, 1), v(1 - o, 1 - o, 1 - o), v(o, 1 - o, 1 - o), spriteCable));
-                quads.add(quad(v(o, o, 1 - o), v(1 - o, o, 1 - o), v(1 - o, o, 1), v(o, o, 1), spriteCable));
-                quads.add(quad(v(1 - o, o, 1 - o), v(1 - o, 1 - o, 1 - o), v(1 - o, 1 - o, 1), v(1 - o, o, 1), spriteCable));
-                quads.add(quad(v(o, o, 1), v(o, 1 - o, 1), v(o, 1 - o, 1 - o), v(o, o, 1 - o), spriteCable));
+                quads.add(quad(v(o, 1 - o, 1), v(1 - o, 1 - o, 1), v(1 - o, 1 - o, 1 - o), v(o, 1 - o, 1 - o), spriteNormalCable));
+                quads.add(quad(v(o, o, 1 - o), v(1 - o, o, 1 - o), v(1 - o, o, 1), v(o, o, 1), spriteNormalCable));
+                quads.add(quad(v(1 - o, o, 1 - o), v(1 - o, 1 - o, 1 - o), v(1 - o, 1 - o, 1), v(1 - o, o, 1), spriteNormalCable));
+                quads.add(quad(v(o, o, 1), v(o, 1 - o, 1), v(o, 1 - o, 1 - o), v(o, o, 1 - o), spriteNormalCable));
             } else if (south == BLOCK) {
-                quads.add(quad(v(o, 1 - o, 1 - p), v(1 - o, 1 - o, 1 - p), v(1 - o, 1 - o, 1 - o), v(o, 1 - o, 1 - o), spriteCable));
-                quads.add(quad(v(o, o, 1 - o), v(1 - o, o, 1 - o), v(1 - o, o, 1 - p), v(o, o, 1 - p), spriteCable));
-                quads.add(quad(v(1 - o, o, 1 - o), v(1 - o, 1 - o, 1 - o), v(1 - o, 1 - o, 1 - p), v(1 - o, o, 1 - p), spriteCable));
-                quads.add(quad(v(o, o, 1 - p), v(o, 1 - o, 1 - p), v(o, 1 - o, 1 - o), v(o, o, 1 - o), spriteCable));
+                quads.add(quad(v(o, 1 - o, 1 - p), v(1 - o, 1 - o, 1 - p), v(1 - o, 1 - o, 1 - o), v(o, 1 - o, 1 - o), spriteNormalCable));
+                quads.add(quad(v(o, o, 1 - o), v(1 - o, o, 1 - o), v(1 - o, o, 1 - p), v(o, o, 1 - p), spriteNormalCable));
+                quads.add(quad(v(1 - o, o, 1 - o), v(1 - o, 1 - o, 1 - o), v(1 - o, 1 - o, 1 - p), v(1 - o, o, 1 - p), spriteNormalCable));
+                quads.add(quad(v(o, o, 1 - p), v(o, 1 - o, 1 - p), v(o, 1 - o, 1 - o), v(o, o, 1 - o), spriteNormalCable));
 
                 quads.add(quad(v(q, 1 - q, 1 - p), v(q, 1 - q, 1), v(1 - q, 1 - q, 1), v(1 - q, 1 - q, 1 - p), spriteSide));
                 quads.add(quad(v(q, q, 1), v(q, q, 1 - p), v(1 - q, q, 1 - p), v(1 - q, q, 1), spriteSide));
@@ -338,6 +360,7 @@ public class CableBakedModel implements IDynamicBakedModel {
 
     @Override
     public @NotNull TextureAtlasSprite getParticleIcon() {
+        var spriteNormalCable = getSpriteNormal("device", null, SPRITE_STRAIGHT);
         return spriteNormalCable == null
                 ? Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply((new ResourceLocation("minecraft", "missingno")))
                 : spriteNormalCable;

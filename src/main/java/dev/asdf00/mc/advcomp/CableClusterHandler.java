@@ -2,8 +2,8 @@ package dev.asdf00.mc.advcomp;
 
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.level.LevelEvent;
@@ -17,16 +17,16 @@ import java.util.Queue;
 public class CableClusterHandler {
     private static final HashMap<DimensionType, CableClusterHandler> handlers = new HashMap<>();
 
-    private final LevelReader level;
+    private final Level level;
 
     // OPTIM: could wipe out elements here in case a network rebuild happens to check them anyway out of pure luck
     private final Queue<BlockPos> rebuildQueue = new LinkedList<>();
 
-    public CableClusterHandler(LevelReader level) {
+    public CableClusterHandler(Level level) {
         this.level = level;
     }
 
-    private static CableClusterHandler getOrMakeNew(LevelAccessor level) {
+    private static CableClusterHandler getOrMakeNew(Level level) {
         var dt = level.dimensionType();
         var val = handlers.get(dt);
         if (val == null) {
@@ -37,13 +37,13 @@ public class CableClusterHandler {
     }
 
     // needs to be called whenever a cable/computer/acConnectible is placed/loaded
-    public static void markBlockPosForUpdate(@NotNull LevelAccessor level, @NotNull BlockPos e) {
+    public static void markBlockPosForUpdate(@NotNull Level level, @NotNull BlockPos e) {
         var handler = getOrMakeNew(level);
         handler.rebuildQueue.add(e);
     }
 
     // removed/unloaded
-    public static void markBlockPosForUpdateIfExists(@NotNull LevelAccessor level, @NotNull BlockPos e) {
+    public static void markBlockPosForUpdateIfExists(@NotNull Level level, @NotNull BlockPos e) {
         var handler = handlers.get(level.dimensionType());
         if (handler != null)
             handler.rebuildQueue.add(e);
