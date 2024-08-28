@@ -49,6 +49,9 @@ public class LuaVirtualMachine {
     private LuaStdOut stdOut;
     private String stopCode;
 
+    private Runnable runOnExit = null;
+    private volatile boolean killingLVM = false;
+
     private record MachineEvent(String name, Object content) {
     }
 
@@ -86,15 +89,6 @@ public class LuaVirtualMachine {
     public void setGlobalFunction(String funcName, JFunction callback) {
         L.push(callback);
         L.setGlobal(funcName);
-    }
-
-    public void pushEventIntoSandbox(String name, Object[] args) {
-        // L.newThread(); // shouldn't be needed I think??
-        L_eventCallbackRef.push();
-        L.push(name);
-        LuaUtils.pushArgs(L, args);
-        var status = L.resume(args.length + 1);
-        sandboxLog("CO status: " + status, false);
     }
 
     private void setEventCallback(Object[] args) {
@@ -159,6 +153,7 @@ public class LuaVirtualMachine {
         synchronized (startStopLock) {
             if (isRunning) {
                 synchronized (startStopLock) {
+                    killingLVM = true;
                     executionEnv.interrupt();
                     if (suspended) {
                         resume();
@@ -167,16 +162,17 @@ public class LuaVirtualMachine {
                     // cleanup after kill
                     isRunning = false;
                     executionEnv = null;
-                    stdOut = null;
                     stopCode = "[KILLED] " + reason;
                 }
             }
         }
     }
 
-    public void toggleOnOff() {
+    public void toggleOnOff(Runnable onStart, Runnable onExit) {
         synchronized (startStopLock) {
             if (getState() == 0) {
+                runOnExit = onExit;
+                onStart.run();
                 start();
             } else {
                 tryKill("ON/OFF button pushed");
@@ -184,34 +180,38 @@ public class LuaVirtualMachine {
         }
     }
 
+    boolean isBeingKilled() {
+        return killingLVM;
+    }
+
     private void runLua() {
         stdOut = new LuaStdOut();
         stdOut.clear();
         machineEvents.clear();
         AdvancedComputers.LOGGER.info("trying to start LVM");
-        setGlobalFunction("print", new LuaFunctionProxy((Object[] args) -> sandboxLog(
+        setGlobalFunction("print", new LuaFunctionProxy(this, (Object[] args) -> sandboxLog(
                 Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" ")), false)));
-        setGlobalFunction("printInline", new LuaFunctionProxy((Object[] args) -> sandboxLog(
+        setGlobalFunction("printInline", new LuaFunctionProxy(this, (Object[] args) -> sandboxLog(
                 Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" ")), false, false)));
-        setGlobalFunction("printErr", new LuaFunctionProxy((Object[] args) -> sandboxLog(
+        setGlobalFunction("printErr", new LuaFunctionProxy(this, (Object[] args) -> sandboxLog(
                 Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" ")), true)));
-        setGlobalFunction("clear", new LuaFunctionProxy((Object[] o) -> stdOut.clear()));
+        setGlobalFunction("clear", new LuaFunctionProxy(this, (Object[] o) -> stdOut.clear()));
 
-        setGlobalFunction("sandboxCountHookCallback", new LuaFunctionProxy(this::sandboxCountHookCallback));
-        setGlobalFunction("setEventCallback", new LuaFunctionProxy(this::setEventCallback));
+        setGlobalFunction("sandboxCountHookCallback", new LuaFunctionProxy(this, this::sandboxCountHookCallback));
+        setGlobalFunction("setEventCallback", new LuaFunctionProxy(this, this::setEventCallback));
         setGlobalField(L, "sandboxCountHookCallbackInterval", 10);
 
-        setGlobalFunction("setStopCode", new LuaFunctionProxy((Object[] args) -> {
+        setGlobalFunction("setStopCode", new LuaFunctionProxy(this, (Object[] args) -> {
             var msg = Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" "));
             System.out.println("setStopCode: " + msg);
             stopCode = msg;
         }));
 
-        setGlobalFunction("unsubMachineEvent", new LuaFunctionProxy(this::unsubMachineEvent));
-        setGlobalFunction("subMachineEvent", new LuaFunctionProxy(this::subMachineEvent));
-        setGlobalFunction("getMachineEvent", new LuaFunctionProxy(this::getMachineEvent));
-        setGlobalFunction("waitForMachineEvent", new LuaFunctionProxy(this::waitForMachineEvent));
-        setGlobalFunction("sleep", new LuaFunctionProxy((Object[] args) -> {
+        setGlobalFunction("unsubMachineEvent", new LuaFunctionProxy(this, this::unsubMachineEvent));
+        setGlobalFunction("subMachineEvent", new LuaFunctionProxy(this, this::subMachineEvent));
+        setGlobalFunction("getMachineEvent", new LuaFunctionProxy(this, this::getMachineEvent));
+        setGlobalFunction("waitForMachineEvent", new LuaFunctionProxy(this, this::waitForMachineEvent));
+        setGlobalFunction("sleep", new LuaFunctionProxy(this, (Object[] args) -> {
             if (args.length != 1) {
                 throw new AcLuaException("'sleep' expects 1 timeout argument");
             }
@@ -219,7 +219,7 @@ public class LuaVirtualMachine {
                 try {
                     Thread.sleep((long) (d * 1000));
                 } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                    throw interruptAndKillCurrent();
                 }
             } else {
                 throw new AcLuaException("'sleep' expects number as argument");
@@ -237,11 +237,17 @@ public class LuaVirtualMachine {
 
         timeLastHook = System.currentTimeMillis();
 
-        var rv = L.run(luaEntryScript);
-        AdvancedComputers.LOGGER.info(String.format("LVM exited with code %s", rv));
+        try {
+            var rv = L.run(luaEntryScript);
+            AdvancedComputers.LOGGER.info(String.format("LVM exited with code %s", rv));
+        } catch (Exception e) {
+            AdvancedComputers.LOGGER.error(e.toString());
+        }
 
         // cleanup after shutdown
+        runOnExit.run();
         synchronized (startStopLock) {
+            killingLVM = false;
             isRunning = false;
             executionEnv = null;
             stdOut = null;
@@ -256,7 +262,7 @@ public class LuaVirtualMachine {
         LockSupport.parkNanos(1_000_000 / TPS - 1000 * (System.currentTimeMillis() - timeLastHook));
         var curThread = Thread.currentThread();
         if (curThread.isInterrupted()) {
-            curThread.interrupt();
+            throw interruptAndKillCurrent();
         }
         boolean isInterrupted = false;
         while (suspended) {
@@ -268,15 +274,9 @@ public class LuaVirtualMachine {
             }
         }
         if (isInterrupted) {
-            curThread.interrupt();
+            throw interruptAndKillCurrent();
         }
         timeLastHook = System.currentTimeMillis();
-    }
-
-    public Object getStdOut() {
-        synchronized (startStopLock) {
-            return isRunning ? stdOut : stopCode;
-        }
     }
 
     public void subMachineEvent(Object[] args) {
@@ -327,7 +327,7 @@ public class LuaVirtualMachine {
         synchronized (machineEvents) {
             event = machineEvents.poll();
         }
-        return event == null ? null : new Object[]{event.name, event.content};
+        return event == null ? new Object[]{null} : new Object[]{event.name, event.content};
     }
 
     private void waitForMachineEvent(Object[] timeout) {
@@ -345,7 +345,15 @@ public class LuaVirtualMachine {
                 }
             }
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            throw interruptAndKillCurrent();
         }
+    }
+
+    private static RuntimeException interruptAndKillCurrent() {
+        Thread.currentThread().interrupt();
+        throw new LvmKillException();
+    }
+
+    static class LvmKillException extends RuntimeException {
     }
 }

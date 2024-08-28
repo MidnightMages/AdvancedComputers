@@ -22,7 +22,6 @@ public class ComputerBlockScreen extends AbstractContainerScreen<ComputerBlockMe
     }
 
     private static final int OnOffButtonSize = 14;
-    private boolean currButtonState = false;
 
     @Override
     protected void init() {
@@ -36,8 +35,7 @@ public class ComputerBlockScreen extends AbstractContainerScreen<ComputerBlockMe
     }
 
     private boolean isMachineRunning() {
-        // TODO: fetch state from server
-        return false;
+        return getMenu().blockEntity.getBlockState().getValue(ComputerBlock.RUNNING);
     }
 
     private void onMachineStateChanged() {
@@ -46,7 +44,6 @@ public class ComputerBlockScreen extends AbstractContainerScreen<ComputerBlockMe
 
     private void handleOnOffButton(Button btn) {
         getMenu().blockEntity.toggleLVMPowerState();
-        onMachineStateChanged();
     }
 
     @Override

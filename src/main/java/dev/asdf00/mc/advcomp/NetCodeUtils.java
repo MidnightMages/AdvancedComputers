@@ -1,5 +1,6 @@
 package dev.asdf00.mc.advcomp;
 
+import io.netty.handler.codec.DecoderException;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkEvent;
@@ -35,15 +36,19 @@ public class NetCodeUtils {
         INSTANCE.send(target, message);
     }
 
-    private static void writeStringToBuf(FriendlyByteBuf buf, String data) {
+    public static void writeStringToBuf(FriendlyByteBuf buf, String data) {
         var bytes = data.getBytes(StandardCharsets.UTF_8);
-        buf.writeInt(bytes.length);
-        buf.writeBytes(bytes);
+        buf.writeByteArray(bytes);
     }
 
-    private static String readStringToBuf(FriendlyByteBuf buf) {
-        int len = buf.readInt();
-        return new String(buf.readBytes(len).array(), StandardCharsets.UTF_8);
+    public static String readStringFromBuf(FriendlyByteBuf buf) {
+        try {
+            var bytes = buf.readByteArray();
+            return new String(bytes, StandardCharsets.UTF_8);
+        } catch (DecoderException e) {
+            AdvancedComputers.LOGGER.warn("Got invalid message from other party");
+            return null;
+        }
     }
 
     public interface NetworkMessage {

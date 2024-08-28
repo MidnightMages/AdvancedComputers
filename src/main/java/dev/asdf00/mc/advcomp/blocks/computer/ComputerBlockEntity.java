@@ -36,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 import static dev.asdf00.mc.advcomp.exceptions.AdvancedComputersError.AssertRuntime;
 
 public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock implements MenuProvider, IAcCableHostEntity {
+
     public final ItemStackHandler itemHandler = new ItemStackHandler(ComputerBlockMenu.TE_INVENTORY_SLOT_COUNT);
     private LazyOptional<IItemHandler> lazyItemhandler = LazyOptional.empty();
     private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable;
@@ -45,8 +46,20 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
     private LuaVirtualMachine lvm;
     private final Object lockLVM = new Object();
 
+    // true to on first tick to reset block state to indicate dead LVM
+    private volatile boolean lvmDeath = true;
+
     public void tick(Level pLevel, BlockPos pPos, BlockState pState) {
         // todo add logic
+        int a = 0;
+        if (!getLevel().isClientSide()) {
+            if (lvmDeath) {
+                // LVM died last tick
+                lvmDeath = false;
+                var bs = level.getBlockState(getBlockPos()).setValue(ComputerBlock.RUNNING, false);
+                level.setBlock(getBlockPos(), bs, 2);
+            }
+        }
     }
 
     public ComputerBlockEntity(BlockPos pPos, BlockState pBlockState) {
@@ -142,13 +155,16 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
         super.onChunkUnloaded();
         // crash LVM
         if (isServer()) {
-            lvm.tryKill("Chunk unloaded");
+            if (lvm != null) {
+                lvm.tryKill("Chunk unloaded");
+            }
         }
     }
 
     public boolean onNetworkUpdated() {
         if (connectedNetworks.size() > 1) {
-            lvm.tryKill("Too many networks connected to thsi computer??");
+            lvm.tryKill("Too many networks connected to this" +
+                    " computer??");
             AdvancedComputers.LOGGER.warn("invalid network count for computer at bp %s. Network count: %s"
                     .formatted(this.getBlockPos(), connectedNetworks.size()));
             return false; // ultra weird state --> return false
@@ -157,8 +173,8 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
             var cc = net.getHostCount();
             if (cc > 1) {
                 if (lvm != null)
-                    lvm.tryKill("Too many computers connected to this network"); // TODO make sure lvm checks how many computers are part of this net whne lvm is started, as lvm is null on world load
-
+                    // TODO make sure lvm checks how many computers are part of this net when lvm is started, as lvm is null on world load
+                    lvm.tryKill("Too many computers connected to this network");
                 AdvancedComputers.LOGGER.info("invalid network for computer at bp %s. Computer count: %s"
                         .formatted(this.getBlockPos(), cc));
                 return false; // invalid network as there are two computers --> return false
@@ -190,7 +206,11 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
 
     public void toggleLVMPowerState() {
         if (isServer()) {
-            getLvm().toggleOnOff();
+            getLvm().toggleOnOff(() -> {
+                        var bs = level.getBlockState(getBlockPos()).setValue(ComputerBlock.RUNNING, true);
+                        level.setBlock(getBlockPos(), bs, 2);
+                    },
+                    () -> lvmDeath = true);
         } else {
             NetCodeUtils.sendToServer(new ClientOriginatingUiEvent(this, 1));
         }
