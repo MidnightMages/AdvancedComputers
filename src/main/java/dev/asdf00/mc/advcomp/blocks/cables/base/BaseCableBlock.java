@@ -1,7 +1,9 @@
 package dev.asdf00.mc.advcomp.blocks.cables.base;
 
+import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.cables.ConnectionDir;
 import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.cluster.IAcBaseCableConnectableEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
@@ -195,10 +197,15 @@ public abstract class BaseCableBlock extends Block implements SimpleWaterloggedB
             return false;
         }
         BlockEntity te = world.getBlockEntity(pos);
-        if (te == null) {
+        if (!(te instanceof IAcBaseCableConnectableEntity bcce)) {
             return false;
         }
-        return te.getCapability(cableConnectableCapability).isPresent();
+        var thisTe = world.getBlockEntity(connectorPos);
+        if (thisTe instanceof BaseCableBlockEntity bcbe) {
+            return bcce.canConnectTo(bcbe, facing.getOpposite());
+        }
+        AdvancedComputers.LOGGER.warn("BaseCableBlock has no tile entity? %s".formatted(connectorPos));
+        return false;
     }
 
     @Override
