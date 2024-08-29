@@ -1,11 +1,9 @@
 package dev.asdf00.mc.advcomp.types;
 
-import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
+import dev.asdf00.mc.advcomp.types.cluster.IAcBaseCableConnectableEntity;
 import net.minecraftforge.common.capabilities.AutoRegisterCapability;
 
-import java.util.Set;
-
 @AutoRegisterCapability
-public interface IAcDevCableConnectableEntity extends IAcBaseCableConnectableEntity{
+public interface IAcDevCableConnectableEntity extends IAcBaseCableConnectableEntity {
 
 }

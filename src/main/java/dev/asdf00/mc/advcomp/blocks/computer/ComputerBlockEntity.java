@@ -1,15 +1,20 @@
 package dev.asdf00.mc.advcomp.blocks.computer;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.NetCodeUtils;
+import dev.asdf00.mc.advcomp.NetCodeUtils.NetworkMessage;
 import dev.asdf00.mc.advcomp.TranslationMap;
-import dev.asdf00.mc.advcomp.lua.LuaSandbox;
+import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
+import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
-import dev.asdf00.mc.advcomp.types.BaseAcDevCableConnectableEntityBlock;
-import dev.asdf00.mc.advcomp.types.IAcCableHostEntity;
 import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
+import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableEntityBlock;
+import dev.asdf00.mc.advcomp.types.cluster.IAcClusterHostEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
@@ -25,24 +30,43 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
+import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock implements MenuProvider, IAcCableHostEntity {
+import static dev.asdf00.mc.advcomp.exceptions.AdvancedComputersError.AssertRuntime;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
+public class ComputerBlockEntity extends BaseAcCableConnectableEntityBlock implements MenuProvider, IAcClusterHostEntity {
     public final ItemStackHandler itemHandler = new ItemStackHandler(ComputerBlockMenu.TE_INVENTORY_SLOT_COUNT);
     private LazyOptional<IItemHandler> lazyItemhandler = LazyOptional.empty();
     private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable;
 
     protected final ContainerData data;
     private int computerState = 0;
-    private LuaSandbox lvm;
+    private LuaVirtualMachine lvm;
+    private final Object lockLVM = new Object();
+
+    // true to on first tick to reset block state to indicate dead LVM
+    private volatile boolean lvmDeath = true;
 
     public void tick(Level pLevel, BlockPos pPos, BlockState pState) {
         // todo add logic
+        int a = 0;
+        if (!getLevel().isClientSide()) {
+            if (lvmDeath) {
+                // LVM died last tick
+                lvmDeath = false;
+                var bs = level.getBlockState(getBlockPos()).setValue(ComputerBlock.RUNNING, false);
+                level.setBlock(getBlockPos(), bs, 2);
+            }
+        }
     }
 
     public ComputerBlockEntity(BlockPos pPos, BlockState pBlockState) {
-        super(AdvancedComputers.COMPUTER_BE.get(), pPos, pBlockState);
+        super(AdvancedComputers.COMPUTER_BE.get(), pPos, pBlockState, Arrays.asList(AdvancedComputers.CLUSTER_TYPE_DEVICE, AdvancedComputers.CLUSTER_TYPE_NETWORK));
         this.data = new ContainerData() {
             @Override
             public int get(int pIndex) {
@@ -66,6 +90,10 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
         };
 
         this.lazyCableConnectable = LazyOptional.of(() -> this);
+    }
+
+    private boolean isServer() {
+        return !getLevel().isClientSide();
     }
 
     @Override
@@ -123,43 +151,146 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
         super.onLoad();
         System.out.println("ON LOAD COMPUTER");
         lazyItemhandler = LazyOptional.of(() -> itemHandler);
-        // create LVM
-        lvm = new LuaSandbox(this, Integer.MAX_VALUE);
     }
 
     @Override
     public void onChunkUnloaded() {
         super.onChunkUnloaded();
         // crash LVM
-        lvm.tryKill("Chunk unloaded");
-    }
-
-    public LuaSandbox getLvm() {
-        return lvm;
-    }
-
-    public boolean onNetworkUpdated() {
-        if (connectedNetworks.size() > 1) {
-            lvm.tryKill("Too many networks connected to thsi computer??");
-            AdvancedComputers.LOGGER.warn("invalid network count for computer at bp %s. Network count: %s"
-                    .formatted(this.getBlockPos(), connectedNetworks.size()));
-            return false; // ultra weird state --> return false
-        } else if (connectedNetworks.size() == 1) {
-            var net = connectedNetworks.iterator().next();
-            var cc = net.getHostCount();
-            if (cc > 1) {
-                if (lvm != null)
-                    lvm.tryKill("Too many computers connected to this network"); // TODO make sure lvm checks how many computers are part of this net whne lvm is started, as lvm is null on world load
-
-                AdvancedComputers.LOGGER.info("invalid network for computer at bp %s. Computer count: %s"
-                        .formatted(this.getBlockPos(), cc));
-                return false; // invalid network as there are two computers --> return false
-            } else {
-                AdvancedComputers.LOGGER.info("valid network for computer at bp %s. Peripheral count: %s"
-                        .formatted(this.getBlockPos(), net.getEntityCount()));
-                return true; // valid as there is one or 0 computers, so probably exactly one
+        if (isServer()) {
+            if (lvm != null) {
+                lvm.tryKill("Chunk unloaded");
             }
         }
-        return true; // shouldnt be hit anyway
+    }
+
+    @Override
+    public boolean isNetworkValid(Direction dir) {
+        if (!this.connectedNetworks.containsKey(dir))
+            return true;
+
+        var netType = this.connectedNetworks.get(dir).getClusterType();
+        if (netType == null)
+            return true;
+
+        long hostCnt = 0;
+        ArrayList<CableCluster> seen = new ArrayList<>();
+        for (var cluster : this.connectedNetworks.values()) {
+            if (seen.contains(cluster))
+                continue;
+
+            seen.add(cluster);
+            if (cluster.getClusterType().equals(netType)) {
+                hostCnt += cluster.connectedEntities.stream().filter(e -> e instanceof ComputerBlockEntity).count();
+            }
+        }
+        return hostCnt <= 1;
+    }
+
+    @Override
+    public boolean isHostForNetwork(Direction dir, AcClusterType type){
+        return type.equals(AdvancedComputers.CLUSTER_TYPE_DEVICE);
+    }
+
+    @Override
+    public void onNetworkUpdated(Direction dir) {
+        var net = connectedNetworks.get(dir);
+        var cc = net.getHostCount();
+        if (cc > 1) {
+            if (lvm != null)
+                lvm.tryKill("Too many computers connected to this network"); // TODO make sure lvm checks how many computers are part of this net whne lvm is started, as lvm is null on world load
+
+            AdvancedComputers.LOGGER.info("invalid network for computer at bp %s. Computer count: %s"
+                    .formatted(this.getBlockPos(), cc));
+        } else {
+            AdvancedComputers.LOGGER.info("valid network for computer at bp %s. Peripheral count: %s"
+                    .formatted(this.getBlockPos(), net.getEntityCount()));
+        }
+    }
+
+    // =================================================================================================================
+    //       Lua Interactions     Lua Interactions     Lua Interactions     Lua Interactions     Lua Interactions
+    // =================================================================================================================
+
+    public LuaVirtualMachine getLvm() {
+        if (isServer()) {
+            synchronized (lockLVM) {
+                if (lvm == null) {
+                    lvm = new LuaVirtualMachine(this, Integer.MAX_VALUE);
+                }
+                return lvm;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    public void toggleLVMPowerState() {
+        if (isServer()) {
+            getLvm().toggleOnOff(() -> {
+                        var bs = level.getBlockState(getBlockPos()).setValue(ComputerBlock.RUNNING, true);
+                        level.setBlock(getBlockPos(), bs, 2);
+                    },
+                    () -> lvmDeath = true);
+        } else {
+            NetCodeUtils.sendToServer(new ClientOriginatingUiEvent(this, 1));
+        }
+    }
+
+    // =================================================================================================================
+    //       Lua Events     Lua Events     Lua Events     Lua Events     Lua Events     Lua Events     Lua Events
+    // =================================================================================================================
+
+    // =================================================================================================================
+    //       Networking     Networking     Networking     Networking     Networking     Networking     Networking
+    // =================================================================================================================
+
+    public static class ClientOriginatingUiEvent implements NetworkMessage {
+        private final BlockPos cbePos;
+        private final int btnId;  // 1 = On/Off-Btn
+
+        public ClientOriginatingUiEvent(ComputerBlockEntity cbe, int btnId) {
+            cbePos = cbe.worldPosition;
+            this.btnId = btnId;
+        }
+
+        private ClientOriginatingUiEvent(BlockPos cbePos, int btnId) {
+            this.cbePos = cbePos;
+            this.btnId = btnId;
+        }
+
+        public static ClientOriginatingUiEvent decode(FriendlyByteBuf buffer) {
+            return new ClientOriginatingUiEvent(buffer.readBlockPos(), buffer.readInt());
+        }
+
+        @Override
+        public void encode(FriendlyByteBuf buffer) {
+            buffer.writeBlockPos(cbePos);
+            buffer.writeInt(btnId);
+        }
+
+        @Override
+        public void handle(NetworkEvent.Context ctx) {
+            ctx.enqueueWork(() -> {
+                var obj = ctx.getSender().level().getBlockEntity(cbePos);
+                if (obj instanceof ComputerBlockEntity cbe) {
+                    AssertRuntime(cbe.isServer(), "Handling UI button event for ComputerBlockEntity client-side");
+                    if (btnId == 1) {
+                        cbe.toggleLVMPowerState();
+                    }
+                } else {
+                    AdvancedComputers.LOGGER.warn("Received invalid package for toggling power state of ComputerBlockEntity");
+                }
+            });
+            ctx.setPacketHandled(true);
+        }
+
+        @Override
+        public String toString() {
+            return "ClientOriginatingUiEvent{" +
+                    "cbePos=" + cbePos +
+                    ", btnId=" + btnId +
+                    '}';
+        }
     }
 }

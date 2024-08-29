@@ -3,7 +3,6 @@ package dev.asdf00.mc.advcomp.blocks.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
-import dev.asdf00.mc.advcomp.lua.LuaStdOut;
 import dev.asdf00.mc.advcomp.lua.components.GraphicsBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -77,6 +76,9 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
     }
 
     private void renderStdOut(GuiGraphics pGuiGraphics) {
+        // TODO: render output
+
+        /*-
         var out = getComputerEntity().getLvm().getStdOut();
         int x = (width - imageWidth) / 2;
         int y = (height - imageHeight) / 2;
@@ -95,21 +97,19 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
             y += (imageHeight - (font.lineHeight)) / 2;
             pGuiGraphics.drawCenteredString(font, errCode, x, y, -1);
         }
+         */
     }
 
-    private ComputerBlockEntity getComputerEntity() {
-        if (computerEntity == null) {
-            computerEntity = getMenu().blockEntity.getComputerBlockEntity();
-        }
-        return computerEntity;
+    private ScreenBlockEntity getScreenEntity() {
+        return getMenu().blockEntity;
     }
 
     @Override
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
         switch (pKeyCode) {
             case 256 -> onClose();
-            case 257 -> getComputerEntity().getLvm().pushMachineEvent("keyTyped", "\n");
-            case 259 -> getComputerEntity().getLvm().pushMachineEvent("keyTyped", "\b");
+            case 257 -> getScreenEntity().triggerMachineEvent("keyTyped", "\n");
+            case 259 -> getScreenEntity().triggerMachineEvent("keyTyped", "\b");
             default -> {
                 return false;
             }
@@ -122,7 +122,7 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
         if (super.charTyped(pCodePoint, pModifiers)) {
             return true;
         }
-        getComputerEntity().getLvm().pushMachineEvent("keyTyped", String.valueOf(pCodePoint));
+        getScreenEntity().triggerMachineEvent("keyTyped", String.valueOf(pCodePoint));
         return true;
     }
 
@@ -132,7 +132,7 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
             // right-click to paste
             String clip = Minecraft.getInstance().keyboardHandler.getClipboard();
             if (clip != null && clip.length() > 0) {
-                getComputerEntity().getLvm().pushMachineEvent("textPasted", clip);
+                getScreenEntity().triggerMachineEvent("textPasted", clip);
             }
         }
         return super.mouseClicked(pMouseX, pMouseY, pButton);

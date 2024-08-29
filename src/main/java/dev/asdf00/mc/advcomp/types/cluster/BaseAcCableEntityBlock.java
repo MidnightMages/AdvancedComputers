@@ -1,4 +1,4 @@
-package dev.asdf00.mc.advcomp.types;
+package dev.asdf00.mc.advcomp.types.cluster;
 
 import dev.asdf00.mc.advcomp.CableClusterHandler;
 import net.minecraft.core.BlockPos;
@@ -8,8 +8,9 @@ import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * IMPORTANT: This is NOT the right class to extend if you are writing a peripheral. Use BaseAcCableConnectableEntityBlock instead!
+ * BUT: This IS the correct class if you want to make a new cable type :)
  */
-public class BaseAcCableEntityBlock extends BlockEntity {
+public abstract class BaseAcCableEntityBlock extends BlockEntity implements IAcBaseCableConnectableEntity {
     public BaseAcCableEntityBlock(BlockEntityType<?> pType, BlockPos pPos, BlockState pBlockState) {
         super(pType, pPos, pBlockState);
     }

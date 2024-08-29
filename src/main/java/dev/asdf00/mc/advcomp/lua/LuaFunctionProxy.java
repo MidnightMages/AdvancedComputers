@@ -10,14 +10,17 @@ import java.util.logging.Logger;
 public class LuaFunctionProxy implements JFunction {
     private static final Logger log = Logger.getLogger("LuaFuncProxy");
 
+    private final LuaVirtualMachine lvm;
     private Consumer<Object[]> action;
     private Function<Object[], Object[]> function;
 
-    public LuaFunctionProxy(Consumer<Object[]> a) {
+    public LuaFunctionProxy(LuaVirtualMachine lvm, Consumer<Object[]> a) {
+        this.lvm = lvm;
         this.action = a;
     }
 
-    public LuaFunctionProxy(Function<Object[], Object[]> f) {
+    public LuaFunctionProxy(LuaVirtualMachine lvm, Function<Object[], Object[]> f) {
+        this.lvm = lvm;
         this.function = f;
     }
 
@@ -30,29 +33,26 @@ public class LuaFunctionProxy implements JFunction {
     public int __call(Lua L) {
         try {
             var args = LuaUtils.popAllArgs(L);
-            try {
-                if (action != null) {
-                    // no return value
-                    action.accept(args);
-                    return 0; // no return values, but also no error
-                } else {
-                    // one or more return values
-                    var rv = function.apply(args);
-                    LuaUtils.pushArgs(L, rv);
-                    return rv.length;
-                }
-            } catch (AcLuaException err) {
-                // pass exception into lua as error
-                L.push(err.getMessage());
-                return -1;
-            } catch (Exception ex) {
-                L.push("Internal error");
-                log.warning(String.format("Function invocation produced unexpected error: %s", ex));
-                return -1;
+            if (action != null) {
+                // no return value
+                action.accept(args);
+                return 0; // no return values, but also no error
+            } else {
+                // one or more return values
+                var rv = function.apply(args);
+                LuaUtils.pushArgs(L, rv);
+                return rv.length;
             }
+        } catch (AcLuaException err) {
+            // pass exception into lua as error
+            L.push(err.getMessage());
+            return -1;
+        } catch (LuaVirtualMachine.LvmKillException ex) {
+            throw ex;
         } catch (Exception ex) {
-            System.out.printf("Caught uncaught exception: %s", ex);
+            L.push("Internal error");
+            log.warning(String.format("Function invocation produced unexpected error: %s", ex));
+            return -1;
         }
-        return 0;
     }
 }

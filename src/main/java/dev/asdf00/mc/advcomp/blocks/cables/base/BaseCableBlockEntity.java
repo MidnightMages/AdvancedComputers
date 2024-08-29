@@ -1,9 +1,11 @@
-package dev.asdf00.mc.advcomp.blocks.cables;
+package dev.asdf00.mc.advcomp.blocks.cables.base;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
-import dev.asdf00.mc.advcomp.types.BaseAcCableEntityBlock;
+import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
+import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableEntityBlock;
 import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.cluster.IAcBaseCableConnectableEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -21,7 +23,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 // a lot of stuff taken from https://www.mcjty.eu/docs/1.20/ep5; Thank you :)
-public class CableBlockEntity extends BaseAcCableEntityBlock {
+public abstract class BaseCableBlockEntity extends BaseAcCableEntityBlock {
 
     public static final String ENERGY_TAG = "Energy";
 
@@ -29,35 +31,12 @@ public class CableBlockEntity extends BaseAcCableEntityBlock {
     public static final int CAPACITY = 1000;
 
     private final EnergyStorage energy = createEnergyStorage();
-    private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable = null; /* LazyOptional.of(() -> new AdaptedEnergyStorage(energy) {
-        @Override
-        public int extractEnergy(int maxExtract, boolean simulate) {
-            return 0;
-        }
+    private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable = null; // TODO also split caps here
+    private final AcClusterType cableType;
 
-        @Override
-        public int receiveEnergy(int maxReceive, boolean simulate) {
-            setChanged();
-            return super.receiveEnergy(maxReceive, simulate);
-        }
-
-        @Override
-        public boolean canExtract() {
-            return false;
-        }
-
-        @Override
-        public boolean canReceive() {
-            return true;
-        }
-    });*/
-
-    protected CableBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+    protected BaseCableBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, AcClusterType cableType) {
         super(type, pos, state);
-    }
-
-    public CableBlockEntity(BlockPos pos, BlockState state) {
-        super(AdvancedComputers.CABLE_BE.get(), pos, state);
+        this.cableType = cableType;
     }
 
     // Cached outputs
@@ -74,7 +53,7 @@ public class CableBlockEntity extends BaseAcCableEntityBlock {
                 for (Direction direction : Direction.values()) {
                     BlockPos p = cable.getBlockPos().relative(direction);
                     BlockEntity te = level.getBlockEntity(p);
-                    if (te != null && !(te instanceof CableBlockEntity)) {
+                    if (te != null && !(te instanceof BaseCableBlockEntity)) {
                         te.getCapability(AcCapabilities.CABLE_CONNECTABLE).ifPresent(handler -> {
                             // TODO add network logic
                             outputs.add(p);
@@ -94,19 +73,19 @@ public class CableBlockEntity extends BaseAcCableEntityBlock {
 
     // This is a generic function that will traverse all cables connected to this cable
     // and call the given consumer for each cable.
-    private void traverse(BlockPos pos, Consumer<CableBlockEntity> consumer) {
+    private void traverse(BlockPos pos, Consumer<BaseCableBlockEntity> consumer) {
         Set<BlockPos> traversed = new HashSet<>();
         traversed.add(pos);
         consumer.accept(this);
         traverse(pos, traversed, consumer);
     }
 
-    private void traverse(BlockPos pos, Set<BlockPos> traversed, Consumer<CableBlockEntity> consumer) {
+    private void traverse(BlockPos pos, Set<BlockPos> traversed, Consumer<BaseCableBlockEntity> consumer) {
         for (Direction direction : Direction.values()) {
             BlockPos p = pos.relative(direction);
             if (!traversed.contains(p)) {
                 traversed.add(p);
-                if (level.getBlockEntity(p) instanceof CableBlockEntity cable) {
+                if (level.getBlockEntity(p) instanceof BaseCableBlockEntity cable) {
                     consumer.accept(cable);
                     cable.traverse(p, traversed, consumer);
                 }
@@ -162,6 +141,21 @@ public class CableBlockEntity extends BaseAcCableEntityBlock {
             return lazyCableConnectable.cast();
         }
         return super.getCapability(cap, side);
+    }
+
+    @Override
+    public boolean canBePartOfCluster(AcClusterType networkType) {
+        return networkType.equals(cableType);
+    }
+
+    @Override
+    public boolean canConnectTo(IAcBaseCableConnectableEntity entity, Direction side) {
+        return entity.canBePartOfCluster(cableType);
+    }
+
+    @Override
+    public boolean actsAsCable() {
+        return true;
     }
 }
 

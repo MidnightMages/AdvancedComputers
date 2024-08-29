@@ -9,7 +9,8 @@
 	
 	"block.advancedcomputers.keycard_reader_block": "Keycard Reader",
 
-	"block.advancedcomputers.cable_block": "Cable",
+	"block.advancedcomputers.device_cable_block": "Device Cable",
+	"block.advancedcomputers.network_cable_block": "Network Cable",
 
 	"item.advancedcomputers.example_item": "Example Item",
 	"item.advancedcomputers.keycard_basic_item": "Basic %s Keycard",
