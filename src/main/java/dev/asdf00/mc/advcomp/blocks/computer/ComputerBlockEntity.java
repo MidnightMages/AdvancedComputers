@@ -6,6 +6,7 @@ import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.lua.LuaSandbox;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
 import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
 import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableEntityBlock;
 import dev.asdf00.mc.advcomp.types.cluster.IAcClusterHostEntity;
 import net.minecraft.core.BlockPos;
@@ -163,6 +164,11 @@ public class ComputerBlockEntity extends BaseAcCableConnectableEntityBlock imple
             }
         }
         return hostCnt <= 1;
+    }
+
+    @Override
+    public boolean isHostForNetwork(Direction dir, AcClusterType type){
+        return type.equals(AdvancedComputers.CLUSTER_TYPE_DEVICE);
     }
 
     @Override

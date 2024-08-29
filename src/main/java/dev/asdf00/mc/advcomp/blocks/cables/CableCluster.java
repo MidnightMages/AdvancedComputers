@@ -78,10 +78,10 @@ public class CableCluster {
                 continue;
 
             // if this startpoint does not support this cluster type then we are done
-            if(!prece.canBePartOfCluster(clusterType))
+            if (!prece.canBePartOfCluster(clusterType))
                 continue;
 
-            if (prece instanceof  IAcBaseCableConnectableBlockEntity precbe)
+            if (prece instanceof IAcBaseCableConnectableBlockEntity precbe)
                 precbe.getNetworkList().clear(); // TODO let the block know if a face was cleared and not actually re-discovered and restored
 
 
@@ -228,6 +228,20 @@ public class CableCluster {
 //                  cbe.onNetworkUpdated(direction); // todo also fire this even here and below when a network connection is removed
 //              }
             } else {
+
+                var connectedHostsChecked = new HashMap<BlockPos, IAcClusterHostEntity>();
+                for (BlockPos chbp : connectedHosts.keySet()) {
+                    var ch = connectedHosts.get(chbp);
+                    var dirs = alreadyEnteredBlockFaces.get(chbp);
+                    for (var dir : dirs) {
+                        if (ch.isHostForNetwork(dir, clusterType)) {
+                            connectedHostsChecked.put(chbp, ch);
+                            break;
+                        }
+                    }
+                }
+
+                connectedHosts = connectedHostsChecked;
 
                 var newNet = new CableCluster(new ArrayList<>(connectedDevices.values()), new ArrayList<>(connectedHosts.values()), clusterType);
                 for (var keyPos : connectedDevices.keySet()) { // replace existing networks on all connected blocks on the given sides; GC should do the rest

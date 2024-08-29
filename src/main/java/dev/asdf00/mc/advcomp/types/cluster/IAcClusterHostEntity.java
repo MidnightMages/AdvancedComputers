@@ -4,4 +4,5 @@ import net.minecraft.core.Direction;
 
 public interface IAcClusterHostEntity extends IAcBaseCableConnectableBlockEntity {
     boolean isNetworkValid(Direction dir);
+    boolean isHostForNetwork(Direction dir, AcClusterType type);
 }
