@@ -6,6 +6,7 @@ import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
 import dev.asdf00.mc.advcomp.types.cluster.IAcBaseCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.types.cluster.IAcBaseCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.IAcClusterHostEntity;
+import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -18,6 +19,16 @@ public class CableCluster {
     public final ArrayList<IAcBaseCableConnectableBlockEntity> connectedEntities; // contains all connected devices
     private final ArrayList<IAcClusterHostEntity> connectedHostEntities; // contains all connected devices that implement the interface IAcClusterHostEntity
     public final AcClusterType clusterType;
+
+    /**
+     * Gets the host of this cluster if this cluster is valid. Otherwise, this method returns {@code null}.
+     */
+    public IAcBaseCableConnectableEntity getHost() {
+        if (connectedHostEntities.size() != 1) {
+            return null;
+        }
+        return connectedHostEntities.iterator().next();
+    }
 
     public int getHostCount() {
         return connectedHostEntities.size();

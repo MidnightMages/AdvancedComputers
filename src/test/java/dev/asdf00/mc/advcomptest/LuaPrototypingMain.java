@@ -1,6 +1,6 @@
 package dev.asdf00.mc.advcomptest;
 
-import dev.asdf00.mc.advcomp.lua.LuaSandbox;
+import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
 
 public class LuaPrototypingMain {
     private static void CWriteLine(String s) {
@@ -9,7 +9,7 @@ public class LuaPrototypingMain {
 
     public static void main(String[] args) {
         CWriteLine("Creating sandbox...");
-        var sandbox = new LuaSandbox(null, 10000);
+        var sandbox = new LuaVirtualMachine(null, 10000);
         try {
             sandbox.start();
         } catch (Exception ex) {

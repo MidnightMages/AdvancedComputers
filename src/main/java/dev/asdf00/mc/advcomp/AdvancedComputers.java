@@ -219,6 +219,10 @@ public class AdvancedComputers {
 
         // Register our mod's ForgeConfigSpec so that Forge can create and load the config file for us
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+
+        // Register server client communication messages
+        NetCodeUtils.registerMessage(ComputerBlockEntity.ClientOriginatingUiEvent.class, ComputerBlockEntity.ClientOriginatingUiEvent::decode);
+        NetCodeUtils.registerMessage(ScreenBlockEntity.ScreenOriginatingEvent.class, ScreenBlockEntity.ScreenOriginatingEvent::decode);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
