@@ -3,6 +3,7 @@ package dev.asdf00.mc.advcomp.blocks.cables;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.cables.CablePatterns.Pattern;
 import dev.asdf00.mc.advcomp.blocks.cables.CablePatterns.QuadSetting;
+import dev.asdf00.mc.advcomp.blocks.cables.base.BaseCableBlock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;

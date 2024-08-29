@@ -1,9 +1,11 @@
-package dev.asdf00.mc.advcomp.blocks.cables;
+package dev.asdf00.mc.advcomp.blocks.cables.base;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
-import dev.asdf00.mc.advcomp.types.BaseAcCableEntityBlock;
+import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
+import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableEntityBlock;
 import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.cluster.IAcBaseCableConnectableEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -30,9 +32,11 @@ public abstract class BaseCableBlockEntity extends BaseAcCableEntityBlock {
 
     private final EnergyStorage energy = createEnergyStorage();
     private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable = null; // TODO also split caps here
+    private final AcClusterType cableType;
 
-    protected BaseCableBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+    protected BaseCableBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, AcClusterType cableType) {
         super(type, pos, state);
+        this.cableType = cableType;
     }
 
     // Cached outputs
@@ -137,6 +141,21 @@ public abstract class BaseCableBlockEntity extends BaseAcCableEntityBlock {
             return lazyCableConnectable.cast();
         }
         return super.getCapability(cap, side);
+    }
+
+    @Override
+    public boolean canBePartOfCluster(AcClusterType networkType) {
+        return networkType.equals(cableType);
+    }
+
+    @Override
+    public boolean canConnectTo(IAcBaseCableConnectableEntity entity, Direction side) {
+        return entity.canBePartOfCluster(cableType);
+    }
+
+    @Override
+    public boolean actsAsCable() {
+        return true;
     }
 }
 

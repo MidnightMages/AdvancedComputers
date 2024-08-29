@@ -4,6 +4,7 @@ import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.types.*;
+import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableEntityBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -20,7 +21,9 @@ import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ScreenBlockEntity extends BaseAcDevCableConnectableEntityBlock implements MenuProvider {
+import java.util.Collections;
+
+public class ScreenBlockEntity extends BaseAcCableConnectableEntityBlock implements MenuProvider {
     public final ItemStackHandler itemHandler = new ItemStackHandler(2);
     private LazyOptional<IItemHandler> lazyItemhandler = LazyOptional.empty();
     private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable;
@@ -31,7 +34,7 @@ public class ScreenBlockEntity extends BaseAcDevCableConnectableEntityBlock impl
 
 
     public ScreenBlockEntity(BlockPos pPos, BlockState pBlockState) {
-        super(AdvancedComputers.SCREEN_BE.get(), pPos, pBlockState);
+        super(AdvancedComputers.SCREEN_BE.get(), pPos, pBlockState, Collections.singletonList(AdvancedComputers.CLUSTER_TYPE_DEVICE));
 
         this.lazyCableConnectable = LazyOptional.of(() -> this);
     }
@@ -70,15 +73,5 @@ public class ScreenBlockEntity extends BaseAcDevCableConnectableEntityBlock impl
 
     protected ComputerBlockEntity getComputerBlockEntity() {
         return (ComputerBlockEntity) level.getBlockEntity(getBlockPos().relative(Direction.DOWN));
-    }
-
-    @Override
-    public boolean canConnectTo(IAcBaseCableConnectableEntity entity, Direction side) {
-        return true; // TODO check for the two cable caps
-    }
-
-    @Override
-    public boolean canConnectTo(BaseAcCableEntityBlock entity, Direction side) {
-        return true; // TODO check for the two cable caps
     }
 }

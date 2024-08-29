@@ -1,5 +1,6 @@
-package dev.asdf00.mc.advcomp.blocks.cables;
+package dev.asdf00.mc.advcomp.blocks.cables.base;
 
+import dev.asdf00.mc.advcomp.blocks.cables.ConnectionDir;
 import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

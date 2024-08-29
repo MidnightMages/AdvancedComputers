@@ -2,8 +2,12 @@ package dev.asdf00.mc.advcomp.blocks.computer;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.TranslationMap;
+import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.lua.LuaSandbox;
-import dev.asdf00.mc.advcomp.types.*;
+import dev.asdf00.mc.advcomp.types.AcCapabilities;
+import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableEntityBlock;
+import dev.asdf00.mc.advcomp.types.cluster.IAcClusterHostEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -25,7 +29,10 @@ import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock implements MenuProvider, IAcCableHostEntity {
+import java.util.ArrayList;
+import java.util.Arrays;
+
+public class ComputerBlockEntity extends BaseAcCableConnectableEntityBlock implements MenuProvider, IAcClusterHostEntity, IAcDevCableConnectableEntity {
     public final ItemStackHandler itemHandler = new ItemStackHandler(ComputerBlockMenu.TE_INVENTORY_SLOT_COUNT);
     private LazyOptional<IItemHandler> lazyItemhandler = LazyOptional.empty();
     private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable;
@@ -39,7 +46,7 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
     }
 
     public ComputerBlockEntity(BlockPos pPos, BlockState pBlockState) {
-        super(AdvancedComputers.COMPUTER_BE.get(), pPos, pBlockState);
+        super(AdvancedComputers.COMPUTER_BE.get(), pPos, pBlockState, Arrays.asList(AdvancedComputers.CLUSTER_TYPE_DEVICE, AdvancedComputers.CLUSTER_TYPE_NETWORK));
         this.data = new ContainerData() {
             @Override
             public int get(int pIndex) {
@@ -135,38 +142,42 @@ public class ComputerBlockEntity extends BaseAcDevCableConnectableEntityBlock im
         return lvm;
     }
 
-    public boolean onNetworkUpdated() {
-        if (connectedNetworks.size() > 1) {
-            lvm.tryKill("Too many networks connected to thsi computer??");
-            AdvancedComputers.LOGGER.warn("invalid network count for computer at bp %s. Network count: %s"
-                    .formatted(this.getBlockPos(), connectedNetworks.size()));
-            return false; // ultra weird state --> return false
-        } else if (connectedNetworks.size() == 1) {
-            var net = connectedNetworks.iterator().next();
-            var cc = net.getHostCount();
-            if (cc > 1) {
-                if (lvm != null)
-                    lvm.tryKill("Too many computers connected to this network"); // TODO make sure lvm checks how many computers are part of this net whne lvm is started, as lvm is null on world load
+    @Override
+    public boolean isNetworkValid(Direction dir) {
+        if (!this.connectedNetworks.containsKey(dir))
+            return true;
 
-                AdvancedComputers.LOGGER.info("invalid network for computer at bp %s. Computer count: %s"
-                        .formatted(this.getBlockPos(), cc));
-                return false; // invalid network as there are two computers --> return false
-            } else {
-                AdvancedComputers.LOGGER.info("valid network for computer at bp %s. Peripheral count: %s"
-                        .formatted(this.getBlockPos(), net.getEntityCount()));
-                return true; // valid as there is one or 0 computers, so probably exactly one
+        var netType = this.connectedNetworks.get(dir).getClusterType();
+        if (netType == null)
+            return true;
+
+        long hostCnt = 0;
+        ArrayList<CableCluster> seen = new ArrayList<>();
+        for (var cluster : this.connectedNetworks.values()) {
+            if (seen.contains(cluster))
+                continue;
+
+            seen.add(cluster);
+            if (cluster.getClusterType().equals(netType)) {
+                hostCnt += cluster.connectedEntities.stream().filter(e -> e instanceof ComputerBlockEntity).count();
             }
         }
-        return true; // shouldnt be hit anyway
+        return hostCnt <= 1;
     }
 
     @Override
-    public boolean canConnectTo(IAcBaseCableConnectableEntity entity, Direction side) {
-        return true; // TODO check for the two cable caps
-    }
+    public void onNetworkUpdated(Direction dir) {
+        var net = connectedNetworks.get(dir);
+        var cc = net.getHostCount();
+        if (cc > 1) {
+            if (lvm != null)
+                lvm.tryKill("Too many computers connected to this network"); // TODO make sure lvm checks how many computers are part of this net whne lvm is started, as lvm is null on world load
 
-    @Override
-    public boolean canConnectTo(BaseAcCableEntityBlock entity, Direction side) {
-        return true; // TODO check for the two cable caps
+            AdvancedComputers.LOGGER.info("invalid network for computer at bp %s. Computer count: %s"
+                    .formatted(this.getBlockPos(), cc));
+        } else {
+            AdvancedComputers.LOGGER.info("valid network for computer at bp %s. Peripheral count: %s"
+                    .formatted(this.getBlockPos(), net.getEntityCount()));
+        }
     }
 }

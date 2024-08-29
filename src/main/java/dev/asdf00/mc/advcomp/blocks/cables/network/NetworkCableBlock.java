@@ -1,6 +1,6 @@
-package dev.asdf00.mc.advcomp.blocks.cables.device;
+package dev.asdf00.mc.advcomp.blocks.cables.network;
 
-import dev.asdf00.mc.advcomp.blocks.cables.BaseCableBlock;
+import dev.asdf00.mc.advcomp.blocks.cables.base.BaseCableBlock;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;

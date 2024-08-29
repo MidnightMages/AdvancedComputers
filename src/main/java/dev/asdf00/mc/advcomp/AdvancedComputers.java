@@ -4,8 +4,8 @@ import com.mojang.logging.LogUtils;
 import dev.asdf00.mc.advcomp.blocks.cables.CableModelLoader;
 import dev.asdf00.mc.advcomp.blocks.cables.device.DeviceCableBlock;
 import dev.asdf00.mc.advcomp.blocks.cables.device.DeviceCableBlockEntity;
-import dev.asdf00.mc.advcomp.blocks.cables.device.NetworkCableBlock;
-import dev.asdf00.mc.advcomp.blocks.cables.device.NetworkCableBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.cables.network.NetworkCableBlock;
+import dev.asdf00.mc.advcomp.blocks.cables.network.NetworkCableBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlock;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockMenu;
@@ -25,6 +25,8 @@ import dev.asdf00.mc.advcomp.items.KeycardBasicItem;
 import dev.asdf00.mc.advcomp.items.StorageItem;
 import dev.asdf00.mc.advcomp.types.DualLayerItemColorHandler;
 import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
+import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
+import dev.asdf00.mc.advcomp.types.cluster.AcClusterTypeManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.registries.Registries;
@@ -52,6 +54,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -77,6 +80,7 @@ public class AdvancedComputers {
     public static final String MODID = "advancedcomputers";
     // Directly reference a slf4j logger
     public static final Logger LOGGER = LogUtils.getLogger();
+    public static final AcClusterTypeManager AC_CLUSTER_TYPE_MANAGER = new AcClusterTypeManager();
     // Create a Deferred Register to hold Blocks which will all be registered under the "examplemod" namespace
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MODID);
@@ -88,6 +92,10 @@ public class AdvancedComputers {
     public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, MODID);
     public static final DeferredRegister<RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(ForgeRegistries.RECIPE_TYPES, MODID);
 
+
+
+    public static final AcClusterType CLUSTER_TYPE_DEVICE = AdvancedComputers.AC_CLUSTER_TYPE_MANAGER.RegisterNewClusterType("device");
+    public static final AcClusterType CLUSTER_TYPE_NETWORK = AdvancedComputers.AC_CLUSTER_TYPE_MANAGER.RegisterNewClusterType("network");
 
     // Creates a new Block with the id "examplemod:example_block", combining the namespace and path
 //    public static final RegistryObject<Block> EXAMPLE_BLOCK = BLOCKS.register("example_block", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.STONE)));
@@ -256,6 +264,11 @@ public class AdvancedComputers {
         // Do something when the server starts
         //LOGGER.info("HELLO from server starting");
         serverReference = event.getServer();
+    }
+
+    @SubscribeEvent
+    public void onServerStarted(ServerStartedEvent event) {
+        AC_CLUSTER_TYPE_MANAGER.closeRegistration();
     }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
