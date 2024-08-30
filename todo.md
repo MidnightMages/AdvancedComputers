@@ -105,14 +105,14 @@ First alpha version:
     - ~~paste event~~
     - ~~en-/disable machine events~~
 - Rendering framework
-- Filesystem
-- Bootloader support
-- IO Net (so screens can be independent)
+- ~~IO Net (so screens can be independent)~~
     - Addon mod api
     - Redstone interaction
+- Filesystem
+- Bootloader support
 - Tiers
-- Basic OS
 - Proper saving and loading
+- Basic OS
 - Crafting recipes
 
 **Maybe:**
