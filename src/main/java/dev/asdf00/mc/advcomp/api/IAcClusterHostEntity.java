@@ -1,6 +1,7 @@
-package dev.asdf00.mc.advcomp.types.cluster;
+package dev.asdf00.mc.advcomp.api;
 
-import dev.asdf00.mc.advcomp.exceptions.AdvancedComputersError;
+import dev.asdf00.mc.advcomp.exceptions.ACError;
+import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
@@ -15,6 +16,6 @@ public interface IAcClusterHostEntity extends IAcBaseCableConnectableBlockEntity
         if (this instanceof BlockEntity be) {
             return be;
         }
-        throw AdvancedComputersError.shouldNotReach("%s implements IAcClusterHostEntity even though it is not a BlockEntity", this.getClass().getName());
+        throw ACError.shouldNotReach("%s implements IAcClusterHostEntity even though it is not a BlockEntity", this.getClass().getName());
     }
 }

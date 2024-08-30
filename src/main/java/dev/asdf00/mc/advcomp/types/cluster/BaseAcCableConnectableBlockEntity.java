@@ -1,5 +1,6 @@
 package dev.asdf00.mc.advcomp.types.cluster;
 
+import dev.asdf00.mc.advcomp.api.IAcBaseCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
 import net.minecraft.core.BlockPos;

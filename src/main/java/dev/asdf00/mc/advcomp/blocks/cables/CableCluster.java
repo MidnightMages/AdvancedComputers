@@ -1,12 +1,12 @@
 package dev.asdf00.mc.advcomp.blocks.cables;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.api.IAcBaseCableConnectableBlockEntity;
+import dev.asdf00.mc.advcomp.api.IAcClusterHostEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.base.BaseCableBlock;
-import dev.asdf00.mc.advcomp.exceptions.AdvancedComputersError;
+import dev.asdf00.mc.advcomp.exceptions.ACError;
 import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
-import dev.asdf00.mc.advcomp.types.cluster.IAcBaseCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.types.cluster.IAcBaseCableConnectableEntity;
-import dev.asdf00.mc.advcomp.types.cluster.IAcClusterHostEntity;
 import dev.asdf00.mc.advcomp.utils.TriConsumer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -238,7 +238,7 @@ public class CableCluster {
                             case SOUTH -> Integer.compare(x.getX(), y.getX());
                             case EAST -> Integer.compare(x.getZ(), y.getZ());
                             case WEST -> -Integer.compare(x.getZ(), y.getZ());
-                            default -> throw AdvancedComputersError.shouldNotReach();
+                            default -> throw ACError.shouldNotReach();
                         };
                         if (intermediate != 0)
                             return intermediate;
@@ -249,12 +249,12 @@ public class CableCluster {
                             case SOUTH -> Integer.compare(x.getZ(), y.getZ());
                             case EAST -> Integer.compare(x.getX(), y.getX());
                             case WEST -> -Integer.compare(x.getX(), y.getX());
-                            default -> throw AdvancedComputersError.shouldNotReach();
+                            default -> throw ACError.shouldNotReach();
                         };
                         if (intermediate != 0)
                             return intermediate;
 
-                        throw AdvancedComputersError.shouldNotReach("Out of sorting criteria");
+                        throw ACError.shouldNotReach("Out of sorting criteria");
                     });
 
                     // get sorted array of devices
@@ -277,7 +277,7 @@ public class CableCluster {
                         intermediate = Integer.compare(x.getZ(), y.getZ());
                         if (intermediate != 0)
                             return intermediate;
-                        throw AdvancedComputersError.shouldNotReach("Out of sorting criteria");
+                        throw ACError.shouldNotReach("Out of sorting criteria");
                     });
 
                     // get sorted array of devices

@@ -5,7 +5,7 @@ import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
-import dev.asdf00.mc.advcomp.exceptions.AdvancedComputersError;
+import dev.asdf00.mc.advcomp.exceptions.ACError;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
 import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;
@@ -152,7 +152,7 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
             ctx.enqueueWork(() -> {
                 var obj = ctx.getSender().level().getBlockEntity(sbePos);
                 if (obj instanceof ScreenBlockEntity sbe) {
-                    AdvancedComputersError.Assert(!sbe.getLevel().isClientSide(), "Handling Screen event client-side");
+                    ACError.Assert(!sbe.getLevel().isClientSide(), "Handling Screen event client-side");
                     if (eventName == null || content == null) {
                         AdvancedComputers.LOGGER.warn("Received invalid Screen event containing null values");
                         return;

@@ -4,14 +4,14 @@ import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.NetCodeUtils.NetworkMessage;
 import dev.asdf00.mc.advcomp.TranslationMap;
+import dev.asdf00.mc.advcomp.api.IAcClusterHostEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
-import dev.asdf00.mc.advcomp.exceptions.AdvancedComputersError;
+import dev.asdf00.mc.advcomp.exceptions.ACError;
 import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
 import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
 import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;
-import dev.asdf00.mc.advcomp.types.cluster.IAcClusterHostEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -278,7 +278,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
             ctx.enqueueWork(() -> {
                 var obj = ctx.getSender().level().getBlockEntity(cbePos);
                 if (obj instanceof ComputerBlockEntity cbe) {
-                    AdvancedComputersError.Assert(cbe.isServer(), "Handling UI button event for ComputerBlockEntity client-side");
+                    ACError.Assert(cbe.isServer(), "Handling UI button event for ComputerBlockEntity client-side");
                     if (btnId == 1) {
                         cbe.toggleLVMPowerState();
                     }

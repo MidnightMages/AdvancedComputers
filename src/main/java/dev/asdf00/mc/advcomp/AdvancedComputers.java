@@ -1,6 +1,7 @@
 package dev.asdf00.mc.advcomp;
 
 import com.mojang.logging.LogUtils;
+import dev.asdf00.mc.advcomp.api.AcClusterTypeManager;
 import dev.asdf00.mc.advcomp.blocks.cables.CableModelLoader;
 import dev.asdf00.mc.advcomp.blocks.cables.device.DeviceCableBlock;
 import dev.asdf00.mc.advcomp.blocks.cables.device.DeviceCableBlockEntity;
@@ -26,7 +27,6 @@ import dev.asdf00.mc.advcomp.items.StorageItem;
 import dev.asdf00.mc.advcomp.types.DualLayerItemColorHandler;
 import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
 import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
-import dev.asdf00.mc.advcomp.types.cluster.AcClusterTypeManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.registries.Registries;
@@ -80,7 +80,7 @@ public class AdvancedComputers {
     public static final String MODID = "advancedcomputers";
     // Directly reference a slf4j logger
     public static final Logger LOGGER = LogUtils.getLogger();
-    public static final AcClusterTypeManager AC_CLUSTER_TYPE_MANAGER = new AcClusterTypeManager();
+    public static final AcClusterTypeManager AC_CLUSTER_TYPE_MANAGER = AcClusterTypeManager.getInstance();
     // Create a Deferred Register to hold Blocks which will all be registered under the "examplemod" namespace
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MODID);

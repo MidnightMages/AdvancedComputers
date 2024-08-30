@@ -1,10 +1,12 @@
-package dev.asdf00.mc.advcomp.types.cluster;
+package dev.asdf00.mc.advcomp.api;
+
+import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AcClusterTypeManager {
+public final class AcClusterTypeManager {
     private final HashMap<String, AcClusterType> clusterTypesByName = new HashMap<>();
     private boolean isClosed = false;
 
@@ -13,6 +15,7 @@ public class AcClusterTypeManager {
     }
 
     private final Object lockObj = new Object();
+
     public AcClusterType RegisterNewClusterType(String name) {
         synchronized (lockObj) {
             if (isClosed)
@@ -29,5 +32,11 @@ public class AcClusterTypeManager {
 
     public Map<String, AcClusterType> GetNetworkTypes() {
         return Collections.unmodifiableMap(clusterTypesByName);
+    }
+
+    private static final AcClusterTypeManager SINGLETON = new AcClusterTypeManager();
+    
+    public static AcClusterTypeManager getInstance() {
+        return SINGLETON;
     }
 }

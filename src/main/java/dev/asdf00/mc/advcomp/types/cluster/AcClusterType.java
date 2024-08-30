@@ -8,7 +8,7 @@ public final class AcClusterType {
     private final int id;
     private final String clusterName;
 
-    AcClusterType(String clusterName) {
+    public AcClusterType(String clusterName) {
         this.id = nextId.getAndIncrement();
         this.clusterName = clusterName;
     }
