@@ -15,9 +15,4 @@ public interface IAcBaseCableConnectableEntity {
     boolean canBePartOfCluster(AcClusterType networkType);
     boolean canConnectTo(IAcBaseCableConnectableEntity entity, Direction side);
     boolean actsAsCable();
-
-//    /** more speific --> only applies to blocks */
-//    boolean canConnectTo(IAcBaseCableConnectableEntity entity, Direction side);
-//    /** less specific --> applies to blocks and cables */
-//    boolean canConnectTo(BaseAcCableEntityBlock entity, Direction side);
 }
