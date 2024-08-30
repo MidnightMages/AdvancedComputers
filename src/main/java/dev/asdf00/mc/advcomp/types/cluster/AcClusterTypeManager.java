@@ -12,16 +12,19 @@ public class AcClusterTypeManager {
         isClosed = true;
     }
 
+    private final Object lockObj = new Object();
     public AcClusterType RegisterNewClusterType(String name) {
-        if (isClosed)
-            throw new IllegalStateException("Attempted to register a network type too late!");
+        synchronized (lockObj) {
+            if (isClosed)
+                throw new IllegalStateException("Attempted to register a network type too late!");
 
-        if (clusterTypesByName.containsKey(name))
-            throw new IllegalStateException("Network type '%s' has already been registered!".formatted(name));
+            if (clusterTypesByName.containsKey(name))
+                throw new IllegalStateException("Network type '%s' has already been registered!".formatted(name));
 
-        var n = new AcClusterType(name);
-        clusterTypesByName.put(name, n);
-        return n;
+            var n = new AcClusterType(name);
+            clusterTypesByName.put(name, n);
+            return n;
+        }
     }
 
     public Map<String, AcClusterType> GetNetworkTypes() {
