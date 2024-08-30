@@ -5,11 +5,12 @@ import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.NetCodeUtils.NetworkMessage;
 import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
+import dev.asdf00.mc.advcomp.exceptions.AdvancedComputersError;
 import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
 import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
-import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableEntityBlock;
+import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.types.cluster.IAcClusterHostEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -34,12 +35,10 @@ import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static dev.asdf00.mc.advcomp.exceptions.AdvancedComputersError.AssertRuntime;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class ComputerBlockEntity extends BaseAcCableConnectableEntityBlock implements MenuProvider, IAcClusterHostEntity {
+public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity implements MenuProvider, IAcClusterHostEntity {
     public final ItemStackHandler itemHandler = new ItemStackHandler(ComputerBlockMenu.TE_INVENTORY_SLOT_COUNT);
     private LazyOptional<IItemHandler> lazyItemhandler = LazyOptional.empty();
     private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable;
@@ -181,14 +180,14 @@ public class ComputerBlockEntity extends BaseAcCableConnectableEntityBlock imple
 
             seen.add(cluster);
             if (cluster.getClusterType().equals(netType)) {
-                hostCnt += cluster.connectedEntities.stream().filter(e -> e instanceof ComputerBlockEntity).count();
+                hostCnt += Arrays.stream(cluster.connectedEntities).filter(e -> e instanceof ComputerBlockEntity).count();
             }
         }
         return hostCnt <= 1;
     }
 
     @Override
-    public boolean isHostForNetwork(Direction dir, AcClusterType type){
+    public boolean isHostForNetwork(Direction dir, AcClusterType type) {
         return type.equals(AdvancedComputers.CLUSTER_TYPE_DEVICE);
     }
 
@@ -206,6 +205,11 @@ public class ComputerBlockEntity extends BaseAcCableConnectableEntityBlock imple
             AdvancedComputers.LOGGER.info("valid network for computer at bp %s. Peripheral count: %s"
                     .formatted(this.getBlockPos(), net.getEntityCount()));
         }
+    }
+
+    @Override
+    public Direction getWorldOrientation() {
+        return getLevel().getBlockState(getBlockPos()).getValue(ComputerBlock.FACING);
     }
 
     // =================================================================================================================
@@ -274,7 +278,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableEntityBlock imple
             ctx.enqueueWork(() -> {
                 var obj = ctx.getSender().level().getBlockEntity(cbePos);
                 if (obj instanceof ComputerBlockEntity cbe) {
-                    AssertRuntime(cbe.isServer(), "Handling UI button event for ComputerBlockEntity client-side");
+                    AdvancedComputersError.Assert(cbe.isServer(), "Handling UI button event for ComputerBlockEntity client-side");
                     if (btnId == 1) {
                         cbe.toggleLVMPowerState();
                     }

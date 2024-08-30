@@ -10,11 +10,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.HashMap;
 import java.util.List;
 
-public abstract class BaseAcCableConnectableEntityBlock extends BaseAcCableEntityBlock implements IAcBaseCableConnectableBlockEntity, IAcDevCableConnectableEntity {
+public abstract class BaseAcCableConnectableBlockEntity extends BaseAcCableEntityBlock implements IAcBaseCableConnectableBlockEntity, IAcDevCableConnectableEntity {
     private final List<AcClusterType> supportedClusterTypes;
     public HashMap<Direction, CableCluster> connectedNetworks;
 
-    public BaseAcCableConnectableEntityBlock(BlockEntityType<?> pType, BlockPos pPos, BlockState pBlockState, List<AcClusterType> supportedClusterTypes) {
+    public BaseAcCableConnectableBlockEntity(BlockEntityType<?> pType, BlockPos pPos, BlockState pBlockState, List<AcClusterType> supportedClusterTypes) {
         super(pType, pPos, pBlockState);
         this.supportedClusterTypes = supportedClusterTypes;
         connectedNetworks = new HashMap<>();

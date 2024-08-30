@@ -93,7 +93,6 @@ public class AdvancedComputers {
     public static final DeferredRegister<RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(ForgeRegistries.RECIPE_TYPES, MODID);
 
 
-
     public static final AcClusterType CLUSTER_TYPE_DEVICE = AdvancedComputers.AC_CLUSTER_TYPE_MANAGER.RegisterNewClusterType("device");
     public static final AcClusterType CLUSTER_TYPE_NETWORK = AdvancedComputers.AC_CLUSTER_TYPE_MANAGER.RegisterNewClusterType("network");
 

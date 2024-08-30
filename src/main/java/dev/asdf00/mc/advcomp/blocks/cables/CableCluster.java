@@ -2,52 +2,57 @@ package dev.asdf00.mc.advcomp.blocks.cables;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.cables.base.BaseCableBlock;
+import dev.asdf00.mc.advcomp.exceptions.AdvancedComputersError;
 import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
 import dev.asdf00.mc.advcomp.types.cluster.IAcBaseCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.types.cluster.IAcBaseCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.IAcClusterHostEntity;
-import dev.asdf00.mc.advcomp.types.TriConsumer;
-import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
+import dev.asdf00.mc.advcomp.utils.TriConsumer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiConsumer;
 
 public class CableCluster {
-    public final ArrayList<IAcBaseCableConnectableBlockEntity> connectedEntities; // contains all connected devices
-    private final ArrayList<IAcClusterHostEntity> connectedHostEntities; // contains all connected devices that implement the interface IAcClusterHostEntity
+    public final IAcBaseCableConnectableBlockEntity[] connectedEntities; // contains all connected devices
+    private final IAcClusterHostEntity[] connectedHostEntities; // contains all connected devices that implement the interface IAcClusterHostEntity
     public final AcClusterType clusterType;
 
     /**
      * Gets the host of this cluster if this cluster is valid. Otherwise, this method returns {@code null}.
      */
-    public IAcBaseCableConnectableEntity getHost() {
-        if (connectedHostEntities.size() != 1) {
+    public IAcClusterHostEntity getHost() {
+        if (connectedHostEntities.length != 1) {
             return null;
         }
-        return connectedHostEntities.iterator().next();
+        return connectedHostEntities[0];
     }
 
     public int getHostCount() {
-        return connectedHostEntities.size();
+        return connectedHostEntities.length;
     }
 
     public int getEntityCount() {
-        return connectedEntities.size();
+        return connectedEntities.length;
     }
 
     public AcClusterType getClusterType() {
         return this.clusterType;
     }
 
-    public CableCluster(ArrayList<IAcBaseCableConnectableBlockEntity> connectedEntities, ArrayList<IAcClusterHostEntity> connectedHostEntities, AcClusterType clusterType) {
+    public IAcBaseCableConnectableBlockEntity getEntity(int index) {
+        return connectedEntities[index];
+    }
+
+    private CableCluster(IAcBaseCableConnectableBlockEntity[] connectedEntities, IAcClusterHostEntity[] connectedHostEntities, AcClusterType clusterType) {
+        Objects.nonNull(connectedEntities);
+        Objects.nonNull(connectedHostEntities);
         this.connectedEntities = connectedEntities;
         this.connectedHostEntities = connectedHostEntities;
         this.clusterType = clusterType;
     }
+
 
     public static void onBlockPosChanged(Level level, BlockPos initialBp) {
         var clusterTypes = AdvancedComputers.AC_CLUSTER_TYPE_MANAGER.GetNetworkTypes();
@@ -72,15 +77,14 @@ public class CableCluster {
         //    (not implemented yet) if added: simply rebuild network from current initialBp
         //    otherwise: rebuild 7 networks, one from current and then 6 form the surrounding ones (or always do this one)
         // whenever a network rebuild discovers a IAcBaseCableConnectableBlockEntity, the network is read from that block and it is wiped off of any devices on that network
-        var neighborStartPosesToCheck = new LinkedList<BlockPos>();
+        var neighborStartPosesToCheck = new ArrayDeque<BlockPos>();
         neighborStartPosesToCheck.push(initialBp);
         for (var dir : Direction.values())
             neighborStartPosesToCheck.push(initialBp.relative(dir));
 
         HashSet<BlockPos> alreadyCheckedCables = new HashSet<>();
         while (!neighborStartPosesToCheck.isEmpty()) {
-
-            var networkRebuildStartpoint = neighborStartPosesToCheck.removeFirst(); // startpoint for an initial rebuild
+            var networkRebuildStartpoint = neighborStartPosesToCheck.remove(); // startpoint for an initial rebuild
             var spBe = level.getBlockEntity(networkRebuildStartpoint);
             if (spBe == null) // if there is no tileentity then we can skip this startpoint
                 continue;
@@ -171,19 +175,6 @@ public class CableCluster {
                         alreadyCheckedCables.add(pos);
                     }
                 }
-
-//                if (posBe instanceof ComputerBlockEntity compBe) { // computer --> unregister old network later, store reference for curr network; keep scanning neighbors
-//                    connectedComputers.add(compBe);
-//                    addNeighborsFunc.accept(pos);
-//                } else if (posBe instanceof CableBlockEntity) { // cable --> keep scanning neighbors
-//                    addNeighborsFunc.accept(pos);
-//                } else if (posBe instanceof IAcDevCableConnectableEntity connectableBe) { // peripheral device --> keep track of it so we can set refs later
-//                    connectedDevices.add(connectableBe);
-//                    addToAlreadyChecked = false;
-//                }
-//
-//                if (addToAlreadyChecked)
-//                    alreadyChecked.add(pos);
             }
 
             if (!startpointWasProcessed)
@@ -213,7 +204,93 @@ public class CableCluster {
 
                 connectedHosts = connectedHostsChecked;
 
-                var newNet = new CableCluster(new ArrayList<>(connectedDevices.values()), new ArrayList<>(connectedHosts.values()), clusterType);
+                // Sort devices by world position.
+                // If this network does not have a host, it will stay unsorted.
+                // If there are multiple hosts, this cluster is sorted by absolute world position.
+                IAcBaseCableConnectableBlockEntity[] devices;
+                IAcClusterHostEntity[] hosts = connectedHosts.values().toArray(IAcClusterHostEntity[]::new);
+                if (hosts.length == 1) {
+                    // sort devices
+                    final var host = hosts[0];
+                    final var hostPos = host.asBlockEntity().getBlockPos();
+                    var hostWorldOrientation = host.getWorldOrientation();
+                    if (hostWorldOrientation == Direction.UP || hostWorldOrientation == Direction.DOWN || hostWorldOrientation == null) {
+                        hostWorldOrientation = Direction.SOUTH;
+                    }
+                    final var orientation = hostWorldOrientation;
+                    Map.Entry<BlockPos, IAcBaseCableConnectableBlockEntity>[] entries = connectedDevices.entrySet().toArray(Map.Entry[]::new);
+                    Arrays.sort(entries, (ex, ey) -> {
+                        BlockPos x = ex.getKey();
+                        BlockPos y = ey.getKey();
+                        // decide by distance to host
+                        int intermediate = Integer.compare(hostPos.distManhattan(x), hostPos.distManhattan(y));
+                        if (intermediate != 0)
+                            return intermediate;
+
+                        // decide low to high
+                        intermediate = Integer.compare(x.getY(), y.getY());
+                        if (intermediate != 0)
+                            return intermediate;
+
+                        // decide by left to right
+                        intermediate = switch (orientation) {
+                            case NORTH -> -Integer.compare(x.getX(), y.getX());
+                            case SOUTH -> Integer.compare(x.getX(), y.getX());
+                            case EAST -> Integer.compare(x.getZ(), y.getZ());
+                            case WEST -> -Integer.compare(x.getZ(), y.getZ());
+                            default -> throw AdvancedComputersError.shouldNotReach();
+                        };
+                        if (intermediate != 0)
+                            return intermediate;
+
+                        // decide back to front
+                        intermediate = switch (orientation) {
+                            case NORTH -> -Integer.compare(x.getZ(), y.getZ());
+                            case SOUTH -> Integer.compare(x.getZ(), y.getZ());
+                            case EAST -> Integer.compare(x.getX(), y.getX());
+                            case WEST -> -Integer.compare(x.getX(), y.getX());
+                            default -> throw AdvancedComputersError.shouldNotReach();
+                        };
+                        if (intermediate != 0)
+                            return intermediate;
+
+                        throw AdvancedComputersError.shouldNotReach("Out of sorting criteria");
+                    });
+
+                    // get sorted array of devices
+                    devices = new IAcBaseCableConnectableBlockEntity[entries.length];
+                    for (int i = 0; i < entries.length; i++) {
+                        devices[i] = entries[i].getValue();
+                    }
+                } else if (hosts.length > 1) {
+                    // sort by absolute world position
+                    Map.Entry<BlockPos, IAcBaseCableConnectableBlockEntity>[] entries = connectedDevices.entrySet().toArray(Map.Entry[]::new);
+                    Arrays.sort(entries, (ex, ey) -> {
+                        BlockPos x = ex.getKey();
+                        BlockPos y = ey.getKey();
+                        int intermediate = Integer.compare(x.getY(), y.getY());
+                        if (intermediate != 0)
+                            return intermediate;
+                        intermediate = Integer.compare(x.getX(), y.getX());
+                        if (intermediate != 0)
+                            return intermediate;
+                        intermediate = Integer.compare(x.getZ(), y.getZ());
+                        if (intermediate != 0)
+                            return intermediate;
+                        throw AdvancedComputersError.shouldNotReach("Out of sorting criteria");
+                    });
+
+                    // get sorted array of devices
+                    devices = new IAcBaseCableConnectableBlockEntity[entries.length];
+                    for (int i = 0; i < entries.length; i++) {
+                        devices[i] = entries[i].getValue();
+                    }
+                } else {
+                    // leave them unsorted
+                    devices = connectedDevices.values().toArray(IAcBaseCableConnectableBlockEntity[]::new);
+                }
+
+                var newNet = new CableCluster(devices, hosts, clusterType);
                 for (var keyPos : connectedDevices.keySet()) { // replace existing networks on all connected blocks on the given sides; GC should do the rest
                     var valBe = connectedDevices.get(keyPos);
                     if (valBe == null)
@@ -240,7 +317,7 @@ public class CableCluster {
                 }
                 UpdateCableBlockStates(connectedCables, isNetworkValid, level);
             }
-            // last step remove all next potential startingpoints from that set if we have already checked them
+            // last step remove all next potential starting points from that set if we have already checked them
             neighborStartPosesToCheck.removeIf(connectedCables::contains);
         }
     }

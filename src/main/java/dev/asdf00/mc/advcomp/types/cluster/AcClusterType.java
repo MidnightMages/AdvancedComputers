@@ -3,9 +3,10 @@ package dev.asdf00.mc.advcomp.types.cluster;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class AcClusterType {
+    private static final AtomicInteger nextId = new AtomicInteger(0);
+
     private final int id;
     private final String clusterName;
-    private static final AtomicInteger nextId = new AtomicInteger(0);
 
     AcClusterType(String clusterName) {
         this.id = nextId.getAndIncrement();

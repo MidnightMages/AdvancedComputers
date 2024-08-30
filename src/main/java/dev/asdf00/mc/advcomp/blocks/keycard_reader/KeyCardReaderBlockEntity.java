@@ -2,8 +2,9 @@ package dev.asdf00.mc.advcomp.blocks.keycard_reader;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.items.BaseKeycardItem;
-import dev.asdf00.mc.advcomp.types.*;
-import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableEntityBlock;
+import dev.asdf00.mc.advcomp.types.AcCapabilities;
+import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -15,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 
-public class KeyCardReaderBlockEntity extends BaseAcCableConnectableEntityBlock {
+public class KeyCardReaderBlockEntity extends BaseAcCableConnectableBlockEntity {
     private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable;
 
     public KeyCardReaderBlockEntity(BlockPos pPos, BlockState pBlockState) {

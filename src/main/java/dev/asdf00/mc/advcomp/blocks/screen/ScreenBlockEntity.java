@@ -5,8 +5,10 @@ import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
-import dev.asdf00.mc.advcomp.types.*;
-import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableEntityBlock;
+import dev.asdf00.mc.advcomp.exceptions.AdvancedComputersError;
+import dev.asdf00.mc.advcomp.types.AcCapabilities;
+import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
@@ -27,10 +29,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Set;
-import static dev.asdf00.mc.advcomp.exceptions.AdvancedComputersError.AssertRuntime;
 
 
-public class ScreenBlockEntity extends BaseAcCableConnectableEntityBlock implements MenuProvider {
+public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity implements MenuProvider {
     public final ItemStackHandler itemHandler = new ItemStackHandler(2);
     private LazyOptional<IItemHandler> lazyItemhandler = LazyOptional.empty();
     private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable;
@@ -151,7 +152,7 @@ public class ScreenBlockEntity extends BaseAcCableConnectableEntityBlock impleme
             ctx.enqueueWork(() -> {
                 var obj = ctx.getSender().level().getBlockEntity(sbePos);
                 if (obj instanceof ScreenBlockEntity sbe) {
-                    AssertRuntime(!sbe.getLevel().isClientSide(), "Handling Screen event client-side");
+                    AdvancedComputersError.Assert(!sbe.getLevel().isClientSide(), "Handling Screen event client-side");
                     if (eventName == null || content == null) {
                         AdvancedComputers.LOGGER.warn("Received invalid Screen event containing null values");
                         return;
