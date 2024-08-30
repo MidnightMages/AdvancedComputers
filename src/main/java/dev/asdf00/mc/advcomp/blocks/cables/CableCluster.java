@@ -6,6 +6,7 @@ import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
 import dev.asdf00.mc.advcomp.types.cluster.IAcBaseCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.types.cluster.IAcBaseCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.IAcClusterHostEntity;
+import dev.asdf00.mc.advcomp.types.TriConsumer;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -101,17 +102,13 @@ public class CableCluster {
 
             HashMap<BlockPos, IAcBaseCableConnectableBlockEntity> connectedDevices = new HashMap<>();
             HashMap<BlockPos, IAcClusterHostEntity> connectedHosts = new HashMap<>();
-            AtomicBoolean startpointWasProcessed = new AtomicBoolean(false);
+            boolean startpointWasProcessed = false;
 
             Stack<BlockPos> posesToCheck = new Stack<>();
             posesToCheck.add(networkRebuildStartpoint); // add rebuild startpoint
             //HashSet<IAcBaseCableConnectableEntity> connectedComputers = new HashSet<>(1);
             ArrayList<BlockPos> connectedCables = new ArrayList<>();
-            BiConsumer<BlockPos, IAcBaseCableConnectableEntity> addNeighborsOfFunc = (bpToAdd, be) -> {
-                boolean isFirst = !startpointWasProcessed.get();
-                if (isFirst)
-                    startpointWasProcessed.set(true);
-
+            TriConsumer<BlockPos, IAcBaseCableConnectableEntity, Boolean> addNeighborsOfFunc = (bpToAdd, be, isFirst) -> {
                 for (var dir : Direction.values()) {
                     var rel = bpToAdd.relative(dir);
                     var relBe = level.getBlockEntity(rel);
@@ -147,47 +144,8 @@ public class CableCluster {
                         if (ce.canBePartOfCluster(clusterType) && be.canConnectTo(ce, dir)) // check if the other thing can be part of this network type and then check if it can connect
                             posesToCheck.push(rel);
                     }
-//
-//                    if (relBe instanceof IAcBaseCableConnectableEntity be2) { // check blocks
-//                        if (be.canConnectTo(be2, dir))
-//                            posesToCheck.push(rel);
-//                    } else if (relBe instanceof BaseAcCableEntityBlock cablebe) // new thing is a cable
-//                    {
-//                        if (be.canConnectTo(cablebe, dir))
-//                            posesToCheck.push(rel);
-//                    }
                 }
             };
-
-//            BiConsumer<BlockPos, IAcBaseCableConnectableEntity> addNeighborsOfBeFunc = (bpToAdd, be) -> {
-//                for (var dir : Direction.values()) {
-//                    var rel = bpToAdd.relative(dir);
-//                    var relBe = level.getBlockEntity(rel);
-//                    if (relBe instanceof IAcBaseCableConnectableEntity be2) { // check blocks
-//                        if (be.canConnectTo(be2, dir))
-//                            posesToCheck.push(rel);
-//                    } else if (relBe instanceof BaseAcCableEntityBlock cablebe) // new thing is a cable
-//                    {
-//                        if (be.canConnectTo(cablebe, dir))
-//                            posesToCheck.push(rel);
-//                    }
-//                }
-//            };
-//            BiConsumer<BlockPos, BaseCableBlockEntity> addNeighborsOfCableFunc = (bpToAdd, bcce) -> {
-//                for (var dir : Direction.values()) {
-//                    var rel = bpToAdd.relative(dir);
-//                    var relBe = level.getBlockEntity(rel);
-//                    if (relBe instanceof IAcBaseCableConnectableEntity be) { // check blocks
-//                        if (be.canConnectTo(bcce, dir.getOpposite()))
-//                            posesToCheck.push(rel);
-//                    } else if (relBe instanceof BaseAcCableEntityBlock cablebe) // add cables of same type
-//                    {
-//                        if (cablebe.getClass().equals(bcce.getClass()))
-//                            posesToCheck.push(rel);
-//                    }
-//                    // if block entity is null then there is no point in even adding it to the candidates
-//                }
-//            };
 
             while (!posesToCheck.empty()) {
                 var pos = posesToCheck.pop();
@@ -199,7 +157,8 @@ public class CableCluster {
                 // blockPos has no tileentity or no cable-like tileentity --> cant interact with cable ever --> we are done
                 if (posBe instanceof IAcBaseCableConnectableEntity ce) {
                     if (ce.actsAsCable()) { // if it acts as a cable --> add neighbors
-                        addNeighborsOfFunc.accept(pos, ce);
+                        addNeighborsOfFunc.accept(pos, ce, !startpointWasProcessed);
+                        startpointWasProcessed = true;
                     }
                     // in any case, add the device, if it is one, to the current list
                     if (ce instanceof IAcBaseCableConnectableBlockEntity cbe) {
@@ -227,7 +186,7 @@ public class CableCluster {
 //                    alreadyChecked.add(pos);
             }
 
-            if (!startpointWasProcessed.get())
+            if (!startpointWasProcessed)
                 throw new RuntimeException("what?");
 
             if (connectedDevices.size() == 1 && connectedCables.isEmpty()) // this must be a single block --> no network --> simply unset it on the block, if it even is a blockentity
