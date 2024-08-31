@@ -1,5 +1,7 @@
 package dev.asdf00.mc.advcomp.lua;
 
+import dev.asdf00.mc.advcomp.api.AcLuaFunction;
+
 import java.lang.reflect.Method;
 import java.util.HashMap;
 

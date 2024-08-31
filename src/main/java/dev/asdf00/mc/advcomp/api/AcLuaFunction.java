@@ -1,4 +1,4 @@
-package dev.asdf00.mc.advcomp.lua;
+package dev.asdf00.mc.advcomp.api;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -2,7 +2,7 @@ package dev.asdf00.mc.advcomp.lua.components.fs;
 
 import com.mojang.logging.LogUtils;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.lua.AcLuaFunction;
+import dev.asdf00.mc.advcomp.api.AcLuaFunction;
 import org.slf4j.Logger;
 
 import java.io.IOException;
