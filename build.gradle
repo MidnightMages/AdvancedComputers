@@ -1,3 +1,9 @@
+buildscript {
+    dependencies {
+        classpath "org.spongepowered:mixingradle:0.7.+"
+    }
+}
+
 plugins {
     id 'eclipse'
     id 'idea'
@@ -7,6 +13,7 @@ plugins {
     id "org.jetbrains.gradle.plugin.idea-ext" version "1.1.8"
     id 'org.parchmentmc.librarian.forgegradle' version '1.+'
 }
+apply plugin: "org.spongepowered.mixin"
 
 version = mod_version
 group = mod_group_id
@@ -105,6 +112,13 @@ repositories {
         name = "ModMaven"
         url = "https://modmaven.dev"
     }
+    maven {
+        url "https://maven2.bai.lol"
+        content {
+            includeGroup "lol.bai"
+            includeGroup "mcp.mobius.waila"
+        }
+    }
 }
 
 configurations {
@@ -114,12 +128,16 @@ configurations {
 
 dependencies {   
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+
+    //------ jei
     // compile against the JEI API but do not include it at runtime
     compileOnly(fg.deobf("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"))
     compileOnly(fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}"))
     // at runtime, use the full JEI jar for Forge
     runtimeOnly(fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}"))
+    //------
 
+    //------ luajava
     compileOnly('party.iroiro.luajava:luajava:3.5.0')
     compileOnly('party.iroiro.luajava:lua54:3.5.0')
     compileOnly('party.iroiro.luajava:lua54-platform:3.5.0:natives-desktop')
@@ -127,6 +145,16 @@ dependencies {
     shade 'party.iroiro.luajava:luajava:3.5.0'
     shade 'party.iroiro.luajava:lua54:3.5.0'
     shade 'party.iroiro.luajava:lua54-platform:3.5.0:natives-desktop'
+    //------
+
+    //------ waila
+    // compile against the API
+    //compileOnly(fg.deobf("mcp.mobius.waila:wthit-api:forge-${wthitVersion}"))
+
+    // run against the full jar
+    runtimeOnly(fg.deobf("mcp.mobius.waila:wthit:forge-${wthitVersion}"))
+    runtimeOnly(fg.deobf("lol.bai:badpackets:forge-${badpacketsVersion}"))
+    //------
 }
 
 tasks.named('processResources', ProcessResources).configure {
