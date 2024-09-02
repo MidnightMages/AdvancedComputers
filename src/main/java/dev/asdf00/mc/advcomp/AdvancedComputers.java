@@ -7,10 +7,7 @@ import dev.asdf00.mc.advcomp.blocks.cables.device.DeviceCableBlock;
 import dev.asdf00.mc.advcomp.blocks.cables.device.DeviceCableBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.network.NetworkCableBlock;
 import dev.asdf00.mc.advcomp.blocks.cables.network.NetworkCableBlockEntity;
-import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlock;
-import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
-import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockMenu;
-import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockScreen;
+import dev.asdf00.mc.advcomp.blocks.computer.*;
 import dev.asdf00.mc.advcomp.blocks.keycard_reader.KeyCardReaderBlock;
 import dev.asdf00.mc.advcomp.blocks.keycard_reader.KeyCardReaderBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlock;
@@ -48,6 +45,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -291,6 +289,11 @@ public class AdvancedComputers {
         @SubscribeEvent
         public static void modelInit(ModelEvent.RegisterGeometryLoaders event) {
             CableModelLoader.register(event);
+        }
+
+        @SubscribeEvent
+        public static void registerBER(EntityRenderersEvent.RegisterRenderers event) {
+            event.registerBlockEntityRenderer(AdvancedComputers.COMPUTER_BE.get(), ComputerBlockEntityRenderer::new);
         }
     }
 }

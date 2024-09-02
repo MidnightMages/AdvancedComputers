@@ -5,6 +5,7 @@ import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -21,25 +22,29 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.network.NetworkHooks;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
 
 public class ComputerBlock extends BaseEntityBlock {
 
     public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
-    public static final BooleanProperty RUNNING = BooleanProperty.create("running");
+    public static final EnumProperty<ComputerRunState> RUN_STATE = EnumProperty.create("runstate", ComputerRunState.class);
 
     public ComputerBlock(Properties pProperties) {
         super(pProperties);
         registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
-        registerDefaultState(defaultBlockState().setValue(RUNNING, false));
+        registerDefaultState(defaultBlockState().setValue(RUN_STATE, ComputerRunState.STOPPED));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
         super.createBlockStateDefinition(pBuilder);
-        pBuilder.add(FACING, RUNNING);
+        pBuilder.add(FACING, RUN_STATE);
     }
 
     @Nullable
@@ -56,7 +61,9 @@ public class ComputerBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext pContext) {
-        return this.defaultBlockState().setValue(FACING, pContext.getHorizontalDirection().getOpposite()).setValue(RUNNING, false);
+        return this.defaultBlockState()
+                .setValue(FACING, pContext.getHorizontalDirection().getOpposite())
+                .setValue(RUN_STATE, ComputerRunState.STOPPED);
     }
 
 
@@ -105,5 +112,32 @@ public class ComputerBlock extends BaseEntityBlock {
             screenBlock.destroy(pLevel, upPos, upState);
         }
         super.destroy(pLevel, pPos, pState);
+    }
+
+    public enum ComputerRunState implements StringRepresentable {
+        STOPPED (new Color(0xFF0000), false, false),
+        CRASHED (new Color(0xFF0000), true, false),
+        RUNNING (new Color(0x00FF22), false, true),
+        WORKING (new Color(0x00FF22), true, true);
+
+        final Color color;
+        final boolean blinking;
+        final boolean isRunning;
+
+        ComputerRunState(Color color, boolean blinking, boolean isRunning) {
+
+            this.color = color;
+            this.blinking = blinking;
+            this.isRunning = isRunning;
+        }
+
+        @Override
+        public @NotNull String getSerializedName() {
+            return this.toString().toLowerCase();
+        }
+
+        public boolean isRunning() {
+            return this.isRunning;
+        }
     }
 }

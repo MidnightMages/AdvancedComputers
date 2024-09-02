@@ -37,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity implements MenuProvider, IAcClusterHostEntity {
     public final ItemStackHandler itemHandler = new ItemStackHandler(ComputerBlockMenu.TE_INVENTORY_SLOT_COUNT);
@@ -48,18 +49,18 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
     private LuaVirtualMachine lvm;
     private final Object lockLVM = new Object();
 
-    // true to on first tick to reset block state to indicate dead LVM
-    private volatile boolean lvmDeath = true;
+    // set to STOPPED on first tick to reset block state to indicate stopped LVM
+    private volatile AtomicReference<ComputerBlock.ComputerRunState> newRunState = new AtomicReference<>(ComputerBlock.ComputerRunState.STOPPED);
 
     public void tick(Level pLevel, BlockPos pPos, BlockState pState) {
         // todo add logic
         int a = 0;
-        if (!getLevel().isClientSide()) {
-            if (lvmDeath) {
-                // LVM died last tick
-                lvmDeath = false;
-                var bs = level.getBlockState(getBlockPos()).setValue(ComputerBlock.RUNNING, false);
-                level.setBlock(getBlockPos(), bs, 2);
+        if (!pLevel.isClientSide()) {
+            var newRstate = newRunState.getAndSet(null);
+            if (newRstate != null) {
+                // LVM state changed last tick
+                var bs = pState.setValue(ComputerBlock.RUN_STATE, newRstate); // TODO distinguish between crash and graceful shutdown
+                pLevel.setBlock(pPos, bs, 2);
             }
         }
     }
@@ -229,13 +230,17 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
         }
     }
 
+    private void setBlockStates(ComputerBlock.ComputerRunState newState){
+
+    }
+
     public void toggleLVMPowerState() {
         if (isServer()) {
             getLvm().toggleOnOff(() -> {
-                        var bs = level.getBlockState(getBlockPos()).setValue(ComputerBlock.RUNNING, true);
+                        var bs = level.getBlockState(getBlockPos()).setValue(ComputerBlock.RUN_STATE, ComputerBlock.ComputerRunState.RUNNING);
                         level.setBlock(getBlockPos(), bs, 2);
                     },
-                    () -> lvmDeath = true);
+                    () -> newRunState.set(ComputerBlock.ComputerRunState.STOPPED));
         } else {
             NetCodeUtils.sendToServer(new ClientOriginatingUiEvent(this, 1));
         }
