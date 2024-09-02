@@ -50,7 +50,10 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
     private final Object lockLVM = new Object();
 
     // set to STOPPED on first tick to reset block state to indicate stopped LVM
-    private volatile AtomicReference<ComputerBlock.ComputerRunState> newRunState = new AtomicReference<>(ComputerBlock.ComputerRunState.STOPPED);
+    private final AtomicReference<ComputerBlock.ComputerRunState> newRunState = new AtomicReference<>(ComputerBlock.ComputerRunState.STOPPED);
+    private void SetRunState(ComputerBlock.ComputerRunState rs){
+        newRunState.set(rs);
+    }
 
     public void tick(Level pLevel, BlockPos pPos, BlockState pState) {
         // todo add logic
@@ -159,7 +162,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
         // crash LVM
         if (isServer()) {
             if (lvm != null) {
-                lvm.tryKill("Chunk unloaded");
+                lvm.tryKill("Chunk unloaded", false);
             }
         }
     }
@@ -198,7 +201,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
         var cc = net.getHostCount();
         if (cc > 1) {
             if (lvm != null)
-                lvm.tryKill("Too many computers connected to this network"); // TODO make sure lvm checks how many computers are part of this net whne lvm is started, as lvm is null on world load
+                lvm.tryKill("Too many computers connected to this network", false); // TODO make sure lvm checks how many computers are part of this net when lvm is started, as lvm is null on world load
 
             AdvancedComputers.LOGGER.info("invalid network for computer at bp %s. Computer count: %s"
                     .formatted(this.getBlockPos(), cc));
@@ -240,7 +243,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
                         var bs = level.getBlockState(getBlockPos()).setValue(ComputerBlock.RUN_STATE, ComputerBlock.ComputerRunState.RUNNING);
                         level.setBlock(getBlockPos(), bs, 2);
                     },
-                    () -> newRunState.set(ComputerBlock.ComputerRunState.STOPPED));
+                    (gracefulShutdown) -> SetRunState(gracefulShutdown ? ComputerBlock.ComputerRunState.STOPPED :  ComputerBlock.ComputerRunState.CRASHED));
         } else {
             NetCodeUtils.sendToServer(new ClientOriginatingUiEvent(this, 1));
         }
