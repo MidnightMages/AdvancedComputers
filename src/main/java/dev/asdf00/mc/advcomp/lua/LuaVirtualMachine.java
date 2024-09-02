@@ -4,6 +4,7 @@ import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import party.iroiro.luajava.AbstractLua;
 import party.iroiro.luajava.JFunction;
+import party.iroiro.luajava.Lua;
 import party.iroiro.luajava.lua54.Lua54;
 import party.iroiro.luajava.value.RefLuaValue;
 
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.locks.LockSupport;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static dev.asdf00.mc.advcomp.lua.LuaUtils.setGlobalField;
@@ -48,8 +50,9 @@ public class LuaVirtualMachine {
 
     private LuaStdOut stdOut;
     private String stopCode;
+    private boolean stopCode_isGraceful = false;
 
-    private Runnable runOnExit = null;
+    private Consumer<Boolean> runOnExit = null;
     private volatile boolean killingLVM = false;
 
     private record MachineEvent(String name, Object content) {
@@ -123,6 +126,7 @@ public class LuaVirtualMachine {
             stdOut = new LuaStdOut();
             executionEnv = new Thread(this::runLua);
             stopCode = "";
+            stopCode_isGraceful = false;
         }
         executionEnv.start();
     }
@@ -149,11 +153,14 @@ public class LuaVirtualMachine {
         }
     }
 
-    public void tryKill(String reason) {
+    public void tryKill(String reason, boolean isGracefulShutdown) {
         synchronized (startStopLock) {
             if (isRunning) {
                 synchronized (startStopLock) {
                     killingLVM = true;
+                    stopCode = "[KILLED] " + reason;
+                    stopCode_isGraceful = isGracefulShutdown;
+
                     executionEnv.interrupt();
                     if (suspended) {
                         resume();
@@ -162,20 +169,19 @@ public class LuaVirtualMachine {
                     // cleanup after kill
                     isRunning = false;
                     executionEnv = null;
-                    stopCode = "[KILLED] " + reason;
                 }
             }
         }
     }
 
-    public void toggleOnOff(Runnable onStart, Runnable onExit) {
+    public void toggleOnOff(Runnable onStart, Consumer<Boolean> onExit) {
         synchronized (startStopLock) {
             if (getState() == 0) {
                 runOnExit = onExit;
                 onStart.run();
                 start();
             } else {
-                tryKill("ON/OFF button pushed");
+                tryKill("ON/OFF button pushed", true);
             }
         }
     }
@@ -205,6 +211,7 @@ public class LuaVirtualMachine {
             var msg = Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" "));
             System.out.println("setStopCode: " + msg);
             stopCode = msg;
+            stopCode_isGraceful = false; // TODO expose this as an arg to the vm maybe?
         }));
 
         setGlobalFunction("unsubMachineEvent", new LuaFunctionProxy(this, this::unsubMachineEvent));
@@ -237,21 +244,35 @@ public class LuaVirtualMachine {
 
         timeLastHook = System.currentTimeMillis();
 
+        boolean lvmException = false;
+        boolean lvmCleanExit = false;
         try {
             var rv = L.run(luaEntryScript);
             AdvancedComputers.LOGGER.info(String.format("LVM exited with code %s", rv));
+            lvmCleanExit = rv == Lua.LuaError.OK;
         } catch (Exception e) {
             AdvancedComputers.LOGGER.error(e.toString());
+            lvmException = true;
         }
 
+        boolean shutdownWasGraceful;
         // cleanup after shutdown
-        runOnExit.run();
         synchronized (startStopLock) {
             killingLVM = false;
             isRunning = false;
             executionEnv = null;
             stdOut = null;
+
+            if (lvmCleanExit)
+                shutdownWasGraceful = true;
+            else if (lvmException){
+                shutdownWasGraceful = false;
+            }
+            else {
+                shutdownWasGraceful = stopCode_isGraceful;
+            }
         }
+        runOnExit.accept(shutdownWasGraceful);
     }
 
 

@@ -35,7 +35,7 @@ public class ComputerBlockScreen extends AbstractContainerScreen<ComputerBlockMe
     }
 
     private boolean isMachineRunning() {
-        return getMenu().blockEntity.getBlockState().getValue(ComputerBlock.RUNNING);
+        return getMenu().blockEntity.getBlockState().getValue(ComputerBlock.RUN_STATE).isRunning();
     }
 
     private void onMachineStateChanged() {

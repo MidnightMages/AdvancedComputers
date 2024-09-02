@@ -37,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity implements MenuProvider, IAcClusterHostEntity {
     public final ItemStackHandler itemHandler = new ItemStackHandler(ComputerBlockMenu.TE_INVENTORY_SLOT_COUNT);
@@ -48,18 +49,21 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
     private LuaVirtualMachine lvm;
     private final Object lockLVM = new Object();
 
-    // true to on first tick to reset block state to indicate dead LVM
-    private volatile boolean lvmDeath = true;
+    // set to STOPPED on first tick to reset block state to indicate stopped LVM
+    private final AtomicReference<ComputerBlock.ComputerRunState> newRunState = new AtomicReference<>(ComputerBlock.ComputerRunState.STOPPED);
+    private void SetRunState(ComputerBlock.ComputerRunState rs){
+        newRunState.set(rs);
+    }
 
     public void tick(Level pLevel, BlockPos pPos, BlockState pState) {
         // todo add logic
         int a = 0;
-        if (!getLevel().isClientSide()) {
-            if (lvmDeath) {
-                // LVM died last tick
-                lvmDeath = false;
-                var bs = level.getBlockState(getBlockPos()).setValue(ComputerBlock.RUNNING, false);
-                level.setBlock(getBlockPos(), bs, 2);
+        if (!pLevel.isClientSide()) {
+            var newRstate = newRunState.getAndSet(null);
+            if (newRstate != null) {
+                // LVM state changed last tick
+                var bs = pState.setValue(ComputerBlock.RUN_STATE, newRstate); // TODO distinguish between crash and graceful shutdown
+                pLevel.setBlock(pPos, bs, 2);
             }
         }
     }
@@ -158,7 +162,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
         // crash LVM
         if (isServer()) {
             if (lvm != null) {
-                lvm.tryKill("Chunk unloaded");
+                lvm.tryKill("Chunk unloaded", false);
             }
         }
     }
@@ -197,7 +201,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
         var cc = net.getHostCount();
         if (cc > 1) {
             if (lvm != null)
-                lvm.tryKill("Too many computers connected to this network"); // TODO make sure lvm checks how many computers are part of this net whne lvm is started, as lvm is null on world load
+                lvm.tryKill("Too many computers connected to this network", false); // TODO make sure lvm checks how many computers are part of this net when lvm is started, as lvm is null on world load
 
             AdvancedComputers.LOGGER.info("invalid network for computer at bp %s. Computer count: %s"
                     .formatted(this.getBlockPos(), cc));
@@ -229,13 +233,17 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
         }
     }
 
+    private void setBlockStates(ComputerBlock.ComputerRunState newState){
+
+    }
+
     public void toggleLVMPowerState() {
         if (isServer()) {
             getLvm().toggleOnOff(() -> {
-                        var bs = level.getBlockState(getBlockPos()).setValue(ComputerBlock.RUNNING, true);
+                        var bs = level.getBlockState(getBlockPos()).setValue(ComputerBlock.RUN_STATE, ComputerBlock.ComputerRunState.RUNNING);
                         level.setBlock(getBlockPos(), bs, 2);
                     },
-                    () -> lvmDeath = true);
+                    (gracefulShutdown) -> SetRunState(gracefulShutdown ? ComputerBlock.ComputerRunState.STOPPED :  ComputerBlock.ComputerRunState.CRASHED));
         } else {
             NetCodeUtils.sendToServer(new ClientOriginatingUiEvent(this, 1));
         }
