@@ -115,10 +115,10 @@ public class ComputerBlock extends BaseEntityBlock {
     }
 
     public enum ComputerRunState implements StringRepresentable {
-        STOPPED (new Color(0xFF0000), false, false),
-        CRASHED (new Color(0xFF0000), true, false),
-        RUNNING (new Color(0x00FF22), false, true),
-        WORKING (new Color(0x00FF22), true, true);
+        STOPPED (new Color(0x8D0000), false, false),
+        CRASHED (new Color(0x8D0000), true, false),
+        RUNNING (new Color(0x008D19), false, true),
+        WORKING (new Color(0x008D19), true, true);
 
         final Color color;
         final boolean blinking;
