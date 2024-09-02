@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
@@ -39,8 +40,12 @@ public class ComputerBlockEntityRenderer implements BlockEntityRenderer<Computer
     public void render(@NotNull ComputerBlockEntity pBlockEntity, float pPartialTick, @NotNull PoseStack pPoseStack,
                        @NotNull MultiBufferSource pBuffer, int pPackedLight, int pPackedOverlay) {
         pPoseStack.pushPose();
-        pPoseStack.mulPose(Axis.YP.rotationDegrees(-90));
-        pPoseStack.translate(0, 0, 0);
+        var facing = pBlockEntity.getBlockState().getValue(ComputerBlock.FACING);
+
+        pPoseStack.translate(0.5f, 0.5f, 0.5f);
+        poseStack_mulFacing(pPoseStack, facing);
+        pPoseStack.translate(-0.5f, -0.5f, -0.5f);
+        //pPoseStack.mulPose(Axis.YP.rotationDegrees(-90));
 
 //        BlockEntityRenderer<ComputerBlockEntity>.
 //        pPoseStack.translate(0,2,0);
@@ -59,12 +64,13 @@ public class ComputerBlockEntityRenderer implements BlockEntityRenderer<Computer
 //        if (true) {
             var buf = pBuffer.getBuffer(rt);
             var x=1.0001f;
-            var zStart = -7/16f;
-            var zEnd = zStart - 2/16f;
+            var zStart = 2/16f;
+            var zEnd = zStart + 4/16f;
             var yEnd = 1-2/16f;
             var yStart = 1-4/16f;
             var color = getRenderColor(pBlockEntity);
-            quad(buf, pPoseStack.last(),v(x, yEnd, zStart), v(x, yStart, zStart), v(x, yStart, zEnd), v(x, yEnd, zEnd), color);
+        quad(buf, pPoseStack.last(),v(x, yEnd, zStart), v(x, yStart, zStart), v(x, yStart, zEnd), v(x, yEnd, zEnd), color);
+        quad(buf, pPoseStack.last(), v(x, yEnd, zEnd),v(x, yStart, zEnd), v(x, yStart, zStart),v(x, yEnd, zStart),  color);
 //        } else {
 //            var t = Tesselator.getInstance();
 //            var buf = t.getBuilder();
@@ -107,6 +113,17 @@ public class ComputerBlockEntityRenderer implements BlockEntityRenderer<Computer
 //        matrix.popPose();
 
 */
+    }
+
+    static void poseStack_mulFacing(PoseStack ps, Direction dir){
+        var f2 =  dir.getRotation();
+        var f = Axis.YP.rotationDegrees(switch (dir) {
+            case EAST -> 0;
+            case SOUTH -> 270;
+            case WEST -> 180;
+            default -> 90;
+        });
+        ps.mulPose(f);
     }
 
     static final RenderType rt =  RenderType.create("solid", DefaultVertexFormat.POSITION_COLOR_NORMAL, VertexFormat.Mode.QUADS,
