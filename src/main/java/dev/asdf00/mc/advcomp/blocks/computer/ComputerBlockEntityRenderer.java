@@ -2,6 +2,7 @@ package dev.asdf00.mc.advcomp.blocks.computer;
 
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderStateShard;
@@ -16,6 +17,7 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 import java.awt.*;
+import java.lang.reflect.Parameter;
 
 public class ComputerBlockEntityRenderer implements BlockEntityRenderer<ComputerBlockEntity> {
     public ComputerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
@@ -32,15 +34,34 @@ public class ComputerBlockEntityRenderer implements BlockEntityRenderer<Computer
         return true;
     }
 
-    private static Color getRenderColor(ComputerBlockEntity be){
-        return be.getBlockState().getValue(ComputerBlock.RUN_STATE).color;
+    private static ComputerBlock.ComputerRunState getRunstate(ComputerBlockEntity be){
+        return be.getBlockState().getValue(ComputerBlock.RUN_STATE);
     }
+
+    private long time = 0;
+    private long lastTimeStamp = 0;
+    private final long div = 2_000;
 
     @Override
     public void render(@NotNull ComputerBlockEntity pBlockEntity, float pPartialTick, @NotNull PoseStack pPoseStack,
                        @NotNull MultiBufferSource pBuffer, int pPackedLight, int pPackedOverlay) {
         pPoseStack.pushPose();
         var facing = pBlockEntity.getBlockState().getValue(ComputerBlock.FACING);
+        var rs = getRunstate(pBlockEntity);
+        var color = rs.color;
+
+
+        if (rs.blinking){
+            var currentTime = System.currentTimeMillis();
+            var delta = currentTime - lastTimeStamp;
+            lastTimeStamp = currentTime;
+
+            time += delta;
+            time %= div;
+            if (time < div/2){
+                color = Color.black;
+            }
+        }
 
         pPoseStack.translate(0.5f, 0.5f, 0.5f);
         poseStack_mulFacing(pPoseStack, facing);
@@ -68,7 +89,6 @@ public class ComputerBlockEntityRenderer implements BlockEntityRenderer<Computer
             var zEnd = zStart + 4/16f;
             var yEnd = 1-2/16f;
             var yStart = 1-4/16f;
-            var color = getRenderColor(pBlockEntity);
         quad(buf, pPoseStack.last(),v(x, yEnd, zStart), v(x, yStart, zStart), v(x, yStart, zEnd), v(x, yEnd, zEnd), color);
         quad(buf, pPoseStack.last(), v(x, yEnd, zEnd),v(x, yStart, zEnd), v(x, yStart, zStart),v(x, yEnd, zStart),  color);
 //        } else {
