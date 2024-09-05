@@ -2,6 +2,7 @@ package dev.asdf00.mc.advcomp;
 
 import com.mojang.logging.LogUtils;
 import dev.asdf00.mc.advcomp.api.AcClusterTypeManager;
+import dev.asdf00.mc.advcomp.blocks.wan_router.WanRouterBlock;
 import dev.asdf00.mc.advcomp.blocks.cables.CableModelLoader;
 import dev.asdf00.mc.advcomp.blocks.cables.device.DeviceCableBlock;
 import dev.asdf00.mc.advcomp.blocks.cables.device.DeviceCableBlockEntity;
@@ -14,6 +15,7 @@ import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlock;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockScreen;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenMenu;
+import dev.asdf00.mc.advcomp.blocks.wan_router.WanRouterBlockEntity;
 import dev.asdf00.mc.advcomp.datagen.BlockModelGenerator;
 import dev.asdf00.mc.advcomp.datagen.BlockStateGenerator;
 import dev.asdf00.mc.advcomp.datagen.ItemModelGenerator;
@@ -117,6 +119,9 @@ public class AdvancedComputers {
     public static final RegistryBlockItemPair<Block> NETWORK_CABLE_BLOCK = registerBlockWithItem("network_cable_block",
             () -> new NetworkCableBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
 
+    public static final RegistryBlockItemPair<Block> WAN_ROUTER_BLOCK = registerBlockWithItem("wan_router",
+            () -> new WanRouterBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK).noOcclusion()));
+
     public static final RegistryObject<BlockEntityType<ComputerBlockEntity>> COMPUTER_BE = BLOCK_ENTITY_TYPES.register("computer_be",
             () -> BlockEntityType.Builder.of(ComputerBlockEntity::new, COMPUTER_BLOCK.block().get()).build(null));
 
@@ -125,6 +130,9 @@ public class AdvancedComputers {
 
     public static final RegistryObject<BlockEntityType<KeyCardReaderBlockEntity>> KEYCARD_READER_BE = BLOCK_ENTITY_TYPES.register("keycard_reader_be",
             () -> BlockEntityType.Builder.of(KeyCardReaderBlockEntity::new, KEYCARD_READER_BLOCK.block().get()).build(null));
+
+    public static final RegistryObject<BlockEntityType<WanRouterBlockEntity>> WAN_ROUTER_BE = BLOCK_ENTITY_TYPES.register("wan_router_be",
+            () -> BlockEntityType.Builder.of(WanRouterBlockEntity::new, WAN_ROUTER_BLOCK.block().get()).build(null));
 
     public static final RegistryObject<BlockEntityType<DeviceCableBlockEntity>> DEV_CABLE_BE = BLOCK_ENTITY_TYPES.register("device_cable_be",
             () -> BlockEntityType.Builder.of(DeviceCableBlockEntity::new, DEVICE_CABLE_BLOCK.block().get()).build(null));
