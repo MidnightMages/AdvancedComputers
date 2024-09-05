@@ -16,6 +16,7 @@ import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockScreen;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenMenu;
 import dev.asdf00.mc.advcomp.blocks.wan_router.WanRouterBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.wan_router.WanRouterBlockEntityRenderer;
 import dev.asdf00.mc.advcomp.datagen.BlockModelGenerator;
 import dev.asdf00.mc.advcomp.datagen.BlockStateGenerator;
 import dev.asdf00.mc.advcomp.datagen.ItemModelGenerator;
@@ -302,6 +303,7 @@ public class AdvancedComputers {
         @SubscribeEvent
         public static void registerBER(EntityRenderersEvent.RegisterRenderers event) {
             event.registerBlockEntityRenderer(AdvancedComputers.COMPUTER_BE.get(), ComputerBlockEntityRenderer::new);
+            event.registerBlockEntityRenderer(AdvancedComputers.WAN_ROUTER_BE.get(), WanRouterBlockEntityRenderer::new);
         }
     }
 }
