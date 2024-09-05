@@ -4,12 +4,18 @@ import com.google.gson.JsonObject;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.RegistryBlockItemPair;
 import dev.asdf00.mc.advcomp.blocks.cables.CableModelLoader;
+import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlock;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraftforge.client.model.generators.*;
 import net.minecraftforge.common.data.ExistingFileHelper;
+
+import java.util.Collections;
+import java.util.function.Function;
 
 import static dev.asdf00.mc.advcomp.datagen.ItemModelGenerator.rl;
 import static dev.asdf00.mc.advcomp.datagen.ItemModelGenerator.rl_mc;
@@ -26,7 +32,7 @@ public class BlockStateGenerator extends BlockStateProvider {
     protected void registerStatesAndModels() {
         //ock(AdvancedComputers.SCREEN_BLOCK.block().get(), mf("block/screen_block"));
         orientedBlock(AdvancedComputers.SCREEN_BLOCK);
-        orientedBlock(AdvancedComputers.COMPUTER_BLOCK);
+        orientedBlock(AdvancedComputers.COMPUTER_BLOCK, new Property[]{ComputerBlock.RUN_STATE});
         orientedBlock(AdvancedComputers.KEYCARD_READER_BLOCK);
 
         cable(AdvancedComputers.DEVICE_CABLE_BLOCK, "device");
@@ -47,6 +53,9 @@ public class BlockStateGenerator extends BlockStateProvider {
     }
 
     private void orientedBlock(RegistryBlockItemPair<Block> b) {
+        orientedBlock(b, new Property[]{});
+    }
+    private void orientedBlock(RegistryBlockItemPair<Block> b, Property<?>[] ignoredBlockStateProperties) {
         var block = b.block().get();
 
         var prefix = "block." + AdvancedComputers.MODID + ".";
@@ -57,11 +66,11 @@ public class BlockStateGenerator extends BlockStateProvider {
         var blockName = fullBlockName.substring(prefix.length());
 
         getVariantBuilder(block)
-                .forAllStates(state -> ConfiguredModel.builder()
-                        .modelFile(mf("block/" + blockName))
-                        .rotationY(((int) state.getValue(BlockStateProperties.HORIZONTAL_FACING).toYRot() + 180) % 360)
-                        .build()
-                );
+                .forAllStatesExcept(state ->ConfiguredModel.builder()
+                    .modelFile(mf("block/" + blockName))
+                    .rotationY(((int) state.getValue(BlockStateProperties.HORIZONTAL_FACING).toYRot() + 180) % 360)
+                    .build(),
+                ignoredBlockStateProperties);
     }
 
     private ModelFile.ExistingModelFile mf(String s) {
