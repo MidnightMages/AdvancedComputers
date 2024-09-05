@@ -66,7 +66,7 @@ public class ComputerBlockEntityRenderer implements BlockEntityRenderer<Computer
         pPoseStack.translate(0.5f, 0.5f, 0.5f);
         poseStack_mulFacing(pPoseStack, facing);
         pPoseStack.translate(-0.5f, -0.5f, -0.5f);
-        var buf = pBuffer.getBuffer(rt());
+        var buf = pBuffer.getBuffer(rt);
         var x = 1.0001f;
         var zStart = 2 / 16f;
         var zEnd = zStart + 4 / 16f;
@@ -87,16 +87,14 @@ public class ComputerBlockEntityRenderer implements BlockEntityRenderer<Computer
         ps.mulPose(f);
     }
 
-    static RenderType rt() {
-        return RenderType.create("solid", DefaultVertexFormat.POSITION_COLOR_NORMAL, VertexFormat.Mode.QUADS,
-                2097152, true, false, RenderType.CompositeState.builder()
-                        .setLightmapState(new RenderStateShard.LightmapStateShard(true))
-                        .setShaderState(new RenderStateShard.ShaderStateShard(GameRenderer::getPositionColorShader))
-                        .setTextureState(new RenderStateShard.EmptyTextureStateShard(() -> {
-                        }, () -> {
-                        }))
-                        .createCompositeState(true));
-    }
+    static RenderType rt = RenderType.create("solid", DefaultVertexFormat.POSITION_COLOR_NORMAL, VertexFormat.Mode.QUADS,
+            2097152, true, false, RenderType.CompositeState.builder()
+                    .setLightmapState(new RenderStateShard.LightmapStateShard(true))
+                    .setShaderState(new RenderStateShard.ShaderStateShard(GameRenderer::getPositionColorShader))
+                    .setTextureState(new RenderStateShard.EmptyTextureStateShard(() -> {
+                    }, () -> {
+                    }))
+                    .createCompositeState(true));
 
     public static void quad(VertexConsumer v, PoseStack.Pose pose, Vec3 v1, Vec3 v2, Vec3 v3, Vec3 v4, Color color) {
         //Vec3 normal = v3.subtract(v2).cross(v1.subtract(v2)).normalize();
