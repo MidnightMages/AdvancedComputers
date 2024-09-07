@@ -44,11 +44,6 @@ public class WanRouterBlockEntity extends BaseAcCableConnectableBlockEntity {
         lazyCableConnectable.invalidate();
     }
 
-    void onKeycardSwiped(BaseKeycardItem swipedCard) {
-        // maybe do the logic in here, or in the following function
-        swipedCard.onKeycardSwiped(swipedCard);
-    }
-
     public void tick(Level pLevel1, BlockPos pPos, BlockState pState1) {
 
     }
