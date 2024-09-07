@@ -1,0 +1,29 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "advancedcomputers:block/net_router",
+      "x": -90,
+      "y": 90
+    },
+    "facing=east": {
+      "model": "advancedcomputers:block/net_router",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "advancedcomputers:block/net_router"
+    },
+    "facing=south": {
+      "model": "advancedcomputers:block/net_router",
+      "y": 180
+    },
+    "facing=up": {
+      "model": "advancedcomputers:block/net_router",
+      "x": 90,
+      "y": 90
+    },
+    "facing=west": {
+      "model": "advancedcomputers:block/net_router",
+      "y": 270
+    }
+  }
+}

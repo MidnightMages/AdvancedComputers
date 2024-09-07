@@ -9,6 +9,7 @@
 	
 	"block.advancedcomputers.keycard_reader_block": "Keycard Reader",
 	"block.advancedcomputers.wan_router": "WAN Router",
+	"block.advancedcomputers.net_router": "Network Router",
 
 	"block.advancedcomputers.device_cable_block": "Device Cable",
 	"block.advancedcomputers.network_cable_block": "Network Cable",

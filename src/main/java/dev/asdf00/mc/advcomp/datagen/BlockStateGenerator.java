@@ -35,7 +35,7 @@ public class BlockStateGenerator extends BlockStateProvider {
         cable(AdvancedComputers.NETWORK_CABLE_BLOCK, "network");
 
         simpleModel(AdvancedComputers.WAN_ROUTER_BLOCK);
-//        orientedBlock6(AdvancedComputers.NET_ROUTER_BLOCK);
+        orientedModel6(AdvancedComputers.NET_ROUTER_BLOCK);
     }
 
     private void cable(RegistryBlockItemPair<Block> cableRegDef, String variantName) {
@@ -54,6 +54,7 @@ public class BlockStateGenerator extends BlockStateProvider {
     private void orientedBlock(RegistryBlockItemPair<Block> b) {
         orientedBlock(b, new Property[]{});
     }
+
     private void orientedBlock6(RegistryBlockItemPair<Block> b) {
         orientedBlock46(b, new Property[]{}, true);
     }
@@ -62,7 +63,7 @@ public class BlockStateGenerator extends BlockStateProvider {
         orientedBlock46(b, ignoredBlockStateProperties, false);
     }
 
-    private String removeModPrefix(Block block){
+    private String removeModPrefix(Block block) {
         var prefix = "block." + AdvancedComputers.MODID + ".";
         var fullBlockName = block.getDescriptionId();
         if (!fullBlockName.startsWith(prefix))
@@ -78,12 +79,11 @@ public class BlockStateGenerator extends BlockStateProvider {
                 .forAllStatesExcept(state -> {
                             var b = ConfiguredModel.builder()
                                     .modelFile(mf("block/" + blockName));
-                            if (is6Facing){
+                            if (is6Facing) {
                                 var facing = state.getValue(BlockStateProperties.FACING);
                                 b = b.rotationX(facing.getStepX());
                                 b = b.rotationX(facing.getStepY());
-                            }
-                            else {
+                            } else {
                                 b = b.rotationY(((int) state.getValue(BlockStateProperties.HORIZONTAL_FACING).toYRot() + 180) % 360);
                             }
 
@@ -92,10 +92,33 @@ public class BlockStateGenerator extends BlockStateProvider {
                         ignoredBlockStateProperties);
     }
 
+    private void orientedModel6(RegistryBlockItemPair<Block> reg) {
+        var block = reg.block().get();
+        var blockName = removeModPrefix(block);
+
+        var mdl = new ModelFile.UncheckedModelFile(rl("block/" + blockName));
+//        var rotModels = new ConfiguredModel[6];
+//        for (int i = 0; i < 6; i++) {
+//            if (i < 4) { // horiz
+//                rotModels[i] = new ConfiguredModel(mdl, i * 90, 0, false, ConfiguredModel.DEFAULT_WEIGHT);
+//            } else { // vert for i=4 and i=5
+//                rotModels[i] = new ConfiguredModel(mdl, 0, (i - 4) * 180 - 90, false, ConfiguredModel.DEFAULT_WEIGHT);
+//            }
+//        }
+
+        getVariantBuilder(block).forAllStates(state -> {
+            var facing = state.getValue(BlockStateProperties.FACING);
+            return ConfiguredModel.builder().modelFile(mdl)
+                    .rotationX(facing.getStepY() * 90)
+                    .rotationY(((int) facing.toYRot() + 180) % 360)
+                    .build();
+        });
+    }
+
     private void simpleModel(RegistryBlockItemPair<Block> reg) {
         var block = reg.block().get();
         var blockName = removeModPrefix(block);
-        simpleBlock(block, new ModelFile.UncheckedModelFile(rl("block/"+blockName)));
+        simpleBlock(block, new ModelFile.UncheckedModelFile(rl("block/" + blockName)));
     }
 
 
