@@ -8,14 +8,10 @@ import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlock;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraftforge.client.model.generators.*;
 import net.minecraftforge.common.data.ExistingFileHelper;
-
-import java.util.Collections;
-import java.util.function.Function;
 
 import static dev.asdf00.mc.advcomp.datagen.ItemModelGenerator.rl;
 import static dev.asdf00.mc.advcomp.datagen.ItemModelGenerator.rl_mc;
@@ -37,10 +33,13 @@ public class BlockStateGenerator extends BlockStateProvider {
 
         cable(AdvancedComputers.DEVICE_CABLE_BLOCK, "device");
         cable(AdvancedComputers.NETWORK_CABLE_BLOCK, "network");
+
+        simpleModel(AdvancedComputers.WAN_ROUTER_BLOCK);
+        orientedModel6(AdvancedComputers.NET_ROUTER_BLOCK);
     }
 
     private void cable(RegistryBlockItemPair<Block> cableRegDef, String variantName) {
-        BlockModelBuilder model = models().getBuilder("block/tcable/"+variantName)
+        BlockModelBuilder model = models().getBuilder("block/tcable/" + variantName)
                 .parent(models().getExistingFile(rl_mc("cube")))
                 .customLoader((builder, existingFileHelper) -> new CableLoaderBuilder(CableModelLoader.GENERATOR_LOADER, builder, existingFileHelper, variantName, false) {
                     @Override
@@ -55,23 +54,73 @@ public class BlockStateGenerator extends BlockStateProvider {
     private void orientedBlock(RegistryBlockItemPair<Block> b) {
         orientedBlock(b, new Property[]{});
     }
-    private void orientedBlock(RegistryBlockItemPair<Block> b, Property<?>[] ignoredBlockStateProperties) {
-        var block = b.block().get();
 
+    private void orientedBlock6(RegistryBlockItemPair<Block> b) {
+        orientedBlock46(b, new Property[]{}, true);
+    }
+
+    private void orientedBlock(RegistryBlockItemPair<Block> b, Property<?>[] ignoredBlockStateProperties) {
+        orientedBlock46(b, ignoredBlockStateProperties, false);
+    }
+
+    private String removeModPrefix(Block block) {
         var prefix = "block." + AdvancedComputers.MODID + ".";
         var fullBlockName = block.getDescriptionId();
         if (!fullBlockName.startsWith(prefix))
             throw new RuntimeException("Block name %s did not start with %s".formatted(fullBlockName, prefix));
 
-        var blockName = fullBlockName.substring(prefix.length());
-
-        getVariantBuilder(block)
-                .forAllStatesExcept(state ->ConfiguredModel.builder()
-                    .modelFile(mf("block/" + blockName))
-                    .rotationY(((int) state.getValue(BlockStateProperties.HORIZONTAL_FACING).toYRot() + 180) % 360)
-                    .build(),
-                ignoredBlockStateProperties);
+        return fullBlockName.substring(prefix.length());
     }
+
+    private void orientedBlock46(RegistryBlockItemPair<Block> breg, Property<?>[] ignoredBlockStateProperties, boolean is6Facing) {
+        var block = breg.block().get();
+        var blockName = removeModPrefix(block);
+        getVariantBuilder(block)
+                .forAllStatesExcept(state -> {
+                            var b = ConfiguredModel.builder()
+                                    .modelFile(mf("block/" + blockName));
+                            if (is6Facing) {
+                                var facing = state.getValue(BlockStateProperties.FACING);
+                                b = b.rotationX(facing.getStepX());
+                                b = b.rotationX(facing.getStepY());
+                            } else {
+                                b = b.rotationY(((int) state.getValue(BlockStateProperties.HORIZONTAL_FACING).toYRot() + 180) % 360);
+                            }
+
+                            return b.build();
+                        },
+                        ignoredBlockStateProperties);
+    }
+
+    private void orientedModel6(RegistryBlockItemPair<Block> reg) {
+        var block = reg.block().get();
+        var blockName = removeModPrefix(block);
+
+        var mdl = new ModelFile.UncheckedModelFile(rl("block/" + blockName));
+//        var rotModels = new ConfiguredModel[6];
+//        for (int i = 0; i < 6; i++) {
+//            if (i < 4) { // horiz
+//                rotModels[i] = new ConfiguredModel(mdl, i * 90, 0, false, ConfiguredModel.DEFAULT_WEIGHT);
+//            } else { // vert for i=4 and i=5
+//                rotModels[i] = new ConfiguredModel(mdl, 0, (i - 4) * 180 - 90, false, ConfiguredModel.DEFAULT_WEIGHT);
+//            }
+//        }
+
+        getVariantBuilder(block).forAllStates(state -> {
+            var facing = state.getValue(BlockStateProperties.FACING);
+            return ConfiguredModel.builder().modelFile(mdl)
+                    .rotationX(facing.getStepY() * 90)
+                    .rotationY(((int) facing.toYRot() + 180) % 360)
+                    .build();
+        });
+    }
+
+    private void simpleModel(RegistryBlockItemPair<Block> reg) {
+        var block = reg.block().get();
+        var blockName = removeModPrefix(block);
+        simpleBlock(block, new ModelFile.UncheckedModelFile(rl("block/" + blockName)));
+    }
+
 
     private ModelFile.ExistingModelFile mf(String s) {
         return new ModelFile.ExistingModelFile(rl(s), this.exFileHelper);

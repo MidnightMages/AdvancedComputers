@@ -37,8 +37,7 @@ public class ComputerBlock extends BaseEntityBlock {
 
     public ComputerBlock(Properties pProperties) {
         super(pProperties);
-        registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
-        registerDefaultState(defaultBlockState().setValue(RUN_STATE, ComputerRunState.STOPPED));
+        registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(RUN_STATE, ComputerRunState.STOPPED));
     }
 
     @Override

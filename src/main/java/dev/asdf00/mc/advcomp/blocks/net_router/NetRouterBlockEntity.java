@@ -1,4 +1,4 @@
-package dev.asdf00.mc.advcomp.blocks.wan_router;
+package dev.asdf00.mc.advcomp.blocks.net_router;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.items.BaseKeycardItem;
@@ -16,11 +16,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 
-public class WanRouterBlockEntity extends BaseAcCableConnectableBlockEntity {
+public class NetRouterBlockEntity extends BaseAcCableConnectableBlockEntity {
     private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable;
 
-    public WanRouterBlockEntity(BlockPos pPos, BlockState pBlockState) {
-        super(AdvancedComputers.WAN_ROUTER_BE.get(), pPos, pBlockState, Collections.singletonList(AdvancedComputers.CLUSTER_TYPE_NETWORK));
+    public NetRouterBlockEntity(BlockPos pPos, BlockState pBlockState) {
+        super(AdvancedComputers.NET_ROUTER_BE.get(), pPos, pBlockState, Collections.singletonList(AdvancedComputers.CLUSTER_TYPE_NETWORK));
 
         this.lazyCableConnectable = LazyOptional.of(() -> this);
     }
