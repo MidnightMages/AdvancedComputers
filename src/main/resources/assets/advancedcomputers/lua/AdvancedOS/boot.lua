@@ -256,11 +256,11 @@ local function coroutineScheduler()
         else
             error("Not implemented")
         end
-        ::continue::
         
         if coroutine.running() ~= nil then -- if not in hypervisor mode
             coroutine.yield()
         end
+        ::continue::
     end
     error("All coroutines have exited. Shutdown time?")
 end
