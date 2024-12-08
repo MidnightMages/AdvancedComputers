@@ -2,7 +2,7 @@
 echo -------- Removing old files... -------- 
 cmd /c gradlew.bat clean
 echo -------- Setting up luajava for dev... --------
-cmd /c gradlew.bat setupDevDeps
+rem cmd /c gradlew.bat setupDevDeps
 echo -------- Setting up IDEA... --------
 cmd /c gradlew.bat genIntellijRuns
 echo -------- Genning data... --------
