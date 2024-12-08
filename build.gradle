@@ -137,8 +137,8 @@ dependencies {
     // at runtime, use the full JEI jar for Forge
     runtimeOnly(fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}"))
     //------
+    shade "org.jooq:joor:0.9.15"
     compileOnly("org.jooq:joor:0.9.15")
-    //implementation(":jluavm")
     //------ luajava
 //    compileOnly('party.iroiro.luajava:luajava:3.5.0')
 //    compileOnly('party.iroiro.luajava:lua54:3.5.0')
