@@ -138,7 +138,7 @@ dependencies {
     runtimeOnly(fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}"))
     //------ jluavm dependency
     minecraftLibrary("org.jooq:joor:0.9.15")
-    shade("org.jooq:joor:0.9.15")
+    //shade("org.jooq:joor:0.9.15")
 
     //------ waila
     // compile against the API
@@ -168,6 +168,13 @@ tasks.named('processResources', ProcessResources).configure {
 // Example for how to get properties into the manifest for reading at runtime.
 tasks.named('jar').configure {
     jar.archiveClassifier.set('slim')
+
+    var gitStatus = "git status -s".execute().text
+    boolean mainIsDirty = gitStatus.replace("\r\n","\n").replace("\r","\n").split("\n").any {!it.contains("submodules/JLuaVM")}
+    boolean jluavmIsDirty = gitStatus.contains("submodules/JLuaVM")
+    var mainHash = "git rev-parse --verify HEAD".execute().text.trim() + (mainIsDirty ? "+Uncommited" : "")
+    var jluaHash = "git submodule status".execute().text.trim().split(" ")[0] + (jluavmIsDirty ? "+Uncommited" : "")
+    println("Jar sources main hash: $mainHash; JLuaVM hash: $jluaHash")
     manifest {
         attributes([
                 'Specification-Title'     : mod_id,
@@ -177,7 +184,8 @@ tasks.named('jar').configure {
                 'Implementation-Version'  : project.jar.archiveVersion,
                 'Implementation-Vendor'   : mod_authors,
                 'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-                'Build-Commit'            : "git rev-parse --verify HEAD".execute().text.trim() + ("git status -s".execute().text.trim().length() == 0 ? "" : "+Uncommited")
+                'AdvComp-Commit'          : mainHash,
+                'JLuaVM-Commit'           : jluaHash
         ])
     }
     // This is the preferred method to reobfuscate your jar file
