@@ -136,18 +136,9 @@ dependencies {
     compileOnly(fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}"))
     // at runtime, use the full JEI jar for Forge
     runtimeOnly(fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}"))
-    //------
+    //------ jluavm dependency
+    minecraftLibrary("org.jooq:joor:0.9.15")
     shade "org.jooq:joor:0.9.15"
-    compileOnly("org.jooq:joor:0.9.15")
-    //------ luajava
-//    compileOnly('party.iroiro.luajava:luajava:3.5.0')
-//    compileOnly('party.iroiro.luajava:lua54:3.5.0')
-//    compileOnly('party.iroiro.luajava:lua54-platform:3.5.0:natives-desktop')
-//
-//    shade 'party.iroiro.luajava:luajava:3.5.0'
-//    shade 'party.iroiro.luajava:lua54:3.5.0'
-//    shade 'party.iroiro.luajava:lua54-platform:3.5.0:natives-desktop'
-    //------
 
     //------ waila
     // compile against the API
