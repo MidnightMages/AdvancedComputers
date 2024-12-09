@@ -137,7 +137,7 @@ dependencies {
     // at runtime, use the full JEI jar for Forge
     runtimeOnly(fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}"))
     //------ jluavm dependency
-    minecraftLibrary("org.jooq:joor:0.9.15")
+    //minecraftLibrary("org.jooq:joor:0.9.15")
     //shade("org.jooq:joor:0.9.15")
 
     //------ waila

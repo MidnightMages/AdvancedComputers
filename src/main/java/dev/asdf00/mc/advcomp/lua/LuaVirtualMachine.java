@@ -226,7 +226,7 @@ public class LuaVirtualMachine {
         boolean lvmException = false;
         boolean lvmCleanExit = false;
         try {
-            vm.load(luaEntryScript);
+            vm.withRootFunc(luaEntryScript);
             var rv = vm.run();
             AdvancedComputers.LOGGER.info(String.format("LVM exited with code %s", rv));
             lvmCleanExit = rv.state() == LuaVM.VmRunState.SUCCESS;
