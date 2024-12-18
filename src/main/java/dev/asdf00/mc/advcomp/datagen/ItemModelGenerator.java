@@ -33,6 +33,9 @@ public class ItemModelGenerator extends ItemModelProvider {
 
         basicItem("uefi");
         basicItem("uefi_tpm");
+        for (int i = 1; i < /*4*/2; i++) {
+            basicItem("hdd_tier" + i);
+        }
 
         this.withExistingParent("computer_block", rl("block/computer_block"));
         this.withExistingParent("screen_block", rl("block/screen_block"));

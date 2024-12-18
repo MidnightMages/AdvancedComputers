@@ -192,9 +192,9 @@ public class AdvancedComputers {
     public static final RegistryObject<Item> EXAMPLE_ITEM = ITEMS.register("example_item", () -> new Item(new Item.Properties().food(new FoodProperties.Builder()
             .alwaysEat().nutrition(1).saturationMod(2f).build())));
 
-    public static final RegistryObject<Item> DISK_TIER_1_ITEM = RegisterItem("disk_tier1_item", () -> new StorageItem(Constants.MiB));
-    public static final RegistryObject<Item> DISK_TIER_2_ITEM = RegisterItem("disk_tier2_item", () -> new StorageItem(5 * Constants.MiB));
-    public static final RegistryObject<Item> DISK_TIER_3_ITEM = RegisterItem("disk_tier3_item", () -> new StorageItem(10 * Constants.MiB));
+    public static final RegistryObject<Item> HDD_TIER_1_ITEM = RegisterItem("hdd_tier1_item", () -> new StorageItem(Constants.MiB));
+    public static final RegistryObject<Item> HDD_TIER_2_ITEM = RegisterItem("hdd_tier2_item", () -> new StorageItem(5 * Constants.MiB));
+    public static final RegistryObject<Item> HDD_TIER_3_ITEM = RegisterItem("hdd_tier3_item", () -> new StorageItem(10 * Constants.MiB));
 
     public static final RegistryObject<Item> KEYCARD_BASIC_ITEM = RegisterItem("keycard_basic_item", () -> new KeycardBasicItem(new Item.Properties()));
     public static final RegistryObject<Item> KEYCARD_ADVANCED_ITEM = RegisterItem("keycard_advanced_item", () -> new KeycardAdvancedItem(new Item.Properties()));
