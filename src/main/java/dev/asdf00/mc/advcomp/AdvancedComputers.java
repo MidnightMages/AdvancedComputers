@@ -23,9 +23,7 @@ import dev.asdf00.mc.advcomp.datagen.BlockModelGenerator;
 import dev.asdf00.mc.advcomp.datagen.BlockStateGenerator;
 import dev.asdf00.mc.advcomp.datagen.ItemModelGenerator;
 import dev.asdf00.mc.advcomp.datagen.RecipeGenerator;
-import dev.asdf00.mc.advcomp.items.KeycardAdvancedItem;
-import dev.asdf00.mc.advcomp.items.KeycardBasicItem;
-import dev.asdf00.mc.advcomp.items.StorageItem;
+import dev.asdf00.mc.advcomp.items.*;
 import dev.asdf00.mc.advcomp.types.DualLayerItemColorHandler;
 import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
 import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
@@ -200,6 +198,9 @@ public class AdvancedComputers {
 
     public static final RegistryObject<Item> KEYCARD_BASIC_ITEM = RegisterItem("keycard_basic_item", () -> new KeycardBasicItem(new Item.Properties()));
     public static final RegistryObject<Item> KEYCARD_ADVANCED_ITEM = RegisterItem("keycard_advanced_item", () -> new KeycardAdvancedItem(new Item.Properties()));
+
+    public static final RegistryObject<Item> UEFI_ITEM = RegisterItem("uefi_item", () -> new UefiItem(new Item.Properties()));
+    public static final RegistryObject<Item> UEFI_TPM_ITEM = RegisterItem("uefi_tpm_item", () -> new UefiTpmItem(new Item.Properties()));
 
     private static MinecraftServer serverReference;
 

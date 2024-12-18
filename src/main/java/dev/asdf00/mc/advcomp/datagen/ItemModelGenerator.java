@@ -29,8 +29,10 @@ public class ItemModelGenerator extends ItemModelProvider {
                 .texture("layer0", rl("item/keycard_advanced_item_0"))
                 .texture("layer1", rl("item/keycard_advanced_item_1"));
 
-        this.withExistingParent("example_item", "item/generated")
-                .texture("layer0", rl("item/example_item"));
+        basicItem("example");
+
+        basicItem("uefi");
+        basicItem("uefi_tpm");
 
         this.withExistingParent("computer_block", rl("block/computer_block"));
         this.withExistingParent("screen_block", rl("block/screen_block"));
@@ -41,6 +43,10 @@ public class ItemModelGenerator extends ItemModelProvider {
 
         this.getBuilder("device_cable_block").parent(new ModelFile.UncheckedModelFile(rl("block/tcable/device")));
         this.getBuilder("network_cable_block").parent(new ModelFile.UncheckedModelFile(rl("block/tcable/network")));
+    }
+
+    private void basicItem(String itemName) {
+        this.withExistingParent(itemName + "_item", "item/generated").texture("layer0", rl("item/" + itemName + "_item"));
     }
 
     static ResourceLocation rl(String s) {
