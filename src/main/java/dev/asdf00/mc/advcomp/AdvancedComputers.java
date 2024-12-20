@@ -195,6 +195,8 @@ public class AdvancedComputers {
     public static final RegistryObject<Item> HDD_TIER_1_ITEM = RegisterItem("hdd_tier1_item", () -> new StorageItem(Constants.MiB));
     public static final RegistryObject<Item> HDD_TIER_2_ITEM = RegisterItem("hdd_tier2_item", () -> new StorageItem(5 * Constants.MiB));
     public static final RegistryObject<Item> HDD_TIER_3_ITEM = RegisterItem("hdd_tier3_item", () -> new StorageItem(10 * Constants.MiB));
+    public static final RegistryObject<Item> HDD_TIER_4_ITEM = RegisterItem("hdd_tier4_item", () -> new StorageItem(15 * Constants.MiB));
+    public static final RegistryObject<Item> HDD_TIER_5_ITEM = RegisterItem("hdd_tier5_item", () -> new StorageItem(20 * Constants.MiB));
 
     public static final RegistryObject<Item> KEYCARD_BASIC_ITEM = RegisterItem("keycard_basic_item", () -> new KeycardBasicItem(new Item.Properties()));
     public static final RegistryObject<Item> KEYCARD_ADVANCED_ITEM = RegisterItem("keycard_advanced_item", () -> new KeycardAdvancedItem(new Item.Properties()));

@@ -19,6 +19,11 @@
 	"item.advancedcomputers.keycard_advanced_item": "Advanced %s Keycard",
 	"item.advancedcomputers.uefi_item": "UEFI",
 	"item.advancedcomputers.uefi_tpm_item": "UEFI (with TPM)",
+	"item.advancedcomputers.hdd_tier1_item": "Hard Disk Drive (Tier 1)",
+	"item.advancedcomputers.hdd_tier2_item": "Hard Disk Drive (Tier 2)",
+	"item.advancedcomputers.hdd_tier3_item": "Hard Disk Drive (Tier 3)",
+	"item.advancedcomputers.hdd_tier4_item": "Hard Disk Drive (Tier 4)",
+	"item.advancedcomputers.hdd_tier5_item": "Hard Disk Drive (Tier 5)",
 
 	"item_group.advancedcomputers.tab_name": "Advanced Computers"
 }

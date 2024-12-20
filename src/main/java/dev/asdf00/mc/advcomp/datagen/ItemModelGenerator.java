@@ -33,7 +33,7 @@ public class ItemModelGenerator extends ItemModelProvider {
 
         basicItem("uefi");
         basicItem("uefi_tpm");
-        for (int i = 1; i < /*4*/2; i++) {
+        for (int i = 1; i < 6; i++) {
             basicItem("hdd_tier" + i);
         }
 
