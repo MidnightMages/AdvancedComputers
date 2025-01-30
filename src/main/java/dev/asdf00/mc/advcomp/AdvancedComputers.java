@@ -302,8 +302,10 @@ public class AdvancedComputers {
             LOGGER.info("HELLO FROM CLIENT SETUP");
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
 
-            MenuScreens.register(COMPUTER_MENU.get(), ComputerBlockScreen::new);
-            MenuScreens.register(SCREEN_MENU.get(), ScreenBlockScreen::new);
+            event.enqueueWork(() -> {
+                MenuScreens.register(COMPUTER_MENU.get(), ComputerBlockScreen::new);
+                MenuScreens.register(SCREEN_MENU.get(), ScreenBlockScreen::new);
+            });
         }
 
         @SubscribeEvent
