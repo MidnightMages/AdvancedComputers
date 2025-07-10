@@ -1,0 +1,29 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "advancedcomputers:block/wan_router_lowtier",
+      "x": -90,
+      "y": 90
+    },
+    "facing=east": {
+      "model": "advancedcomputers:block/wan_router_lowtier",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "advancedcomputers:block/wan_router_lowtier"
+    },
+    "facing=south": {
+      "model": "advancedcomputers:block/wan_router_lowtier",
+      "y": 180
+    },
+    "facing=up": {
+      "model": "advancedcomputers:block/wan_router_lowtier",
+      "x": 90,
+      "y": 90
+    },
+    "facing=west": {
+      "model": "advancedcomputers:block/wan_router_lowtier",
+      "y": 270
+    }
+  }
+}

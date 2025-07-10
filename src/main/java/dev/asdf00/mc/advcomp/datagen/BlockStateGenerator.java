@@ -35,6 +35,7 @@ public class BlockStateGenerator extends BlockStateProvider {
         cable(AdvancedComputers.NETWORK_CABLE_BLOCK, "network");
 
         simpleModel(AdvancedComputers.WAN_ROUTER_BLOCK);
+        orientedModel6(AdvancedComputers.WAN_ROUTER_BLOCK_LOWTIER);
         orientedModel6(AdvancedComputers.NET_ROUTER_BLOCK);
     }
 

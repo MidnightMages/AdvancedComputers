@@ -4,7 +4,7 @@ import com.mojang.logging.LogUtils;
 import dev.asdf00.mc.advcomp.api.AcClusterTypeManager;
 import dev.asdf00.mc.advcomp.blocks.net_router.NetRouterBlock;
 import dev.asdf00.mc.advcomp.blocks.net_router.NetRouterBlockEntity;
-import dev.asdf00.mc.advcomp.blocks.wan_router.WanRouterBlock;
+import dev.asdf00.mc.advcomp.blocks.wan_router.*;
 import dev.asdf00.mc.advcomp.blocks.cables.CableModelLoader;
 import dev.asdf00.mc.advcomp.blocks.cables.device.DeviceCableBlock;
 import dev.asdf00.mc.advcomp.blocks.cables.device.DeviceCableBlockEntity;
@@ -17,8 +17,6 @@ import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlock;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockScreen;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenMenu;
-import dev.asdf00.mc.advcomp.blocks.wan_router.WanRouterBlockEntity;
-import dev.asdf00.mc.advcomp.blocks.wan_router.WanRouterBlockEntityRenderer;
 import dev.asdf00.mc.advcomp.datagen.BlockModelGenerator;
 import dev.asdf00.mc.advcomp.datagen.BlockStateGenerator;
 import dev.asdf00.mc.advcomp.datagen.ItemModelGenerator;
@@ -123,6 +121,9 @@ public class AdvancedComputers {
     public static final RegistryBlockItemPair<Block> WAN_ROUTER_BLOCK = registerBlockWithItem("wan_router",
             () -> new WanRouterBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK).noOcclusion()));
 
+    public static final RegistryBlockItemPair<Block> WAN_ROUTER_BLOCK_LOWTIER = registerBlockWithItem("wan_router_lowtier",
+            () -> new WanRouterBlockLowTier(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK).noOcclusion()));
+
     public static final RegistryBlockItemPair<Block> NET_ROUTER_BLOCK = registerBlockWithItem("net_router",
             () -> new NetRouterBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK).noOcclusion()));
 
@@ -137,6 +138,9 @@ public class AdvancedComputers {
 
     public static final RegistryObject<BlockEntityType<WanRouterBlockEntity>> WAN_ROUTER_BE = BLOCK_ENTITY_TYPES.register("wan_router_be",
             () -> BlockEntityType.Builder.of(WanRouterBlockEntity::new, WAN_ROUTER_BLOCK.block().get()).build(null));
+
+    public static final RegistryObject<BlockEntityType<WanRouterBlockEntityLowTier>> WAN_ROUTER_BE_LOWTIER = BLOCK_ENTITY_TYPES.register("wan_router_be_lowtier",
+            () -> BlockEntityType.Builder.of(WanRouterBlockEntityLowTier::new, WAN_ROUTER_BLOCK_LOWTIER.block().get()).build(null));
 
     public static final RegistryObject<BlockEntityType<NetRouterBlockEntity>> NET_ROUTER_BE = BLOCK_ENTITY_TYPES.register("net_router_be",
             () -> BlockEntityType.Builder.of(NetRouterBlockEntity::new, NET_ROUTER_BLOCK.block().get()).build(null));
@@ -317,6 +321,7 @@ public class AdvancedComputers {
         public static void registerBER(EntityRenderersEvent.RegisterRenderers event) {
             event.registerBlockEntityRenderer(AdvancedComputers.COMPUTER_BE.get(), ComputerBlockEntityRenderer::new);
             event.registerBlockEntityRenderer(AdvancedComputers.WAN_ROUTER_BE.get(), WanRouterBlockEntityRenderer::new);
+            event.registerBlockEntityRenderer(AdvancedComputers.WAN_ROUTER_BE_LOWTIER.get(), WanRouterBlockEntityRendererLowTier::new);
         }
     }
 }
