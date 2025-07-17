@@ -12,6 +12,7 @@ import dev.asdf00.mc.advcomp.types.AcCapabilities;
 import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
 import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;
+import dev.asdf00.mc.advcomp.utils.NotifyingItemHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -40,8 +41,8 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity implements MenuProvider, IAcClusterHostEntity {
-    public final ItemStackHandler itemHandler = new ItemStackHandler(ComputerBlockMenu.TE_INVENTORY_SLOT_COUNT);
-    private LazyOptional<IItemHandler> lazyItemhandler = LazyOptional.empty();
+    public final NotifyingItemHandler itemHandler = new NotifyingItemHandler(this, ComputerBlockMenu.TE_INVENTORY_SLOT_COUNT);
+    private LazyOptional<IItemHandler> lazyItemHandler = LazyOptional.empty();
     private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable;
 
     protected final ContainerData data;
@@ -107,7 +108,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
     @Override
     public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         if (cap == ForgeCapabilities.ITEM_HANDLER)
-            return lazyItemhandler.cast();
+            return lazyItemHandler.cast();
 
         if (cap == AcCapabilities.CABLE_CONNECTABLE)
             return lazyCableConnectable.cast();
@@ -118,7 +119,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
     @Override
     public void invalidateCaps() {
         super.invalidateCaps();
-        lazyItemhandler.invalidate();
+        lazyItemHandler.invalidate();
         lazyCableConnectable.invalidate();
     }
 
@@ -139,21 +140,21 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
 
     @Override
     protected void saveAdditional(CompoundTag pTag) {
-        pTag.put("inventory", itemHandler.serializeNBT());
+        itemHandler.saveContents(pTag);
         super.saveAdditional(pTag);
     }
 
     @Override
     public void load(@NotNull CompoundTag pTag) {
         super.load(pTag);
-        itemHandler.deserializeNBT(pTag.getCompound("inventory"));
+        itemHandler.loadContents(pTag);
     }
 
     @Override
     public void onLoad() {
         super.onLoad();
+        lazyItemHandler = LazyOptional.of(() -> itemHandler);
         System.out.println("ON LOAD COMPUTER");
-        lazyItemhandler = LazyOptional.of(() -> itemHandler);
     }
 
     @Override
