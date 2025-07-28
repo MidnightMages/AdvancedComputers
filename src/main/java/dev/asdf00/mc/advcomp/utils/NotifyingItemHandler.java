@@ -1,6 +1,7 @@
 package dev.asdf00.mc.advcomp.utils;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +29,9 @@ public class NotifyingItemHandler extends ItemStackHandler {
     }
 
     public void saveContents(@NotNull CompoundTag nbt) {
-        nbt.put("inventory", super.serializeNBT());
+        var serialized = super.serializeNBT();
+        if (!serialized.getList("Items", Tag.TAG_COMPOUND).isEmpty())
+            nbt.put("inventory", serialized);
     }
 
     public void loadContents(@NotNull CompoundTag nbt) {
