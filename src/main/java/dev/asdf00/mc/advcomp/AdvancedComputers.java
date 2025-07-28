@@ -2,9 +2,6 @@ package dev.asdf00.mc.advcomp;
 
 import com.mojang.logging.LogUtils;
 import dev.asdf00.mc.advcomp.api.AcClusterTypeManager;
-import dev.asdf00.mc.advcomp.blocks.net_router.NetRouterBlock;
-import dev.asdf00.mc.advcomp.blocks.net_router.NetRouterBlockEntity;
-import dev.asdf00.mc.advcomp.blocks.wan_router.*;
 import dev.asdf00.mc.advcomp.blocks.cables.CableModelLoader;
 import dev.asdf00.mc.advcomp.blocks.cables.device.DeviceCableBlock;
 import dev.asdf00.mc.advcomp.blocks.cables.device.DeviceCableBlockEntity;
@@ -13,14 +10,14 @@ import dev.asdf00.mc.advcomp.blocks.cables.network.NetworkCableBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.computer.*;
 import dev.asdf00.mc.advcomp.blocks.keycard_reader.KeyCardReaderBlock;
 import dev.asdf00.mc.advcomp.blocks.keycard_reader.KeyCardReaderBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.net_router.NetRouterBlock;
+import dev.asdf00.mc.advcomp.blocks.net_router.NetRouterBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlock;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockScreen;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenMenu;
-import dev.asdf00.mc.advcomp.datagen.BlockModelGenerator;
-import dev.asdf00.mc.advcomp.datagen.BlockStateGenerator;
-import dev.asdf00.mc.advcomp.datagen.ItemModelGenerator;
-import dev.asdf00.mc.advcomp.datagen.RecipeGenerator;
+import dev.asdf00.mc.advcomp.blocks.wan_router.*;
+import dev.asdf00.mc.advcomp.datagen.*;
 import dev.asdf00.mc.advcomp.items.*;
 import dev.asdf00.mc.advcomp.types.DualLayerItemColorHandler;
 import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
@@ -266,11 +263,14 @@ public class AdvancedComputers {
     private void registerDatagen(final GatherDataEvent event) {
         var gen = event.getGenerator();
         var packOut = gen.getPackOutput();
+        var lookupProvider = event.getLookupProvider();
         gen.addProvider(event.includeServer(), new RecipeGenerator(packOut));
 
         gen.addProvider(event.includeClient(), new BlockModelGenerator(packOut, MODID, event.getExistingFileHelper()));
         gen.addProvider(event.includeClient(), new ItemModelGenerator(packOut, MODID, event.getExistingFileHelper()));
         gen.addProvider(event.includeClient(), new BlockStateGenerator(packOut, MODID, event.getExistingFileHelper()));
+
+        gen.addProvider(event.includeServer(), new BlockTagGenerator(packOut, lookupProvider, MODID, event.getExistingFileHelper()));
     }
 
     // Add the example block item to the building blocks tab

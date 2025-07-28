@@ -1,0 +1,13 @@
+{
+  "values": [
+    "advancedcomputers:example_block",
+    "advancedcomputers:computer_block",
+    "advancedcomputers:screen_block",
+    "advancedcomputers:keycard_reader_block",
+    "advancedcomputers:device_cable_block",
+    "advancedcomputers:network_cable_block",
+    "advancedcomputers:wan_router",
+    "advancedcomputers:wan_router_lowtier",
+    "advancedcomputers:net_router"
+  ]
+}
