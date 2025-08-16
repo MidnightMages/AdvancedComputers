@@ -5,13 +5,15 @@ import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.*;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
+
+import static net.minecraft.tags.TagEntry.tag;
 
 public class RecipeGenerator extends RecipeProvider {
     public RecipeGenerator(PackOutput pOutput) {
@@ -55,6 +57,20 @@ public class RecipeGenerator extends RecipeProvider {
                 .requires(Tags.Items.DYES)
                 .unlockedBy("item", has(advKeyCarditem))
                 .save(pWriter, "advancedcomputers:keycard_advanced_item_dye");
+
+
+        var woodComputer = AdvancedComputers.COMPUTER_BLOCK.blockItem().get();
+        var stone = getVanillaItem("stone");
+        shaped(woodComputer)
+                .pattern("WWW")
+                .pattern("WGW")
+                .pattern("WSW")
+                .define('W', ItemTags.create(new ResourceLocation("minecraft", "logs")))
+                .define('S', stone)
+                .define('G', Tags.Items.GLASS_PANES)
+                .unlockedBy("item", has(stone))
+                .save(pWriter);
+
     }
 
     private ItemLike getVanillaItem(String name) {
