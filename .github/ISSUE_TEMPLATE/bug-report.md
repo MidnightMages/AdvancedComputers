@@ -12,6 +12,8 @@ IMPORTANT:
 ONLY USE THIS TEMPLATE FOR ACTUAL (or potential) BUGS. If this is a question, open an issue without using an issue-template.
 PLEASE FOLLOW THIS TEMPLATE AS CLOSELY AS POSSIBLE. Lines starting with # should be kept in place, as well as the 'Environment' section structure as a whole, feel free to modify the rest as you see fit.
 Not following the template (without a very good reason) or misusing it, may result in your ticket being closed.
+
+Please also check if your problem has already been reported in another issue ticket.
 -->
 
 # Description of the bug

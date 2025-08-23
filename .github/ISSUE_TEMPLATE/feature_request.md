@@ -10,6 +10,8 @@ assignees: ''
 <!--
 Feel free to include images / any markdown features to illustrate your suggestion. 
 This _can_ also include asking to support a new minecraft version, though we would like to first get the mod to a stable point and implement most features.
+
+Please also check if your feature has already been requested in another issue ticket.
 -->
 
 # Description of the feature / change
