@@ -34,4 +34,4 @@ The runtime is called JLuaVm, written entirely in java, from scratch, and suppor
 - Weak tables
 - Most of the debug library
 - Anything that would interact with the host system (as it is meant to be sandboxed). Functionality like writing to disk is implemented by this mod itself, for example.
-
+- Type extension functions, essentially allowing for the same functionality as using __index of debug.setmetatable() for types like string, boolean, etc., but on a per-_ENV basis rather than globally.
