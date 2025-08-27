@@ -8,6 +8,7 @@ At this point there is still some fundamental content missing (thus the alpha ta
 
 ## Features
 Adds programmable computers into Minecraft, along with screens, keycards, network and peripheral cables, and much more, all being interactable through Lua 5.4.
+As far as resource usage goes, we are only setting up a lua execution environment per computer and **not** an entire virtual machine (that would then run linux) as other mods do. This means, our computers are much more lightweight in terms of ram and cpu usage.
 
 Planned stuff (for deeming the mod fit for Beta):
 - Finish adding anything that is missing from the Lua standard library (most notably pattern matching, i.e **string.gsub** and related functions)
