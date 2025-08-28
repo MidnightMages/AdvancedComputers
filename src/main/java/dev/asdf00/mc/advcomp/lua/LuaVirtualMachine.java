@@ -1,7 +1,6 @@
 package dev.asdf00.mc.advcomp.lua;
 
 import dev.asdf00.jluavm.LuaVM;
-import dev.asdf00.jluavm.runtime.types.AtomicLuaFunction;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
@@ -58,7 +57,8 @@ public class LuaVirtualMachine {
 
     public LuaVirtualMachine(ComputerBlockEntity computer, int instructionsPerSecond) {
         this.computer = computer;
-        vm = LuaVM.create().withStdLib();
+//        vm = LuaVM.create().withStdLib();
+        vm = null;
         ipt = Math.max(instructionsPerSecond / 20, 1);
         stdOut = null;
     }
@@ -181,14 +181,14 @@ public class LuaVirtualMachine {
         stdOut.clear();
         machineEvents.clear();
         AdvancedComputers.LOGGER.info("trying to start LVM");
-        var g = vm.get_G();
-        g.set("print", AtomicLuaFunction.vaForZeroResults((vm, args) ->
-                sandboxLog(Arrays.stream(args).map(LuaObject::asString).collect(Collectors.joining("\t")), true, false)).obj());
-        g.set("printInline", AtomicLuaFunction.vaForZeroResults((vm, args) ->
-                sandboxLog(Arrays.stream(args).map(LuaObject::asString).collect(Collectors.joining("\t")), false, false)).obj());
-        g.set("printErr", AtomicLuaFunction.vaForZeroResults((vm, args) ->
-                sandboxLog(Arrays.stream(args).map(LuaObject::asString).collect(Collectors.joining("\t")), true, true)).obj());
-        g.set("clear",AtomicLuaFunction.vaForZeroResults((vm, a) -> stdOut.clear()).obj()); // TODO make this a non-va function
+//        var g = vm.get_G();
+//        g.set("print", AtomicLuaFunction.vaForZeroResults((vm, args) ->
+//                sandboxLog(Arrays.stream(args).map(LuaObject::asString).collect(Collectors.joining("\t")), true, false)).obj());
+//        g.set("printInline", AtomicLuaFunction.vaForZeroResults((vm, args) ->
+//                sandboxLog(Arrays.stream(args).map(LuaObject::asString).collect(Collectors.joining("\t")), false, false)).obj());
+//        g.set("printErr", AtomicLuaFunction.vaForZeroResults((vm, args) ->
+//                sandboxLog(Arrays.stream(args).map(LuaObject::asString).collect(Collectors.joining("\t")), true, true)).obj());
+//        g.set("clear",AtomicLuaFunction.vaForZeroResults((vm, a) -> stdOut.clear()).obj()); // TODO make this a non-va function
 
 // TODO set stopCode and stopCode_isGraceful
 
@@ -225,15 +225,15 @@ public class LuaVirtualMachine {
 
         boolean lvmException = false;
         boolean lvmCleanExit = false;
-        try {
-            vm.withRootFunc(luaEntryScript);
-            var rv = vm.run();
-            AdvancedComputers.LOGGER.info(String.format("LVM exited with code %s", rv));
-            lvmCleanExit = rv.state() == LuaVM.VmRunState.SUCCESS;
-        } catch (Exception e) {
-            AdvancedComputers.LOGGER.error(e.toString());
-            lvmException = true;
-        }
+//        try {
+//            vm.withRootFunc(luaEntryScript);
+//            var rv = vm.run();
+//            AdvancedComputers.LOGGER.info(String.format("LVM exited with code %s", rv));
+//            lvmCleanExit = rv.state() == LuaVM.VmRunState.SUCCESS;
+//        } catch (Exception e) {
+//            AdvancedComputers.LOGGER.error(e.toString());
+//            lvmException = true;
+//        }
 
         boolean shutdownWasGraceful;
         // cleanup after shutdown

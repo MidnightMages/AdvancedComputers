@@ -19,12 +19,12 @@ public class LuaMain {
     }
 
     public LuaMain() {
-        try {
-            lua = LuaVM.create();
-            LogUtils.getLogger().info("Lua initialized successfully!");
-        } catch (LinkageError ex) {
-            LogUtils.getLogger().error(String.format("Failed to initialize LUA! %s", ex));
-        }
+//        try {
+//            lua = LuaVM.create();
+//            LogUtils.getLogger().info("Lua initialized successfully!");
+//        } catch (LinkageError ex) {
+//            LogUtils.getLogger().error(String.format("Failed to initialize LUA! %s", ex));
+//        }
     }
 
     public void runLuaCode() {
