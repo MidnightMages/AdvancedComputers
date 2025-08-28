@@ -99,7 +99,7 @@ public class ComputerBlockMenu extends AbstractContainerMenu {
     }
 
     @SuppressWarnings("unchecked")
-    private static final RegistryObject<Block>[] validComputerBlocks = new RegistryObject[] {
+    private static final RegistryObject<Block>[] validComputerBlocks = (RegistryObject<Block>[]) new RegistryObject<?>[]{
             AdvancedComputers.COMPUTER_BLOCK_WOOD.block(),
             AdvancedComputers.COMPUTER_BLOCK.block()
     };
