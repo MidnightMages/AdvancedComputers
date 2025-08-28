@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "advancedcomputers:block/computer_block_front_netherite",
+    "side": "advancedcomputers:block/machine_base_netherite",
+    "top": "advancedcomputers:block/machine_base_netherite"
+  }
+}

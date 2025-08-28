@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "advancedcomputers:computer_block"
+        "recipe": "advancedcomputers:computer_block_diamond"
       },
       "trigger": "minecraft:recipe_unlocked"
     },
@@ -11,7 +11,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "forge:ingots/iron"
+            "tag": "forge:gems/diamond"
           }
         ]
       },
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "advancedcomputers:computer_block"
+      "advancedcomputers:computer_block_diamond"
     ]
   },
   "sends_telemetry_event": false

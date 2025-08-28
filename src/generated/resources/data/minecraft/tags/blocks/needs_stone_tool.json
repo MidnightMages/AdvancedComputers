@@ -3,6 +3,8 @@
     "advancedcomputers:example_block",
     "advancedcomputers:computer_block_wood",
     "advancedcomputers:computer_block",
+    "advancedcomputers:computer_block_diamond",
+    "advancedcomputers:computer_block_netherite",
     "advancedcomputers:screen_block",
     "advancedcomputers:keycard_reader_block",
     "advancedcomputers:device_cable_block",

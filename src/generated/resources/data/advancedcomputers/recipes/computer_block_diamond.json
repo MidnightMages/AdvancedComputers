@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "D": {
+      "tag": "forge:gems/diamond"
+    },
+    "G": {
+      "tag": "forge:glass"
+    },
+    "I": {
+      "tag": "forge:storage_blocks/iron"
+    }
+  },
+  "pattern": [
+    "DDD",
+    "DID",
+    "DGD"
+  ],
+  "result": {
+    "item": "advancedcomputers:computer_block_diamond"
+  },
+  "show_notification": true
+}

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "advancedcomputers:block/computer_block_diamond",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "advancedcomputers:block/computer_block_diamond"
+    },
+    "facing=south": {
+      "model": "advancedcomputers:block/computer_block_diamond",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "advancedcomputers:block/computer_block_diamond",
+      "y": 270
+    }
+  }
+}

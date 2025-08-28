@@ -77,9 +77,28 @@ public class RecipeGenerator extends RecipeProvider {
                 .define('I', Tags.Items.INGOTS_IRON)
                 .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
                 .define('G', Tags.Items.GLASS)
-                .unlockedBy("item", has(stone))
+                .unlockedBy("item", has(Tags.Items.INGOTS_IRON))
                 .save(pWriter);
 
+        shaped(AdvancedComputers.COMPUTER_BLOCK_DIAMOND.blockItem().get())
+                .pattern("DDD")
+                .pattern("DID")
+                .pattern("DGD")
+                .define('D', Tags.Items.GEMS_DIAMOND)
+                .define('I', Tags.Items.STORAGE_BLOCKS_IRON)
+                .define('G', Tags.Items.GLASS)
+                .unlockedBy("item", has(Tags.Items.GEMS_DIAMOND))
+                .save(pWriter);
+
+        shaped(AdvancedComputers.COMPUTER_BLOCK_NETHERITE.blockItem().get())
+                .pattern("NNN")
+                .pattern("NDN")
+                .pattern("NGN")
+                .define('N', Tags.Items.INGOTS_NETHERITE)
+                .define('D', Tags.Items.STORAGE_BLOCKS_DIAMOND)
+                .define('G', Tags.Items.GLASS)
+                .unlockedBy("item", has(Tags.Items.INGOTS_NETHERITE))
+                .save(pWriter);
     }
 
     private ItemLike getVanillaItem(String name) {

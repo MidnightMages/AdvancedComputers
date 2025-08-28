@@ -10,9 +10,8 @@ public enum ComputerTier implements StringRepresentable {
     Wood(AdvancedComputers.COMPUTER_BLOCK_WOOD),
     Iron(AdvancedComputers.COMPUTER_BLOCK),
 //    Gold,
-//    Diamond,
-//    Netherite
-    ;
+    Diamond(AdvancedComputers.COMPUTER_BLOCK_DIAMOND),
+    Netherite(AdvancedComputers.COMPUTER_BLOCK_NETHERITE);
 
     ComputerTier(RegistryBlockItemPair<Block> blockType) {
 

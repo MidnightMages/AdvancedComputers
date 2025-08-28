@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "D": {
+      "tag": "forge:storage_blocks/diamond"
+    },
+    "G": {
+      "tag": "forge:glass"
+    },
+    "N": {
+      "tag": "forge:ingots/netherite"
+    }
+  },
+  "pattern": [
+    "NNN",
+    "NDN",
+    "NGN"
+  ],
+  "result": {
+    "item": "advancedcomputers:computer_block_netherite"
+  },
+  "show_notification": true
+}

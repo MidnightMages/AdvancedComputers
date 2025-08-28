@@ -28,8 +28,13 @@ public class BlockStateGenerator extends BlockStateProvider {
     protected void registerStatesAndModels() {
         //ock(AdvancedComputers.SCREEN_BLOCK.block().get(), mf("block/screen_block"));
         orientedBlock(AdvancedComputers.SCREEN_BLOCK);
-        orientedBlock(AdvancedComputers.COMPUTER_BLOCK, new Property[]{ComputerBlock.RUN_STATE});
-        orientedBlock(AdvancedComputers.COMPUTER_BLOCK_WOOD, new Property[]{ComputerBlock.RUN_STATE});
+        for (var i : new RegistryBlockItemPair<?>[]{
+                AdvancedComputers.COMPUTER_BLOCK_WOOD, AdvancedComputers.COMPUTER_BLOCK,
+                AdvancedComputers.COMPUTER_BLOCK_DIAMOND, AdvancedComputers.COMPUTER_BLOCK_NETHERITE
+        }) {
+            //noinspection unchecked
+            orientedBlock((RegistryBlockItemPair<Block>) i, new Property[]{ComputerBlock.RUN_STATE});
+        }
         orientedBlock(AdvancedComputers.KEYCARD_READER_BLOCK);
 
         cable(AdvancedComputers.DEVICE_CABLE_BLOCK, "device");

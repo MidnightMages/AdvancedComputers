@@ -37,8 +37,8 @@ public class ItemModelGenerator extends ItemModelProvider {
             basicItem("hdd_tier" + i);
         }
 
-        this.withExistingParent("computer_block", rl("block/computer_block"));
-        this.withExistingParent("computer_block_wood", rl("block/computer_block_wood"));
+        for (var type : ",_wood,_diamond,_netherite".split(",", -1))
+            this.withExistingParent("computer_block"+type, rl("block/computer_block"+type));
         this.withExistingParent("screen_block", rl("block/screen_block"));
         this.withExistingParent("keycard_reader_block", rl("block/keycard_reader_block"));
         this.withExistingParent("example_block", rl("block/example_block"));
