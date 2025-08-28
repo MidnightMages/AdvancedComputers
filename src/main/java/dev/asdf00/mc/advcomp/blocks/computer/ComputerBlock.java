@@ -35,10 +35,14 @@ public class ComputerBlock extends BaseEntityBlock {
 
     public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
     public static final EnumProperty<ComputerRunState> RUN_STATE = EnumProperty.create("runstate", ComputerRunState.class);
+    public final ComputerTier TIER;
 
-    public ComputerBlock(Properties pProperties) {
+    public ComputerBlock(Properties pProperties, ComputerTier tier) {
         super(pProperties);
-        registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(RUN_STATE, ComputerRunState.STOPPED));
+        registerDefaultState(this.stateDefinition.any()
+                .setValue(FACING, Direction.NORTH)
+                .setValue(RUN_STATE, ComputerRunState.STOPPED));
+        TIER = tier;
     }
 
     @Override

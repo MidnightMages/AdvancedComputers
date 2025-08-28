@@ -2,6 +2,7 @@
 	"block.advancedcomputers.example_block": "Example Block",
 	
 	"block.advancedcomputers.computer_block": "Computer",
+	"block.advancedcomputers.computer_block_wood": "Wood Computer",
 	"gui.advancedcomputers.computer_block.button.onoff": "On/Off",
 	"gui.advancedcomputers.computer_block.title": "Computer",
 	

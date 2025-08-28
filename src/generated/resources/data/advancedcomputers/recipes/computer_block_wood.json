@@ -5,20 +5,20 @@
     "G": {
       "tag": "forge:glass"
     },
-    "I": {
-      "tag": "forge:ingots/iron"
+    "S": {
+      "item": "minecraft:stone"
     },
-    "R": {
-      "tag": "forge:storage_blocks/redstone"
+    "W": {
+      "tag": "minecraft:logs"
     }
   },
   "pattern": [
-    "III",
-    "IRI",
-    "IGI"
+    "WWW",
+    "WSW",
+    "WGW"
   ],
   "result": {
-    "item": "advancedcomputers:computer_block"
+    "item": "advancedcomputers:computer_block_wood"
   },
   "show_notification": true
 }

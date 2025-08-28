@@ -41,6 +41,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity implements MenuProvider, IAcClusterHostEntity {
     public final NotifyingItemHandler itemHandler = new NotifyingItemHandler(this, ComputerBlockMenu.TE_INVENTORY_SLOT_COUNT);
+    private ComputerTier tier;
+    private ComputerBlock block;
     private LazyOptional<IItemHandler> lazyItemHandler = LazyOptional.empty();
     private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable;
 
@@ -70,6 +72,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
 
     public ComputerBlockEntity(BlockPos pPos, BlockState pBlockState) {
         super(AdvancedComputers.COMPUTER_BE.get(), pPos, pBlockState, Arrays.asList(AdvancedComputers.CLUSTER_TYPE_DEVICE, AdvancedComputers.CLUSTER_TYPE_NETWORK));
+
         this.data = new ContainerData() {
             @Override
             public int get(int pIndex) {
@@ -129,7 +132,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
 //        }
 //
 //        Containers.dropContents(this.level, this.worldPosition, inv);
-        var is = new ItemStack(AdvancedComputers.COMPUTER_BLOCK.blockItem().get());
+        var is = new ItemStack(block.asItem());
         var t = new CompoundTag();
         saveAdditional(t);
 
@@ -159,8 +162,19 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
     @Override
     public void onLoad() {
         super.onLoad();
+        assert level != null;
+        if (!level.isClientSide()) { // on level load, associated blocks appear to be air instead
+            var b = level.getBlockState(this.getBlockPos()).getBlock();
+            if (b instanceof ComputerBlock c) {
+                this.block = c;
+                this.tier = this.block.TIER;
+            } else {
+                AdvancedComputers.LOGGER.error("Associated block was not a computer blocK, but instead was somehow %s???".formatted(b.getName()));
+            }
+            System.out.println("ON LOAD COMPUTER Tier: %s".formatted(tier.name()));
+        }
+
         lazyItemHandler = LazyOptional.of(() -> itemHandler);
-        System.out.println("ON LOAD COMPUTER");
     }
 
     @Override

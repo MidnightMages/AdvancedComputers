@@ -7,10 +7,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
+import net.minecraftforge.registries.RegistryObject;
+import org.jetbrains.annotations.NotNull;
 
 public class ComputerBlockMenu extends AbstractContainerMenu {
     public final ComputerBlockEntity blockEntity;
@@ -73,34 +76,41 @@ public class ComputerBlockMenu extends AbstractContainerMenu {
         if (pIndex < VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT) {
             // This is a vanilla container slot so merge the stack into the tile inventory
             if (!moveItemStackTo(sourceStack, TE_INVENTORY_FIRST_SLOT_INDEX, TE_INVENTORY_FIRST_SLOT_INDEX
-                    + TE_INVENTORY_SLOT_COUNT, false)) {
+                                                                             + TE_INVENTORY_SLOT_COUNT, false)) {
                 return ItemStack.EMPTY;  // EMPTY_ITEM
             }
-        }
-        else if (pIndex < TE_INVENTORY_FIRST_SLOT_INDEX + TE_INVENTORY_SLOT_COUNT) {
+        } else if (pIndex < TE_INVENTORY_FIRST_SLOT_INDEX + TE_INVENTORY_SLOT_COUNT) {
             // This is a TE slot so merge the stack into the players inventory
             if (!moveItemStackTo(sourceStack, VANILLA_FIRST_SLOT_INDEX, VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT, false)) {
                 return ItemStack.EMPTY;
             }
-        }
-        else {
+        } else {
             System.out.println("Invalid slotIndex:" + pIndex);
             return ItemStack.EMPTY;
         }
         // If stack size == 0 (the entire stack was moved) set slot contents to null
         if (sourceStack.getCount() == 0) {
             sourceSlot.set(ItemStack.EMPTY);
-        }
-        else {
+        } else {
             sourceSlot.setChanged();
         }
         sourceSlot.onTake(playerIn, sourceStack);
         return copyOfSourceStack;
     }
 
+    @SuppressWarnings("unchecked")
+    private static final RegistryObject<Block>[] validComputerBlocks = new RegistryObject[] {
+            AdvancedComputers.COMPUTER_BLOCK_WOOD.block(),
+            AdvancedComputers.COMPUTER_BLOCK.block()
+    };
+
     @Override
-    public boolean stillValid(Player pPlayer) {
-        return stillValid(ContainerLevelAccess.create(level, blockEntity.getBlockPos()), pPlayer, AdvancedComputers.COMPUTER_BLOCK.block().get());
+    public boolean stillValid(@NotNull Player pPlayer) {
+        for (var b : validComputerBlocks)
+            if (stillValid(ContainerLevelAccess.create(level, blockEntity.getBlockPos()), pPlayer, b.get()))
+                return true;
+
+        return false;
     }
 
     private static final int inventoryPosX = 8;

@@ -59,15 +59,24 @@ public class RecipeGenerator extends RecipeProvider {
                 .save(pWriter, "advancedcomputers:keycard_advanced_item_dye");
 
 
-        var woodComputer = AdvancedComputers.COMPUTER_BLOCK.blockItem().get();
         var stone = getVanillaItem("stone");
-        shaped(woodComputer)
+        shaped(AdvancedComputers.COMPUTER_BLOCK_WOOD.blockItem().get())
                 .pattern("WWW")
-                .pattern("WGW")
                 .pattern("WSW")
+                .pattern("WGW")
                 .define('W', ItemTags.create(new ResourceLocation("minecraft", "logs")))
                 .define('S', stone)
-                .define('G', Tags.Items.GLASS_PANES)
+                .define('G', Tags.Items.GLASS)
+                .unlockedBy("item", has(stone))
+                .save(pWriter);
+
+        shaped(AdvancedComputers.COMPUTER_BLOCK.blockItem().get())
+                .pattern("III")
+                .pattern("IRI")
+                .pattern("IGI")
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
+                .define('G', Tags.Items.GLASS)
                 .unlockedBy("item", has(stone))
                 .save(pWriter);
 

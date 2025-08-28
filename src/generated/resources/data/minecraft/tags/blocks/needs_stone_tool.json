@@ -1,6 +1,7 @@
 {
   "values": [
     "advancedcomputers:example_block",
+    "advancedcomputers:computer_block_wood",
     "advancedcomputers:computer_block",
     "advancedcomputers:screen_block",
     "advancedcomputers:keycard_reader_block",

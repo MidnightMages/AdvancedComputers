@@ -16,6 +16,9 @@ public class BlockModelGenerator extends BlockModelProvider {
         this.orientable("computer_block", rl("block/machine_base"),
                 rl("block/computer_block_front"), rl("block/machine_base"));
 
+        this.orientable("computer_block_wood", rl("block/machine_base_wood"),
+                rl("block/computer_block_front_wood"), rl("block/machine_base_wood"));
+
         this.orientable("screen_block", rl("block/machine_base"),
                 rl("block/screen_block_front"), rl("block/machine_base"));
 

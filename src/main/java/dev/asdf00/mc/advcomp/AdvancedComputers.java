@@ -100,8 +100,10 @@ public class AdvancedComputers {
     public static final RegistryBlockItemPair<Block> EXAMPLE_BLOCK = registerBlockWithItem("example_block",
             () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.STONE)));
 
+    public static final RegistryBlockItemPair<Block> COMPUTER_BLOCK_WOOD = registerBlockWithItem("computer_block_wood",
+            () -> new ComputerBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK), ComputerTier.Wood));
     public static final RegistryBlockItemPair<Block> COMPUTER_BLOCK = registerBlockWithItem("computer_block",
-            () -> new ComputerBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
+            () -> new ComputerBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK), ComputerTier.Iron));
 
     public static final RegistryBlockItemPair<Block> SCREEN_BLOCK = registerBlockWithItem("screen_block",
             () -> new ScreenBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
@@ -125,7 +127,7 @@ public class AdvancedComputers {
             () -> new NetRouterBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK).noOcclusion()));
 
     public static final RegistryObject<BlockEntityType<ComputerBlockEntity>> COMPUTER_BE = BLOCK_ENTITY_TYPES.register("computer_be",
-            () -> BlockEntityType.Builder.of(ComputerBlockEntity::new, COMPUTER_BLOCK.block().get()).build(null));
+            () -> BlockEntityType.Builder.of(ComputerBlockEntity::new, COMPUTER_BLOCK.block().get(), COMPUTER_BLOCK_WOOD.block().get()).build(null));
 
     public static final RegistryObject<BlockEntityType<ScreenBlockEntity>> SCREEN_BE = BLOCK_ENTITY_TYPES.register("screen_be",
             () -> BlockEntityType.Builder.of(ScreenBlockEntity::new, SCREEN_BLOCK.block().get()).build(null));

@@ -29,6 +29,7 @@ public class BlockStateGenerator extends BlockStateProvider {
         //ock(AdvancedComputers.SCREEN_BLOCK.block().get(), mf("block/screen_block"));
         orientedBlock(AdvancedComputers.SCREEN_BLOCK);
         orientedBlock(AdvancedComputers.COMPUTER_BLOCK, new Property[]{ComputerBlock.RUN_STATE});
+        orientedBlock(AdvancedComputers.COMPUTER_BLOCK_WOOD, new Property[]{ComputerBlock.RUN_STATE});
         orientedBlock(AdvancedComputers.KEYCARD_READER_BLOCK);
 
         cable(AdvancedComputers.DEVICE_CABLE_BLOCK, "device");
