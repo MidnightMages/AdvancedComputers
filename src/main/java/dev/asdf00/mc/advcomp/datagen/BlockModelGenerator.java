@@ -13,12 +13,11 @@ public class BlockModelGenerator extends BlockModelProvider {
 
     @Override
     protected void registerModels() {
-        this.orientable("computer_block", rl("block/machine_base"),
-                rl("block/computer_block_front"), rl("block/machine_base"));
-
-        for (var type : "wood,diamond,netherite".split(","))
-            this.orientable("computer_block_"+type, rl("block/machine_base_"+type),
-                   rl("block/computer_block_front_"+type), rl("block/machine_base_"+type));
+        for (var type : "wood,iron,diamond,netherite".split(",")) {
+            var blockType = type.equals("iron") ? "" : ("_"+type);
+            this.orientable("computer_block" + blockType, rl("block/machine_base_" + type),
+                    rl("block/computer_block_front_" + type), rl("block/machine_base_" + type));
+        }
 
         this.orientable("screen_block", rl("block/machine_base"),
                 rl("block/screen_block_front"), rl("block/machine_base"));
