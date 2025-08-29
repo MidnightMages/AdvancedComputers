@@ -1,13 +1,17 @@
 {
 	"block.advancedcomputers.example_block": "Example Block",
-	
-	"block.advancedcomputers.computer_block": "Computer",
+
 	"block.advancedcomputers.computer_block_wood": "Wood Computer",
+	"block.advancedcomputers.computer_block": "Computer",
+	"block.advancedcomputers.computer_block_diamond": "Diamond Computer",
+	"block.advancedcomputers.computer_block_netherite": "Netherite Computer",
 	"gui.advancedcomputers.computer_block.button.onoff": "On/Off",
 	"gui.advancedcomputers.computer_block.title": "Computer",
 	
+	"block.advancedcomputers.screen_block_wood": "Wood Screen",
 	"block.advancedcomputers.screen_block": "Screen",
-	
+	"block.advancedcomputers.screen_block_diamond": "Diamond Screen",
+
 	"block.advancedcomputers.keycard_reader_block": "Keycard Reader",
 	"block.advancedcomputers.wan_router": "WAN Router",
 	"block.advancedcomputers.wan_router_lowtier": "Cheap WAN Router",

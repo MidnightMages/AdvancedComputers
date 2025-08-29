@@ -26,8 +26,9 @@ public class BlockStateGenerator extends BlockStateProvider {
 
     @Override
     protected void registerStatesAndModels() {
-        //ock(AdvancedComputers.SCREEN_BLOCK.block().get(), mf("block/screen_block"));
+        orientedBlock(AdvancedComputers.SCREEN_BLOCK_WOOD);
         orientedBlock(AdvancedComputers.SCREEN_BLOCK);
+        orientedBlock(AdvancedComputers.SCREEN_BLOCK_DIAMOND);
         for (var i : new RegistryBlockItemPair<?>[]{
                 AdvancedComputers.COMPUTER_BLOCK_WOOD, AdvancedComputers.COMPUTER_BLOCK,
                 AdvancedComputers.COMPUTER_BLOCK_DIAMOND, AdvancedComputers.COMPUTER_BLOCK_NETHERITE

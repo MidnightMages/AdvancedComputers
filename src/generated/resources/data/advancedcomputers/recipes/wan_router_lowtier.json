@@ -2,23 +2,23 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "G": {
-      "tag": "forge:storage_blocks/copper"
+    "C": {
+      "item": "minecraft:compass"
     },
     "I": {
       "tag": "forge:ingots/iron"
     },
-    "R": {
-      "tag": "forge:storage_blocks/redstone"
+    "W": {
+      "tag": "minecraft:planks"
     }
   },
   "pattern": [
-    "III",
-    "IRI",
-    "IGI"
+    "IWI",
+    "WCW",
+    "IWI"
   ],
   "result": {
-    "item": "advancedcomputers:computer_block"
+    "item": "advancedcomputers:wan_router_lowtier"
   },
   "show_notification": true
 }

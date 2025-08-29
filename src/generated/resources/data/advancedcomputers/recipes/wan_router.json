@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "tag": "forge:rods/blaze"
+    },
+    "C": {
+      "item": "minecraft:ender_eye"
+    },
+    "I": {
+      "tag": "forge:obsidian"
+    },
+    "W": {
+      "tag": "forge:gems/diamond"
+    }
+  },
+  "pattern": [
+    "IBI",
+    "WCW",
+    "IBI"
+  ],
+  "result": {
+    "item": "advancedcomputers:wan_router"
+  },
+  "show_notification": true
+}

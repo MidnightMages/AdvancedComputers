@@ -38,10 +38,15 @@ public class ItemModelGenerator extends ItemModelProvider {
         }
 
         for (var type : "wood,iron,diamond,netherite".split(",", -1)) {
-            var blockType = type.equals("iron") ? "" : ("_"+type);
+            var blockType = type.equals("iron") ? "" : ("_" + type);
             this.withExistingParent("computer_block" + blockType, rl("block/computer_block" + blockType));
         }
-        this.withExistingParent("screen_block", rl("block/screen_block"));
+
+        for (var type : "wood,iron,diamond".split(",", -1)) {
+            var blockType = type.equals("iron") ? "" : ("_" + type);
+            this.withExistingParent("screen_block" + blockType, rl("block/screen_block" + blockType));
+        }
+
         this.withExistingParent("keycard_reader_block", rl("block/keycard_reader_block"));
         this.withExistingParent("example_block", rl("block/example_block"));
         this.withExistingParent("wan_router", rl("block/wan_router"));

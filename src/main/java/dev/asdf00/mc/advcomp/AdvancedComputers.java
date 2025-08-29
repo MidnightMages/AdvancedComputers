@@ -109,7 +109,11 @@ public class AdvancedComputers {
     public static final RegistryBlockItemPair<Block> COMPUTER_BLOCK_NETHERITE = registerBlockWithItem("computer_block_netherite",
             () -> new ComputerBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK), ComputerTier.Netherite));
 
+    public static final RegistryBlockItemPair<Block> SCREEN_BLOCK_WOOD = registerBlockWithItem("screen_block_wood",
+            () -> new ScreenBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
     public static final RegistryBlockItemPair<Block> SCREEN_BLOCK = registerBlockWithItem("screen_block",
+            () -> new ScreenBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
+    public static final RegistryBlockItemPair<Block> SCREEN_BLOCK_DIAMOND = registerBlockWithItem("screen_block_diamond",
             () -> new ScreenBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
 
     public static final RegistryBlockItemPair<Block> KEYCARD_READER_BLOCK = registerBlockWithItem("keycard_reader_block",
@@ -135,7 +139,8 @@ public class AdvancedComputers {
                     COMPUTER_BLOCK_DIAMOND.block().get(), COMPUTER_BLOCK_NETHERITE.block().get()).build(null));
 
     public static final RegistryObject<BlockEntityType<ScreenBlockEntity>> SCREEN_BE = BLOCK_ENTITY_TYPES.register("screen_be",
-            () -> BlockEntityType.Builder.of(ScreenBlockEntity::new, SCREEN_BLOCK.block().get()).build(null));
+            () -> BlockEntityType.Builder.of(ScreenBlockEntity::new, SCREEN_BLOCK.block().get(), SCREEN_BLOCK_WOOD.block().get(),
+                    SCREEN_BLOCK_DIAMOND.block().get()).build(null));
 
     public static final RegistryObject<BlockEntityType<KeyCardReaderBlockEntity>> KEYCARD_READER_BE = BLOCK_ENTITY_TYPES.register("keycard_reader_be",
             () -> BlockEntityType.Builder.of(KeyCardReaderBlockEntity::new, KEYCARD_READER_BLOCK.block().get()).build(null));

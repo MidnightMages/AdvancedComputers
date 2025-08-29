@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": {
+      "item": "minecraft:redstone_lamp"
+    },
+    "H": {
+      "tag": "forge:ingots/gold"
+    },
+    "P": {
+      "tag": "forge:ingots/iron"
+    },
+    "W": {
+      "item": "minecraft:stone"
+    }
+  },
+  "pattern": [
+    "PPP",
+    "PGP",
+    "HWH"
+  ],
+  "result": {
+    "item": "advancedcomputers:screen_block"
+  },
+  "show_notification": true
+}

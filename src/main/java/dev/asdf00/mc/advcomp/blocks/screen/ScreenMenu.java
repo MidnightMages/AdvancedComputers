@@ -8,7 +8,10 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.registries.RegistryObject;
+import org.jetbrains.annotations.NotNull;
 
 public class ScreenMenu extends AbstractContainerMenu {
     public final ScreenBlockEntity blockEntity;
@@ -30,8 +33,19 @@ public class ScreenMenu extends AbstractContainerMenu {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
+    private static final RegistryObject<Block>[] validScreenBlocks = (RegistryObject<Block>[]) new RegistryObject<?>[]{
+            AdvancedComputers.SCREEN_BLOCK_WOOD.block(),
+            AdvancedComputers.SCREEN_BLOCK.block(),
+            AdvancedComputers.SCREEN_BLOCK_DIAMOND.block()
+    };
+
     @Override
-    public boolean stillValid(Player pPlayer) {
-        return stillValid(ContainerLevelAccess.create(level, blockEntity.getBlockPos()), pPlayer, AdvancedComputers.SCREEN_BLOCK.block().get());
+    public boolean stillValid(@NotNull Player pPlayer) {
+        for (var b : validScreenBlocks)
+            if (stillValid(ContainerLevelAccess.create(level, blockEntity.getBlockPos()), pPlayer, b.get()))
+                return true;
+
+        return false;
     }
 }

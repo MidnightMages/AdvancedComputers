@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": {
+      "item": "minecraft:ender_eye"
+    },
+    "H": {
+      "tag": "forge:storage_blocks/gold"
+    },
+    "P": {
+      "tag": "forge:gems/diamond"
+    },
+    "W": {
+      "item": "minecraft:purpur_block"
+    }
+  },
+  "pattern": [
+    "PPP",
+    "PGP",
+    "HWH"
+  ],
+  "result": {
+    "item": "advancedcomputers:screen_block_diamond"
+  },
+  "show_notification": true
+}

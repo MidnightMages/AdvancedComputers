@@ -3,22 +3,22 @@
   "category": "misc",
   "key": {
     "G": {
-      "item": "minecraft:stone"
+      "tag": "forge:glass"
     },
-    "S": {
-      "tag": "minecraft:wooden_buttons"
+    "P": {
+      "tag": "minecraft:planks"
     },
     "W": {
       "tag": "minecraft:logs"
     }
   },
   "pattern": [
-    "WWW",
-    "WSW",
-    "WGW"
+    "PPP",
+    "PGP",
+    "PWP"
   ],
   "result": {
-    "item": "advancedcomputers:computer_block_wood"
+    "item": "advancedcomputers:screen_block_wood"
   },
   "show_notification": true
 }

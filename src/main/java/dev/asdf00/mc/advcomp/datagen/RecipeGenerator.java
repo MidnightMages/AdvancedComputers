@@ -2,11 +2,14 @@ package dev.asdf00.mc.advcomp.datagen;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
+import net.minecraft.client.Minecraft;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
@@ -60,13 +63,19 @@ public class RecipeGenerator extends RecipeProvider {
 
 
         var stone = getVanillaItem("stone");
+        var logs = ItemTags.create(new ResourceLocation("minecraft", "logs"));
+        var planks = ItemTags.create(new ResourceLocation("minecraft", "planks"));
+        var buttonsWood = ItemTags.create(new ResourceLocation("minecraft", "wooden_buttons"));
+
+
+
         shaped(AdvancedComputers.COMPUTER_BLOCK_WOOD.blockItem().get())
                 .pattern("WWW")
                 .pattern("WSW")
                 .pattern("WGW")
-                .define('W', ItemTags.create(new ResourceLocation("minecraft", "logs")))
-                .define('S', stone)
-                .define('G', Tags.Items.GLASS)
+                .define('W', logs)
+                .define('S', buttonsWood)
+                .define('G', stone)
                 .unlockedBy("item", has(stone))
                 .save(pWriter);
 
@@ -76,7 +85,7 @@ public class RecipeGenerator extends RecipeProvider {
                 .pattern("IGI")
                 .define('I', Tags.Items.INGOTS_IRON)
                 .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
-                .define('G', Tags.Items.GLASS)
+                .define('G', Tags.Items.STORAGE_BLOCKS_COPPER)
                 .unlockedBy("item", has(Tags.Items.INGOTS_IRON))
                 .save(pWriter);
 
@@ -86,7 +95,7 @@ public class RecipeGenerator extends RecipeProvider {
                 .pattern("DGD")
                 .define('D', Tags.Items.GEMS_DIAMOND)
                 .define('I', Tags.Items.STORAGE_BLOCKS_IRON)
-                .define('G', Tags.Items.GLASS)
+                .define('G', Tags.Items.STORAGE_BLOCKS_AMETHYST)
                 .unlockedBy("item", has(Tags.Items.GEMS_DIAMOND))
                 .save(pWriter);
 
@@ -96,9 +105,63 @@ public class RecipeGenerator extends RecipeProvider {
                 .pattern("NGN")
                 .define('N', Tags.Items.INGOTS_NETHERITE)
                 .define('D', Tags.Items.STORAGE_BLOCKS_DIAMOND)
-                .define('G', Tags.Items.GLASS)
+                .define('G', Tags.Items.STORAGE_BLOCKS_EMERALD)
                 .unlockedBy("item", has(Tags.Items.INGOTS_NETHERITE))
                 .save(pWriter);
+
+        shaped(AdvancedComputers.SCREEN_BLOCK_WOOD.blockItem().get())
+                .pattern("PPP")
+                .pattern("PGP")
+                .pattern("PWP")
+                .define('P', planks)
+                .define('W', logs)
+                .define('G', Tags.Items.GLASS)
+                .unlockedBy("item", has(planks))
+                .save(pWriter);
+
+        shaped(AdvancedComputers.SCREEN_BLOCK.blockItem().get())
+                .pattern("PPP")
+                .pattern("PGP")
+                .pattern("HWH")
+                .define('P', Tags.Items.INGOTS_IRON)
+                .define('H', Tags.Items.INGOTS_GOLD)
+                .define('W', stone)
+                .define('G', Items.REDSTONE_LAMP)
+                .unlockedBy("item", has(planks))
+                .save(pWriter);
+
+        shaped(AdvancedComputers.SCREEN_BLOCK_DIAMOND.blockItem().get())
+                .pattern("PPP")
+                .pattern("PGP")
+                .pattern("HWH")
+                .define('P', Tags.Items.GEMS_DIAMOND)
+                .define('W', Items.PURPUR_BLOCK)
+                .define('H', Tags.Items.STORAGE_BLOCKS_GOLD)
+                .define('G', Items.ENDER_EYE)
+                .unlockedBy("item", has(planks))
+                .save(pWriter);
+
+        shaped(AdvancedComputers.WAN_ROUTER_BLOCK_LOWTIER.blockItem().get())
+                .pattern("IWI")
+                .pattern("WCW")
+                .pattern("IWI")
+                .define('W', planks)
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('C', Items.COMPASS)
+                .unlockedBy("item", has(planks))
+                .save(pWriter);
+
+        shaped(AdvancedComputers.WAN_ROUTER_BLOCK.blockItem().get())
+                .pattern("IBI")
+                .pattern("WCW")
+                .pattern("IBI")
+                .define('W', Tags.Items.GEMS_DIAMOND)
+                .define('I', Tags.Items.OBSIDIAN)
+                .define('B', Tags.Items.RODS_BLAZE)
+                .define('C', Items.ENDER_EYE)
+                .unlockedBy("item", has(planks))
+                .save(pWriter);
+
     }
 
     private ItemLike getVanillaItem(String name) {
