@@ -85,7 +85,7 @@
 		{
 			"from": [12, 12, 4],
 			"to": [16, 16, 11],
-			"rotation": {"angle": 0, "axis": "x", "origin": [12, 16, 4]},
+			"rotation": {"angle": 0, "axis": "y", "origin": [12, 16, 4]},
 			"faces": {
 				"north": {"uv": [8.25, 0, 9.25, 1], "texture": "#0"},
 				"east": {"uv": [8, 2, 9.75, 3], "texture": "#0", "cullface": "east"},
@@ -98,7 +98,7 @@
 		{
 			"from": [0, 12, 4],
 			"to": [4, 16, 12],
-			"rotation": {"angle": 0, "axis": "x", "origin": [4, 16, 4]},
+			"rotation": {"angle": 0, "axis": "y", "origin": [4, 16, 4]},
 			"faces": {
 				"north": {"uv": [10.75, 5, 9.75, 4], "rotation": 90, "texture": "#0"},
 				"east": {"uv": [6, 7.5, 7, 9.5], "rotation": 90, "texture": "#0"},
@@ -176,7 +176,7 @@
 		{
 			"from": [0, 0, 11],
 			"to": [3, 2, 13],
-			"rotation": {"angle": 0, "axis": "x", "origin": [4, 2, 12]},
+			"rotation": {"angle": 0, "axis": "y", "origin": [4, 2, 12]},
 			"faces": {
 				"north": {"uv": [0.5, 11.75, 1.25, 12.25], "texture": "#0"},
 				"east": {"uv": [0, 11.75, 0.5, 12.25], "texture": "#0"},
@@ -202,7 +202,7 @@
 		{
 			"from": [3, 0, 12],
 			"to": [7, 2, 16],
-			"rotation": {"angle": 0, "axis": "x", "origin": [7, 2, 13]},
+			"rotation": {"angle": 0, "axis": "y", "origin": [7, 2, 13]},
 			"faces": {
 				"north": {"uv": [6.25, 13, 7.25, 13.5], "texture": "#0"},
 				"east": {"uv": [5.25, 13, 6.25, 13.5], "texture": "#0"},
@@ -215,7 +215,7 @@
 		{
 			"from": [14, 4, 12],
 			"to": [16, 9, 14],
-			"rotation": {"angle": 0, "axis": "x", "origin": [16, 6, 13]},
+			"rotation": {"angle": 0, "axis": "y", "origin": [16, 6, 13]},
 			"faces": {
 				"north": {"uv": [1.5, 12.75, 2, 14], "texture": "#0"},
 				"east": {"uv": [1, 12.75, 1.5, 14], "texture": "#0", "cullface": "east"},
@@ -228,7 +228,7 @@
 		{
 			"from": [12, 4, 12],
 			"to": [14, 6, 15],
-			"rotation": {"angle": 0, "axis": "x", "origin": [14, 6, 13]},
+			"rotation": {"angle": 0, "axis": "y", "origin": [14, 6, 13]},
 			"faces": {
 				"north": {"uv": [4.5, 12.5, 5, 13], "texture": "#0"},
 				"east": {"uv": [3.75, 12.5, 4.5, 13], "texture": "#0"},
