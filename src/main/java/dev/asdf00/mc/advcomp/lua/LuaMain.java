@@ -1,6 +1,5 @@
 package dev.asdf00.mc.advcomp.lua;
 
-import com.mojang.logging.LogUtils;
 import dev.asdf00.jluavm.LuaVM;
 
 import java.io.BufferedReader;

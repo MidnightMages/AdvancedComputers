@@ -1,7 +1,5 @@
 package dev.asdf00.mc.advcomp.items;
 
-import net.minecraft.world.item.ItemStack;
-
 public class KeycardBasicItem extends BaseKeycardItem {
 
     public KeycardBasicItem(Properties pProperties) {

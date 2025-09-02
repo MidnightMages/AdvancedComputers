@@ -2,21 +2,17 @@ package dev.asdf00.mc.advcomp.datagen;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
-import net.minecraft.client.Minecraft;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
-
-import static net.minecraft.tags.TagEntry.tag;
 
 public class RecipeGenerator extends RecipeProvider {
     public RecipeGenerator(PackOutput pOutput) {

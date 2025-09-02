@@ -1,7 +1,6 @@
 package dev.asdf00.mc.advcomp.blocks.wan_router;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.items.BaseKeycardItem;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
 import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;

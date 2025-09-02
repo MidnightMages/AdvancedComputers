@@ -1,9 +1,6 @@
 package dev.asdf00.mc.advcomp.types.cluster;
 
-import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import net.minecraft.core.Direction;
-
-import java.util.Set;
 
 /**
  *  Represents a block entity or cable which can connect to cables and clusters.

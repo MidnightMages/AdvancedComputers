@@ -1,10 +1,9 @@
 package dev.asdf00.mc.advcomp.blocks.cables.base;
 
-import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
+import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
 import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableEntityBlock;
-import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.IAcBaseCableConnectableEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

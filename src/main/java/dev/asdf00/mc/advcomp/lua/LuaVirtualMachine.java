@@ -1,16 +1,17 @@
 package dev.asdf00.mc.advcomp.lua;
 
 import dev.asdf00.jluavm.LuaVM;
-import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public class LuaVirtualMachine {
     private static final int TPS = 20;
