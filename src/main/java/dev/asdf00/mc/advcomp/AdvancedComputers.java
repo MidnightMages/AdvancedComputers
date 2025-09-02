@@ -214,8 +214,9 @@ public class AdvancedComputers {
     public static final RegistryObject<Item> KEYCARD_BASIC_ITEM = RegisterItem("keycard_basic_item", () -> new KeycardBasicItem(new Item.Properties()));
     public static final RegistryObject<Item> KEYCARD_ADVANCED_ITEM = RegisterItem("keycard_advanced_item", () -> new KeycardAdvancedItem(new Item.Properties()));
 
-    public static final RegistryObject<Item> UEFI_ITEM = RegisterItem("uefi_item", () -> new UefiItem(new Item.Properties()));
-    public static final RegistryObject<Item> UEFI_TPM_ITEM = RegisterItem("uefi_tpm_item", () -> new UefiTpmItem(new Item.Properties()));
+    public static final RegistryObject<Item> MAINBOARD_TIER_1_ITEM = RegisterItem("mainboard_tier1_item", () -> new MainboardItem(MainboardItem.MainboardTier.T1));
+    public static final RegistryObject<Item> MAINBOARD_TIER_2_ITEM = RegisterItem("mainboard_tier2_item", () -> new MainboardItem(MainboardItem.MainboardTier.T2));
+    public static final RegistryObject<Item> MAINBOARD_TIER_3_ITEM = RegisterItem("mainboard_tier3_item", () -> new MainboardItem(MainboardItem.MainboardTier.T3));
 
     private static MinecraftServer serverReference;
 

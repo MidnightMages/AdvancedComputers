@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "advancedcomputers:item/uefi_tpm_item"
+    "layer0": "advancedcomputers:item/mainboard_tier1_item"
   }
 }

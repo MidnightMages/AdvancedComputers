@@ -31,8 +31,9 @@ public class ItemModelGenerator extends ItemModelProvider {
 
         basicItem("example");
 
-        basicItem("uefi");
-        basicItem("uefi_tpm");
+        for (int i = 1; i<=3; i++)
+            basicItem("mainboard_tier%s".formatted(i));
+
         for (int i = 1; i < 6; i++) {
             basicItem("hdd_tier" + i);
         }
