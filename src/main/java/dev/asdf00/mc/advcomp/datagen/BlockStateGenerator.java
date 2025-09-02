@@ -37,6 +37,7 @@ public class BlockStateGenerator extends BlockStateProvider {
             orientedBlock((RegistryBlockItemPair<Block>) i, new Property[]{ComputerBlock.RUN_STATE});
         }
         orientedBlock(AdvancedComputers.KEYCARD_READER_BLOCK);
+        orientedBlock(AdvancedComputers.MAINBOARD_PROGRAMMER_BLOCK);
 
         cable(AdvancedComputers.DEVICE_CABLE_BLOCK, "device");
         cable(AdvancedComputers.NETWORK_CABLE_BLOCK, "network");

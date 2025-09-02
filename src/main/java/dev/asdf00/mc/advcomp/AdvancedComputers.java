@@ -10,6 +10,10 @@ import dev.asdf00.mc.advcomp.blocks.cables.network.NetworkCableBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.computer.*;
 import dev.asdf00.mc.advcomp.blocks.keycard_reader.KeyCardReaderBlock;
 import dev.asdf00.mc.advcomp.blocks.keycard_reader.KeyCardReaderBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.mainboard_programmer.MainboardProgrammerBlock;
+import dev.asdf00.mc.advcomp.blocks.mainboard_programmer.MainboardProgrammerBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.mainboard_programmer.MainboardProgrammerBlockMenu;
+import dev.asdf00.mc.advcomp.blocks.mainboard_programmer.MainboardProgrammerBlockScreen;
 import dev.asdf00.mc.advcomp.blocks.net_router.NetRouterBlock;
 import dev.asdf00.mc.advcomp.blocks.net_router.NetRouterBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlock;
@@ -119,6 +123,9 @@ public class AdvancedComputers {
     public static final RegistryBlockItemPair<Block> KEYCARD_READER_BLOCK = registerBlockWithItem("keycard_reader_block",
             () -> new KeyCardReaderBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
 
+    public static final RegistryBlockItemPair<Block> MAINBOARD_PROGRAMMER_BLOCK = registerBlockWithItem("mainboard_programmer_block",
+            () -> new MainboardProgrammerBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
+
     public static final RegistryBlockItemPair<Block> DEVICE_CABLE_BLOCK = registerBlockWithItem("device_cable_block",
             () -> new DeviceCableBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
 
@@ -145,6 +152,9 @@ public class AdvancedComputers {
     public static final RegistryObject<BlockEntityType<KeyCardReaderBlockEntity>> KEYCARD_READER_BE = BLOCK_ENTITY_TYPES.register("keycard_reader_be",
             () -> BlockEntityType.Builder.of(KeyCardReaderBlockEntity::new, KEYCARD_READER_BLOCK.block().get()).build(null));
 
+    public static final RegistryObject<BlockEntityType<MainboardProgrammerBlockEntity>> MAINBOARD_PROGRAMMER_BE = BLOCK_ENTITY_TYPES.register("mainboard_programmer_be",
+            () -> BlockEntityType.Builder.of(MainboardProgrammerBlockEntity::new, MAINBOARD_PROGRAMMER_BLOCK.block().get()).build(null));
+
     public static final RegistryObject<BlockEntityType<WanRouterBlockEntity>> WAN_ROUTER_BE = BLOCK_ENTITY_TYPES.register("wan_router_be",
             () -> BlockEntityType.Builder.of(WanRouterBlockEntity::new, WAN_ROUTER_BLOCK.block().get()).build(null));
 
@@ -162,6 +172,9 @@ public class AdvancedComputers {
 
     public static final RegistryObject<MenuType<ComputerBlockMenu>> COMPUTER_MENU =
             registerMenuType("computer_menu", ComputerBlockMenu::new);
+
+    public static final RegistryObject<MenuType<MainboardProgrammerBlockMenu>> MAINBOARD_PROGRAMMER_MENU =
+            registerMenuType("mainboard_programmer_menu", MainboardProgrammerBlockMenu::new);
 
     public static final RegistryObject<MenuType<ScreenMenu>> SCREEN_MENU =
             registerMenuType("screen_menu", ScreenMenu::new);
@@ -321,6 +334,7 @@ public class AdvancedComputers {
 
             event.enqueueWork(() -> {
                 MenuScreens.register(COMPUTER_MENU.get(), ComputerBlockScreen::new);
+                MenuScreens.register(MAINBOARD_PROGRAMMER_MENU.get(), MainboardProgrammerBlockScreen::new);
                 MenuScreens.register(SCREEN_MENU.get(), ScreenBlockScreen::new);
             });
         }

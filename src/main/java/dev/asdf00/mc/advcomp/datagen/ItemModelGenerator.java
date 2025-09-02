@@ -49,6 +49,7 @@ public class ItemModelGenerator extends ItemModelProvider {
         }
 
         this.withExistingParent("keycard_reader_block", rl("block/keycard_reader_block"));
+        this.withExistingParent("mainboard_programmer_block", rl("block/mainboard_programmer_block"));
         this.withExistingParent("example_block", rl("block/example_block"));
         this.withExistingParent("wan_router", rl("block/wan_router"));
         this.withExistingParent("wan_router_lowtier", rl("block/wan_router_lowtier"));

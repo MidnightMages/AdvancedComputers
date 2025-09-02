@@ -30,6 +30,9 @@ public class BlockModelGenerator extends BlockModelProvider {
         this.orientable("keycard_reader_block", rl("block/machine_base"),
                 rl("block/keycard_reader_block_front"), rl("block/machine_base"));
 
+        this.orientable("mainboard_programmer_block", rl("block/machine_base"),
+                rl("block/mainboard_programmer_block_front"), rl("block/machine_base"));
+
         this.cubeAll("example_block", rl("block/example_block"));
     }
 }

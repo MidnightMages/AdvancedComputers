@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "advancedcomputers:block/mainboard_programmer_block_front",
+    "side": "advancedcomputers:block/machine_base",
+    "top": "advancedcomputers:block/machine_base"
+  }
+}
