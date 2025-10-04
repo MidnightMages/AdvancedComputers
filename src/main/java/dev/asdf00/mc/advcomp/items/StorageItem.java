@@ -1,11 +1,16 @@
 package dev.asdf00.mc.advcomp.items;
 
-import dev.asdf00.mc.advcomp.lua.IAcComponent;
-import dev.asdf00.mc.advcomp.lua.LuaComponentRegistry;
+import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
+import dev.asdf00.jluavm.runtime.types.LuaObject;
+import dev.asdf00.jluavm.utils.ByteArrayReader;
+import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 import dev.asdf00.mc.advcomp.lua.components.fs.UnmanagedStorageHandler;
 import net.minecraft.world.item.Item;
 
-public class StorageItem extends Item implements IAcComponent {
+import java.util.List;
+import java.util.Map;
+
+public class StorageItem extends Item implements LuaUserDataComponent {
 
     private final int totalCapcityBytes;
     private final boolean IsUnmanaged = false;
@@ -18,17 +23,19 @@ public class StorageItem extends Item implements IAcComponent {
     }
 
     @Override
-    public String getComponentName() {
+    public String getComponentType() {
         return "disk";
     }
 
     @Override
-    public void onRegister(LuaComponentRegistry.LuaFunctionGroup group) {
-        group.RegisterMethods(storageComponent);
+    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs) {
+        // TODO actually provide serializaion
+        return null;
     }
 
-    @Override
-    public void onDeregister(LuaComponentRegistry.LuaFunctionGroup group) {
-
+    @LuaDeserializer
+    public static StorageItem todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
+        // TODO actually provide serializaion
+        return null;
     }
 }

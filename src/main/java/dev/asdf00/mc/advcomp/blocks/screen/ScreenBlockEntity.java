@@ -1,5 +1,6 @@
 package dev.asdf00.mc.advcomp.blocks.screen;
 
+import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.TranslationMap;
@@ -108,7 +109,7 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
                 // just drop event if no computer is connected
                 return;
             }
-            cbe.getLvm().pushMachineEvent(name, content);
+            cbe.getLvm().eventQueue.addRaw(name, LuaObject.of(content));
         }
     }
 

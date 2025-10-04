@@ -1,22 +1,30 @@
 package dev.asdf00.mc.advcomp.lua;
 
 import dev.asdf00.jluavm.LuaVM;
+import dev.asdf00.jluavm.api.functions.AtomicLuaFunction;
+import dev.asdf00.jluavm.api.functions.MixedStateFunctionRegistry;
+import dev.asdf00.jluavm.api.userdata.LuaUserData;
+import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
+import dev.asdf00.mc.advcomp.lua.components.ComponentRegistryUD;
+import dev.asdf00.mc.advcomp.lua.components.ComputerUD;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayDeque;
-import java.util.HashSet;
+import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class LuaVirtualMachine {
     private static final int TPS = 20;
-    private static final String luaEntryScript;
-    private static final String luaShellScript;
+    private static final String luaBootScript;
+    public LuaEventQueue eventQueue;
 
     private static String loadLuaScript(String name) {
         try (var stream = LuaMain.class.getClassLoader().getResourceAsStream("assets/advancedcomputers/lua/" + name)) {
@@ -28,14 +36,13 @@ public class LuaVirtualMachine {
     }
 
     static {
-        luaEntryScript = loadLuaScript("entry.lua");
-        luaShellScript = loadLuaScript("luaShell.lua");
+        luaBootScript = loadLuaScript("boot.lua");
     }
 
     private final ComputerBlockEntity computer;
 
-    private final LuaVM vm;
-    private final int ipt;
+    private LuaVM vm;
+    private final int ipt; // instructions per tick
     private long timeLastHook = 0;
 
     private final Object startStopLock = new Object();
@@ -50,16 +57,11 @@ public class LuaVirtualMachine {
     private Consumer<Boolean> runOnExit = null;
     private volatile boolean killingLVM = false;
 
-    private record MachineEvent(String name, Object content) {
-    }
+    public ComputerUD computerUD = null;
 
-    private final ArrayDeque<MachineEvent> machineEvents = new ArrayDeque<>();
-    private final Set<String> subbedEvents = new HashSet<>();
 
     public LuaVirtualMachine(ComputerBlockEntity computer, int instructionsPerSecond) {
         this.computer = computer;
-//        vm = LuaVM.create().withStdLib();
-        vm = null;
         ipt = Math.max(instructionsPerSecond / 20, 1);
         stdOut = null;
     }
@@ -116,6 +118,10 @@ public class LuaVirtualMachine {
             stopCode_isGraceful = false;
         }
         executionEnv.start();
+    }
+
+    public void addComponent(LuaUserData component) {
+
     }
 
     public void suspend() {
@@ -180,16 +186,72 @@ public class LuaVirtualMachine {
     private void runLua() {
         stdOut = new LuaStdOut();
         stdOut.clear();
-        machineEvents.clear();
         AdvancedComputers.LOGGER.info("trying to start LVM");
-//        var g = vm.get_G();
-//        g.set("print", AtomicLuaFunction.vaForZeroResults((vm, args) ->
-//                sandboxLog(Arrays.stream(args).map(LuaObject::asString).collect(Collectors.joining("\t")), true, false)).obj());
-//        g.set("printInline", AtomicLuaFunction.vaForZeroResults((vm, args) ->
-//                sandboxLog(Arrays.stream(args).map(LuaObject::asString).collect(Collectors.joining("\t")), false, false)).obj());
-//        g.set("printErr", AtomicLuaFunction.vaForZeroResults((vm, args) ->
-//                sandboxLog(Arrays.stream(args).map(LuaObject::asString).collect(Collectors.joining("\t")), true, true)).obj());
-//        g.set("clear",AtomicLuaFunction.vaForZeroResults((vm, a) -> stdOut.clear()).obj()); // TODO make this a non-va function
+
+
+        String bootFile = luaBootScript; // entry code
+
+        eventQueue = new LuaEventQueue();
+//        console.onKeyPressed = eventQueue::addKeyPressed;
+//        console.onKeyReleased = eventQueue::addKeyReleased;
+//        console.onKeyTyped = eventQueue::addKeyTyped;
+
+        // REGISTER USERDATA COMPONENTS
+        var componentReg = new ComponentRegistryUD(this);
+// set up disk filesystems // TODO set up fs
+//        for (int i = 1; i <= 3; i++) {
+//            var dp = luaRootDir.resolve("disk" + i);
+//            var fs = new SandboxedFs(dp, !cfg.allowPhysicalFilesystemWrites());
+//            try {
+//                if (!Files.isDirectory(dp))
+//                    Files.createDirectory(dp);
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//            fs.init(dp);
+//
+//            var ud = new DiskUD(i);
+//            ud.init(fs);
+//            componentReg.addComponentAndNotify(ud);
+//        }
+        //componentReg.registerComponent(new InternetUD());
+        //componentReg.registerComponent(new BiosUD());
+        componentReg.addComponentAndNotify(new ComputerUD(this));
+        // --------------------------
+        // DEFINE GLOBALS
+        var greg = new ExtendedMixedStateFunctionRegistry("advancedcomputers");
+        greg.register("sleep", AtomicLuaFunction.forZeroResults(greg, (vm, time) -> {
+            try {
+                Thread.sleep((int) (time.asDouble() * 1000));
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }));
+        greg.register("print",
+                AtomicLuaFunction.vaForZeroResults(greg, (vm, args) -> printlnLUA(Arrays.stream(args).map(LuaObject::asString).collect(Collectors.joining("\t")))));
+        greg.register("printInline",
+                AtomicLuaFunction.vaForZeroResults(greg, (vm, args) -> printInlineLUA(Arrays.stream(args).map(LuaObject::asString).collect(Collectors.joining("\t")))));
+
+        var br = new BufferedReader(new InputStreamReader(System.in));
+//        greg.register("readline", AtomicLuaFunction.forOneResult(greg, (vm, msg) -> {
+//            try {
+//                if (!msg.isNil()) {
+//                    printlnLUA(msg.asString());
+//                }
+//
+//                return LuaObject.of(br.readLine());
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }));
+        // --------------------------
+
+        // SET UP GLOBAL ENV
+        var _G = LuaObject.table();
+        greg.addFunctionsToTable(_G);
+
+        // ADD COMPONENT TO _G
+        _G.set("component", LuaObject.of(componentReg));
 
 // TODO set stopCode and stopCode_isGraceful
 
@@ -199,29 +261,6 @@ public class LuaVirtualMachine {
 //            stopCode = msg;
 //            stopCode_isGraceful = false; // TODO expose this as an arg to the vm maybe?
 //        }));
-
-//        setGlobalFunction("unsubMachineEvent", new LuaFunctionProxy(this, this::unsubMachineEvent));
-//        setGlobalFunction("subMachineEvent", new LuaFunctionProxy(this, this::subMachineEvent));
-//        setGlobalFunction("getMachineEvent", new LuaFunctionProxy(this, this::getMachineEvent));
-//        setGlobalFunction("waitForMachineEvent", new LuaFunctionProxy(this, this::waitForMachineEvent));
-//        setGlobalFunction("sleep", new LuaFunctionProxy(this, (Object[] args) -> {
-//            if (args.length != 1) {
-//                throw new AcLuaException("'sleep' expects 1 timeout argument");
-//            }
-//            if (args[0] instanceof Double d) {
-//                try {
-//                    Thread.sleep((long) (d * 1000));
-//                } catch (InterruptedException e) {
-//                    throw interruptAndKillCurrent();
-//                }
-//            } else {
-//                throw new AcLuaException("'sleep' expects number as argument");
-//            }
-//        }));
-
-        //L.openLibrary("io"); // TODO make custom implementation
-        //L.openLibrary("os"); // TODO make custom implementation
-        //L.openLibrary("package"); // TODO make custom implementation
 
 
         boolean lvmException = false;
@@ -235,6 +274,24 @@ public class LuaVirtualMachine {
 //            AdvancedComputers.LOGGER.error(e.toString());
 //            lvmException = true;
 //        }
+
+
+        vm = LuaVM.builder().withApiRegistry(greg).modifyEnv(t -> {
+            var map = _G.asMap();
+            for (var k : map.keys()) {
+                t.set(k, map.getOrDefault(k, LuaObject.NIL));
+            }
+        }).rootFunc(bootFile).build();try {
+            var res = vm.run();
+
+            if (res.state() == LuaVM.VmRunState.EXECUTION_ERROR) {
+                AdvancedComputers.LOGGER.error("vm exited with error: %s".formatted(res.toString()));
+            } else {
+                AdvancedComputers.LOGGER.info("vm exited with result: %s".formatted(res.toString()));
+            }
+        } catch (Exception ex) {
+            AdvancedComputers.LOGGER.error("caught lvm exception: ",ex);
+        }
 
         boolean shutdownWasGraceful;
         // cleanup after shutdown
@@ -256,100 +313,19 @@ public class LuaVirtualMachine {
         runOnExit.accept(shutdownWasGraceful);
     }
 
-
-    /**
-     * Called about every tick via a lua debug count hook. Used to create an artificial slowdown for Lua PCs.
-     */
-    public void sandboxCountHookCallback(Object[] args) {
-        LockSupport.parkNanos(1_000_000 / TPS - 1000 * (System.currentTimeMillis() - timeLastHook));
-        var curThread = Thread.currentThread();
-        if (curThread.isInterrupted()) {
-            throw interruptAndKillCurrent();
-        }
-        boolean isInterrupted = false;
-        while (suspended) {
-            LockSupport.park();
-            if (curThread.isInterrupted()) {
-                // if the executor thread gets interrupted while the LVM is suspended, break suspension and continue the interrupt
-                isInterrupted = true;
-                break;
-            }
-        }
-        if (isInterrupted) {
-            throw interruptAndKillCurrent();
-        }
-        timeLastHook = System.currentTimeMillis();
+    // TODO remove
+    private static void println(String s) {
+        System.out.println(s);
     }
 
-    public void subMachineEvent(Object[] args) {
-        String name;
-        try {
-            name = (String) args[0];
-        } catch (ClassCastException | ArrayIndexOutOfBoundsException ex) {
-            throw new AcLuaException("Syntax: subMachineEvent(<name>)");
-        }
-        synchronized (machineEvents) {
-            subbedEvents.add(name);
-        }
+    private static void printlnLUA(String s) {
+        println(s);
     }
 
-    public void unsubMachineEvent(Object[] args) {
-        String name;
-        boolean evict;
-        try {
-            name = (String) args[0];
-            evict = args.length > 1 ? (Boolean) args[1] : false;
-        } catch (ClassCastException | ArrayIndexOutOfBoundsException ex) {
-            throw new AcLuaException("Syntax: unsubMachineEvent(<name> [, <evict>])");
-        }
-        synchronized (machineEvents) {
-            subbedEvents.remove(name);
-            if (evict) {
-                machineEvents.removeIf(e -> e.name().equals(name));
-            }
-        }
+    private static void printInlineLUA(String s) {
+        System.out.print(s);
     }
-
-    public boolean pushMachineEvent(String name, Object event) {
-        synchronized (machineEvents) {
-            if (subbedEvents.contains(name)) {
-                machineEvents.add(new MachineEvent(name, event));
-                machineEvents.notifyAll();
-                return true;
-            }
-            return false;
-        }
-    }
-
-    private Object[] getMachineEvent(Object[] ignore) {
-        if (ignore.length != 0) {
-            throw new AcLuaException("cannot pass pass arguments to 'getMachineEvent'");
-        }
-        MachineEvent event;
-        synchronized (machineEvents) {
-            event = machineEvents.poll();
-        }
-        return event == null ? new Object[]{null} : new Object[]{event.name, event.content};
-    }
-
-    private void waitForMachineEvent(Object[] timeout) {
-        if (timeout.length > 1) {
-            throw new AcLuaException("'waitForMachineEvent' expects either no argument or 1 timeout argument");
-        }
-        try {
-            synchronized (machineEvents) {
-                if (machineEvents.isEmpty()) {
-                    if (timeout.length == 1) {
-                        machineEvents.wait(Long.parseLong(timeout[0].toString()));
-                    } else {
-                        machineEvents.wait();
-                    }
-                }
-            }
-        } catch (InterruptedException e) {
-            throw interruptAndKillCurrent();
-        }
-    }
+    // ------------
 
     private static RuntimeException interruptAndKillCurrent() {
         Thread.currentThread().interrupt();
