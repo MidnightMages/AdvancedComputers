@@ -9,6 +9,7 @@ import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.lua.components.ComponentRegistryUD;
 import dev.asdf00.mc.advcomp.lua.components.ComputerUD;
+import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -214,6 +215,15 @@ public class LuaVirtualMachine {
 //            ud.init(fs);
 //            componentReg.addComponentAndNotify(ud);
 //        }
+        var inv = computer.itemHandler;
+        for (int i = 0; i < inv.getSlots(); i++) {
+            var is = inv.getStackInSlot(i);
+            var item = is.getItem();
+            if (item instanceof LuaUserDataComponent ud){
+                componentReg.addComponentAndNotify(ud);
+            }
+        }
+
         //componentReg.registerComponent(new InternetUD());
         //componentReg.registerComponent(new BiosUD());
         componentReg.addComponentAndNotify(new ComputerUD(this));
@@ -285,9 +295,9 @@ public class LuaVirtualMachine {
             var res = vm.run();
 
             if (res.state() == LuaVM.VmRunState.EXECUTION_ERROR) {
-                AdvancedComputers.LOGGER.error("vm exited with error: %s".formatted(res.toString()));
+                AdvancedComputers.LOGGER.error("vm exited with error: %s".formatted(res.toString().replace("\\n","\n")));
             } else {
-                AdvancedComputers.LOGGER.info("vm exited with result: %s".formatted(res.toString()));
+                AdvancedComputers.LOGGER.info("vm exited with result: %s".formatted(res.toString().replace("\\n","\n")));
             }
         } catch (Exception ex) {
             AdvancedComputers.LOGGER.error("caught lvm exception: ",ex);

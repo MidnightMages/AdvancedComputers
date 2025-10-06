@@ -65,7 +65,7 @@ public class UnmanagedStorageHandler implements StorageHandler {
     }
 
     @Override
-    public void CleanupAllData() {
+    public void DeleteAllData() {
         try {
             Files.delete(getSaveFilePath());
         }

@@ -28,8 +28,8 @@ public class ComputerUD implements LuaUserDataComponent {
         this.lvm = lvm;
     }
 
-//    @LuaExposed(LuaExposed.Policy.READ)
-//    public LuaObject nvram = LuaObject.of(new NvramUD());
+    @LuaExposed(LuaExposed.Policy.READ)
+    public LuaObject nvram = LuaObject.of(new NvramUD());
 
     @LuaCallable
     public void beep(double freq, double duration) {

@@ -7,8 +7,8 @@ local ok, rv = xpcall(function()
 	   computer.nvram.test = 123
 	   print(computer.nvram.test)
 	   computer.nvram.test = "bla"
-	   component:getFirst("bios"):setData("testbiosdata")
-	   print("bios data:",component:getFirst("bios"):getData())
+	   --component:getFirst("bios"):setData("testbiosdata")
+	   --print("bios data:",component:getFirst("bios"):getData())
 	   print(computer.nvram.test)
 	   if t == "disk" then
 		  --print("has boot file? ", a.fileExists("boot.lua"))
@@ -21,7 +21,7 @@ local ok, rv = xpcall(function()
 			 local f = load(code, "boot.lua")
 			 if not f then error("bios boot compilation failed") end
 			 print("Booting...")
-	---@diagnostic disable-next-line: need-check-nil         
+	---@diagnostic disable-next-line: need-check-nil
 			 local ok, err = xpcall(f, debug.traceback)
 			 if not ok then
 				local etext = "bios boot error: "..tostring(err)
@@ -33,8 +33,8 @@ local ok, rv = xpcall(function()
 			 idx = idx+1
 		  end
 	   end
-	end 
-	error("No bootable medium found!")
+	end
+	print("No bootable medium found!")
 end, debug.traceback)
 if not ok then
 	error("bios error: "..tostring(rv), 0)
