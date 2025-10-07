@@ -6,18 +6,27 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Consumer;
+
 public class NotifyingItemHandler extends ItemStackHandler {
     private final BlockEntity be;
+    private final Consumer<Integer> onItemSlotChanged;
 
     public NotifyingItemHandler(BlockEntity be, int size) {
+        this(be, size, null);
+    }
+    public NotifyingItemHandler(BlockEntity be, int size, Consumer<Integer> onItemSlotChanged) {
         super(size);
         this.be = be;
+        this.onItemSlotChanged = onItemSlotChanged;
     }
 
     @Override
     protected void onContentsChanged(int slot) {
         super.onContentsChanged(slot);
         be.setChanged();
+        if(onItemSlotChanged != null)
+            onItemSlotChanged.accept(slot);
     }
 
     public CompoundTag serializeNBT() {

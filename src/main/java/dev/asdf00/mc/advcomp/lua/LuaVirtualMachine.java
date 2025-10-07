@@ -2,21 +2,22 @@ package dev.asdf00.mc.advcomp.lua;
 
 import dev.asdf00.jluavm.LuaVM;
 import dev.asdf00.jluavm.api.functions.AtomicLuaFunction;
-import dev.asdf00.jluavm.api.functions.MixedStateFunctionRegistry;
 import dev.asdf00.jluavm.api.userdata.LuaUserData;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.lua.components.ComponentRegistryUD;
 import dev.asdf00.mc.advcomp.lua.components.ComputerUD;
+import dev.asdf00.mc.advcomp.lua.components.IsAssociatedWithLuaUserdata;
 import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
+import dev.asdf00.mc.advcomp.utils.Tuple;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
@@ -219,8 +220,8 @@ public class LuaVirtualMachine {
         for (int i = 0; i < inv.getSlots(); i++) {
             var is = inv.getStackInSlot(i);
             var item = is.getItem();
-            if (item instanceof LuaUserDataComponent ud){
-                componentReg.addComponentAndNotify(ud);
+            if (item instanceof IsAssociatedWithLuaUserdata ud) {
+                componentReg.addComponentAndNotify(ud.CreateUserdata(is));
             }
         }
 
@@ -340,6 +341,32 @@ public class LuaVirtualMachine {
     private static RuntimeException interruptAndKillCurrent() {
         Thread.currentThread().interrupt();
         throw new LvmKillException();
+    }
+
+    private final HashMap<Integer, Tuple<IsAssociatedWithLuaUserdata,LuaUserDataComponent>> luaComputerInventoryUserdataObjectsBySlotId = new HashMap<>();
+
+    public void rebuildUserdataFromInventory() {
+        var slots = computer.itemHandler.getSlots();
+        for (int i = 0; i < slots; i++) {
+            var is = computer.itemHandler.getStackInSlot(i);
+            IsAssociatedWithLuaUserdata assoc = null;
+            if(!is.isEmpty() && is.getItem() instanceof IsAssociatedWithLuaUserdata a) {
+                assoc = a;
+            }
+            var oldTpl = luaComputerInventoryUserdataObjectsBySlotId.get(i);
+            var old = oldTpl == null ? null : oldTpl.x();
+            if (old != assoc)
+            {
+                // TODO invalidate the original user data object
+            }
+
+            // then add the fresh one
+            if (assoc != null)
+            {
+                var ud = assoc.CreateUserdata(is);
+                luaComputerInventoryUserdataObjectsBySlotId.put(i, new Tuple<>(assoc, ud));
+            }
+        }
     }
 
     static class LvmKillException extends RuntimeException {

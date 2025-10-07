@@ -4,7 +4,6 @@ import dev.asdf00.jluavm.api.userdata.*;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
-import dev.asdf00.mc.advcomp.lua.LuaEventQueue;
 import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
 
 import java.util.List;

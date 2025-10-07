@@ -25,7 +25,8 @@ import dev.asdf00.mc.advcomp.datagen.*;
 import dev.asdf00.mc.advcomp.items.KeycardAdvancedItem;
 import dev.asdf00.mc.advcomp.items.KeycardBasicItem;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
-import dev.asdf00.mc.advcomp.items.StorageItemUD;
+import dev.asdf00.mc.advcomp.items.DiskItem;
+import dev.asdf00.mc.advcomp.types.AcGlobalDataStorage;
 import dev.asdf00.mc.advcomp.types.DualLayerItemColorHandler;
 import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
 import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
@@ -95,6 +96,7 @@ public class AdvancedComputers {
     public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, MODID);
     public static final DeferredRegister<RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(ForgeRegistries.RECIPE_TYPES, MODID);
 
+    public static AcGlobalDataStorage globalDataStorage;
 
     public static final AcClusterType CLUSTER_TYPE_DEVICE = AdvancedComputers.AC_CLUSTER_TYPE_MANAGER.RegisterNewClusterType("device");
     public static final AcClusterType CLUSTER_TYPE_NETWORK = AdvancedComputers.AC_CLUSTER_TYPE_MANAGER.RegisterNewClusterType("network");
@@ -185,6 +187,7 @@ public class AdvancedComputers {
     public static final RegistryObject<RecipeSerializer<DyeCustomRecipe>> DYE_RECIPE_SERIALIZER =
             RECIPE_SERIALIZERS.register("dye_item", () -> DyeCustomRecipe.serializer);
 
+
 //    public static final RegistryObject<RecipeType<DyeCustomRecipe>> DYE_RECIPE =
 //            RECIPE_TYPES.register("dye_item", DyeCustomRecipe::new);
 
@@ -221,11 +224,11 @@ public class AdvancedComputers {
     public static final RegistryObject<Item> EXAMPLE_ITEM = ITEMS.register("example_item", () -> new Item(new Item.Properties().food(new FoodProperties.Builder()
             .alwaysEat().nutrition(1).saturationMod(2f).build())));
 
-    public static final RegistryObject<Item> HDD_TIER_1_ITEM = RegisterItem("hdd_tier1_item", () -> new StorageItemUD(Constants.MiB));
-    public static final RegistryObject<Item> HDD_TIER_2_ITEM = RegisterItem("hdd_tier2_item", () -> new StorageItemUD(5 * Constants.MiB));
-    public static final RegistryObject<Item> HDD_TIER_3_ITEM = RegisterItem("hdd_tier3_item", () -> new StorageItemUD(10 * Constants.MiB));
-    public static final RegistryObject<Item> HDD_TIER_4_ITEM = RegisterItem("hdd_tier4_item", () -> new StorageItemUD(15 * Constants.MiB));
-    public static final RegistryObject<Item> HDD_TIER_5_ITEM = RegisterItem("hdd_tier5_item", () -> new StorageItemUD(20 * Constants.MiB));
+    public static final RegistryObject<Item> HDD_TIER_1_ITEM = RegisterItem("hdd_tier1_item", () -> new DiskItem(Constants.MiB));
+    public static final RegistryObject<Item> HDD_TIER_2_ITEM = RegisterItem("hdd_tier2_item", () -> new DiskItem(5 * Constants.MiB));
+    public static final RegistryObject<Item> HDD_TIER_3_ITEM = RegisterItem("hdd_tier3_item", () -> new DiskItem(10 * Constants.MiB));
+    public static final RegistryObject<Item> HDD_TIER_4_ITEM = RegisterItem("hdd_tier4_item", () -> new DiskItem(15 * Constants.MiB));
+    public static final RegistryObject<Item> HDD_TIER_5_ITEM = RegisterItem("hdd_tier5_item", () -> new DiskItem(20 * Constants.MiB));
 
     public static final RegistryObject<Item> KEYCARD_BASIC_ITEM = RegisterItem("keycard_basic_item", () -> new KeycardBasicItem(new Item.Properties()));
     public static final RegistryObject<Item> KEYCARD_ADVANCED_ITEM = RegisterItem("keycard_advanced_item", () -> new KeycardAdvancedItem(new Item.Properties()));
@@ -318,6 +321,7 @@ public class AdvancedComputers {
         // Do something when the server starts
         //LOGGER.info("HELLO from server starting");
         serverReference = event.getServer();
+        globalDataStorage = AcGlobalDataStorage.loadOrCreate(serverReference.overworld().getDataStorage());
     }
 
     @SubscribeEvent

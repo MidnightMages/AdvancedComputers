@@ -40,7 +40,7 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity implements MenuProvider, IAcClusterHostEntity {
-    public final NotifyingItemHandler itemHandler = new NotifyingItemHandler(this, ComputerBlockMenu.TE_INVENTORY_SLOT_COUNT);
+    public final NotifyingItemHandler itemHandler = new NotifyingItemHandler(this, ComputerBlockMenu.TE_INVENTORY_SLOT_COUNT, this::itemHandler_onSlotChanged);
     private ComputerTier tier;
     private ComputerBlock block;
     private LazyOptional<IItemHandler> lazyItemHandler = LazyOptional.empty();
@@ -55,6 +55,12 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
     private final AtomicReference<ComputerBlock.ComputerRunState> newRunState = new AtomicReference<>(ComputerBlock.ComputerRunState.STOPPED);
     private void SetRunState(ComputerBlock.ComputerRunState rs){
         newRunState.set(rs);
+    }
+
+    void itemHandler_onSlotChanged(int slot) {
+        if(!isServer()) return;
+        if(lvm != null)
+            lvm.rebuildUserdataFromInventory();
     }
 
     public void tick(Level pLevel, BlockPos pPos, BlockState pState) {
@@ -246,6 +252,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
             synchronized (lockLVM) {
                 if (lvm == null) {
                     lvm = new LuaVirtualMachine(this, Integer.MAX_VALUE);
+                    lvm.rebuildUserdataFromInventory();
                 }
                 return lvm;
             }
