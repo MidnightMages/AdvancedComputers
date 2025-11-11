@@ -8,7 +8,7 @@ import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.exceptions.ACError;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
-import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.AcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -35,7 +35,7 @@ import java.util.Set;
 public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity implements MenuProvider {
     public final ItemStackHandler itemHandler = new ItemStackHandler(2);
     private LazyOptional<IItemHandler> lazyItemhandler = LazyOptional.empty();
-    private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable;
+    private final LazyOptional<AcDevCableConnectableEntity> lazyCableConnectable;
 
     public void tick(Level pLevel, BlockPos pPos, BlockState pState) {
         // todo add logic

@@ -1,7 +1,7 @@
 package dev.asdf00.mc.advcomp.blocks.cables.base;
 
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
-import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.AcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
 import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableEntityBlock;
 import dev.asdf00.mc.advcomp.types.cluster.IAcBaseCableConnectableEntity;
@@ -30,7 +30,7 @@ public abstract class BaseCableBlockEntity extends BaseAcCableEntityBlock {
     public static final int CAPACITY = 1000;
 
     private final EnergyStorage energy = createEnergyStorage();
-    private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable = null; // TODO also split caps here
+    private final LazyOptional<AcDevCableConnectableEntity> lazyCableConnectable = null; // TODO also split caps here
     private final AcClusterType cableType;
 
     protected BaseCableBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, AcClusterType cableType) {

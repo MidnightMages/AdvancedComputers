@@ -9,7 +9,7 @@ import java.util.HashMap;
 /**
  * Represents a block entity which can be connected to clusters (cable networks) and needs to be aware of other devices on this network.
  */
-public interface IAcBaseCableConnectableBlockEntity extends IAcBaseCableConnectableEntity {
+public interface AcBaseCableConnectableBlockEntity extends IAcBaseCableConnectableEntity {
     HashMap<Direction, CableCluster> getNetworkList();
 
     void onNetworkUpdated(Direction dir);

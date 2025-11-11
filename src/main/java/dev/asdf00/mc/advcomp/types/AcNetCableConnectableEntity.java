@@ -4,6 +4,5 @@ import dev.asdf00.mc.advcomp.types.cluster.IAcBaseCableConnectableEntity;
 import net.minecraftforge.common.capabilities.AutoRegisterCapability;
 
 @AutoRegisterCapability
-public interface IAcDevCableConnectableEntity extends IAcBaseCableConnectableEntity {
-
+public interface AcNetCableConnectableEntity extends IAcBaseCableConnectableEntity {
 }

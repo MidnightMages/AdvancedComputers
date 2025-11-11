@@ -2,7 +2,7 @@ package dev.asdf00.mc.advcomp.blocks.cables.base;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.cables.ConnectionDir;
-import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.AcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.IAcBaseCableConnectableEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -62,7 +62,7 @@ public abstract class BaseCableBlock extends Block implements SimpleWaterloggedB
     private static final VoxelShape SHAPE_BLOCK_EAST = Shapes.box(.9, .2, .2, 1, .8, .8);
     private static final VoxelShape SHAPE_BLOCK_UP = Shapes.box(.2, .9, .2, .8, 1, .8);
     private static final VoxelShape SHAPE_BLOCK_DOWN = Shapes.box(.2, 0, .2, .8, .1, .8);
-    private final Capability<IAcDevCableConnectableEntity> cableConnectableCapability; // TODO split caps among derived classes
+    private final Capability<AcDevCableConnectableEntity> cableConnectableCapability; // TODO split caps among derived classes
 
     private int calculateShapeIndex(ConnectionDir north, ConnectionDir south, ConnectionDir west, ConnectionDir east, ConnectionDir up, ConnectionDir down) {
         int l = ConnectionDir.values().length;
@@ -133,7 +133,7 @@ public abstract class BaseCableBlock extends Block implements SimpleWaterloggedB
         return calculateState(world, current, state);
     }
 
-    public BaseCableBlock(Capability<IAcDevCableConnectableEntity> cableConnectableCapability, Properties pProperties) {
+    public BaseCableBlock(Capability<AcDevCableConnectableEntity> cableConnectableCapability, Properties pProperties) {
         super(pProperties);
         this.cableConnectableCapability = cableConnectableCapability;
 

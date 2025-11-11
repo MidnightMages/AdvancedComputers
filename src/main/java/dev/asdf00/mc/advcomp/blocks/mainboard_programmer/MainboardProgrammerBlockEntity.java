@@ -3,7 +3,7 @@ package dev.asdf00.mc.advcomp.blocks.mainboard_programmer;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
-import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.AcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.utils.NotifyingItemHandler;
 import net.minecraft.core.BlockPos;
@@ -31,7 +31,7 @@ import java.util.List;
 public class MainboardProgrammerBlockEntity extends BaseAcCableConnectableBlockEntity implements MenuProvider {
     public final NotifyingItemHandler itemHandler = new NotifyingItemHandler(this, MainboardProgrammerBlockMenu.TE_INVENTORY_SLOT_COUNT);
     private LazyOptional<IItemHandler> lazyItemHandler = LazyOptional.empty();
-    private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable;
+    private final LazyOptional<AcDevCableConnectableEntity> lazyCableConnectable;
     protected final ContainerData data;
 
     public void tick(Level pLevel, BlockPos pPos, BlockState pState) {

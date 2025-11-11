@@ -2,7 +2,7 @@ package dev.asdf00.mc.advcomp.blocks.wan_router;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
-import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.AcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.types.cluster.IAcBaseCableConnectableEntity;
 import net.minecraft.core.BlockPos;
@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 
 public class WanRouterBlockEntityLowTier extends BaseAcCableConnectableBlockEntity {
-    private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable;
+    private final LazyOptional<AcDevCableConnectableEntity> lazyCableConnectable;
 
     public WanRouterBlockEntityLowTier(BlockPos pPos, BlockState pBlockState) {
         super(AdvancedComputers.WAN_ROUTER_BE_LOWTIER.get(), pPos, pBlockState, Collections.singletonList(AdvancedComputers.CLUSTER_TYPE_NETWORK));

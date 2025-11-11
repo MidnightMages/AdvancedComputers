@@ -1,8 +1,8 @@
 package dev.asdf00.mc.advcomp.blocks.cables;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.api.IAcBaseCableConnectableBlockEntity;
-import dev.asdf00.mc.advcomp.api.IAcClusterHostEntity;
+import dev.asdf00.mc.advcomp.api.AcBaseCableConnectableBlockEntity;
+import dev.asdf00.mc.advcomp.api.AcClusterHostEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.base.BaseCableBlock;
 import dev.asdf00.mc.advcomp.exceptions.ACError;
 import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
@@ -15,14 +15,14 @@ import net.minecraft.world.level.Level;
 import java.util.*;
 
 public class CableCluster {
-    public final IAcBaseCableConnectableBlockEntity[] connectedEntities; // contains all connected devices
-    private final IAcClusterHostEntity[] connectedHostEntities; // contains all connected devices that implement the interface IAcClusterHostEntity
+    public final AcBaseCableConnectableBlockEntity[] connectedEntities; // contains all connected devices
+    private final AcClusterHostEntity[] connectedHostEntities; // contains all connected devices that implement the interface AcClusterHostEntity
     public final AcClusterType clusterType;
 
     /**
      * Gets the host of this cluster if this cluster is valid. Otherwise, this method returns {@code null}.
      */
-    public IAcClusterHostEntity getHost() {
+    public AcClusterHostEntity getHost() {
         if (connectedHostEntities.length != 1) {
             return null;
         }
@@ -41,11 +41,11 @@ public class CableCluster {
         return this.clusterType;
     }
 
-    public IAcBaseCableConnectableBlockEntity getEntity(int index) {
+    public AcBaseCableConnectableBlockEntity getEntity(int index) {
         return connectedEntities[index];
     }
 
-    private CableCluster(IAcBaseCableConnectableBlockEntity[] connectedEntities, IAcClusterHostEntity[] connectedHostEntities, AcClusterType clusterType) {
+    private CableCluster(AcBaseCableConnectableBlockEntity[] connectedEntities, AcClusterHostEntity[] connectedHostEntities, AcClusterType clusterType) {
         Objects.nonNull(connectedEntities);
         Objects.nonNull(connectedHostEntities);
         this.connectedEntities = connectedEntities;
@@ -76,7 +76,7 @@ public class CableCluster {
         // approach:
         //    (not implemented yet) if added: simply rebuild network from current initialBp
         //    otherwise: rebuild 7 networks, one from current and then 6 form the surrounding ones (or always do this one)
-        // whenever a network rebuild discovers a IAcBaseCableConnectableBlockEntity, the network is read from that block and it is wiped off of any devices on that network
+        // whenever a network rebuild discovers a AcBaseCableConnectableBlockEntity, the network is read from that block and it is wiped off of any devices on that network
         var neighborStartPosesToCheck = new ArrayDeque<BlockPos>();
         neighborStartPosesToCheck.push(initialBp);
         for (var dir : Direction.values())
@@ -97,15 +97,15 @@ public class CableCluster {
             if (!prece.canBePartOfCluster(clusterType))
                 continue;
 
-            if (prece instanceof IAcBaseCableConnectableBlockEntity precbe)
+            if (prece instanceof AcBaseCableConnectableBlockEntity precbe)
                 precbe.getNetworkList().clear(); // TODO let the block know if a face was cleared and not actually re-discovered and restored
 
 
             // this is from the perspective of the block itself, so going into the block by going north in the algorithm would mean this contains the south side of the block
             HashMap<BlockPos, ArrayList<Direction>> alreadyEnteredBlockFaces = new HashMap<>();
 
-            HashMap<BlockPos, IAcBaseCableConnectableBlockEntity> connectedDevices = new HashMap<>();
-            HashMap<BlockPos, IAcClusterHostEntity> connectedHosts = new HashMap<>();
+            HashMap<BlockPos, AcBaseCableConnectableBlockEntity> connectedDevices = new HashMap<>();
+            HashMap<BlockPos, AcClusterHostEntity> connectedHosts = new HashMap<>();
             boolean startpointWasProcessed = false;
 
             Stack<BlockPos> posesToCheck = new Stack<>();
@@ -132,7 +132,7 @@ public class CableCluster {
                         }
 
                         // additionally we have to check first if we have already entered this block from this side (if it is a block entity and not a cable)
-                        if (ce instanceof IAcBaseCableConnectableBlockEntity) { // either skip or mark
+                        if (ce instanceof AcBaseCableConnectableBlockEntity) { // either skip or mark
                             var arr = alreadyEnteredBlockFaces.get(rel);
                             var blockFace = dir.getOpposite();
                             if (arr != null) {
@@ -165,9 +165,9 @@ public class CableCluster {
                         startpointWasProcessed = true;
                     }
                     // in any case, add the device, if it is one, to the current list
-                    if (ce instanceof IAcBaseCableConnectableBlockEntity cbe) {
+                    if (ce instanceof AcBaseCableConnectableBlockEntity cbe) {
                         connectedDevices.put(pos, cbe);
-                        if (cbe instanceof IAcClusterHostEntity che) {
+                        if (cbe instanceof AcClusterHostEntity che) {
                             connectedHosts.put(pos, che);
                         }
                     } else { // otherwise it must be a normal cable --> keep track of it so we can update blockstates later
@@ -190,7 +190,7 @@ public class CableCluster {
 //              }
             } else {
 
-                var connectedHostsChecked = new HashMap<BlockPos, IAcClusterHostEntity>();
+                var connectedHostsChecked = new HashMap<BlockPos, AcClusterHostEntity>();
                 for (BlockPos chbp : connectedHosts.keySet()) {
                     var ch = connectedHosts.get(chbp);
                     var dirs = alreadyEnteredBlockFaces.get(chbp);
@@ -207,8 +207,8 @@ public class CableCluster {
                 // Sort devices by world position.
                 // If this network does not have a host, it will stay unsorted.
                 // If there are multiple hosts, this cluster is sorted by absolute world position.
-                IAcBaseCableConnectableBlockEntity[] devices;
-                IAcClusterHostEntity[] hosts = connectedHosts.values().toArray(IAcClusterHostEntity[]::new);
+                AcBaseCableConnectableBlockEntity[] devices;
+                AcClusterHostEntity[] hosts = connectedHosts.values().toArray(AcClusterHostEntity[]::new);
                 if (hosts.length == 1) {
                     // sort devices
                     final var host = hosts[0];
@@ -218,7 +218,7 @@ public class CableCluster {
                         hostWorldOrientation = Direction.SOUTH;
                     }
                     final var orientation = hostWorldOrientation;
-                    Map.Entry<BlockPos, IAcBaseCableConnectableBlockEntity>[] entries = connectedDevices.entrySet().toArray(Map.Entry[]::new);
+                    Map.Entry<BlockPos, AcBaseCableConnectableBlockEntity>[] entries = connectedDevices.entrySet().toArray(Map.Entry[]::new);
                     Arrays.sort(entries, (ex, ey) -> {
                         BlockPos x = ex.getKey();
                         BlockPos y = ey.getKey();
@@ -258,13 +258,13 @@ public class CableCluster {
                     });
 
                     // get sorted array of devices
-                    devices = new IAcBaseCableConnectableBlockEntity[entries.length];
+                    devices = new AcBaseCableConnectableBlockEntity[entries.length];
                     for (int i = 0; i < entries.length; i++) {
                         devices[i] = entries[i].getValue();
                     }
                 } else if (hosts.length > 1) {
                     // sort by absolute world position
-                    Map.Entry<BlockPos, IAcBaseCableConnectableBlockEntity>[] entries = connectedDevices.entrySet().toArray(Map.Entry[]::new);
+                    Map.Entry<BlockPos, AcBaseCableConnectableBlockEntity>[] entries = connectedDevices.entrySet().toArray(Map.Entry[]::new);
                     Arrays.sort(entries, (ex, ey) -> {
                         BlockPos x = ex.getKey();
                         BlockPos y = ey.getKey();
@@ -281,13 +281,13 @@ public class CableCluster {
                     });
 
                     // get sorted array of devices
-                    devices = new IAcBaseCableConnectableBlockEntity[entries.length];
+                    devices = new AcBaseCableConnectableBlockEntity[entries.length];
                     for (int i = 0; i < entries.length; i++) {
                         devices[i] = entries[i].getValue();
                     }
                 } else {
                     // leave them unsorted
-                    devices = connectedDevices.values().toArray(IAcBaseCableConnectableBlockEntity[]::new);
+                    devices = connectedDevices.values().toArray(AcBaseCableConnectableBlockEntity[]::new);
                 }
 
                 var newNet = new CableCluster(devices, hosts, clusterType);

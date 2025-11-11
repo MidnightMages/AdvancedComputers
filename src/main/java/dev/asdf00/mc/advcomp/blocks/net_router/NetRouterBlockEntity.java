@@ -2,7 +2,7 @@ package dev.asdf00.mc.advcomp.blocks.net_router;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
-import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.AcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 
 public class NetRouterBlockEntity extends BaseAcCableConnectableBlockEntity {
-    private final LazyOptional<IAcDevCableConnectableEntity> lazyCableConnectable;
+    private final LazyOptional<AcDevCableConnectableEntity> lazyCableConnectable;
 
     public NetRouterBlockEntity(BlockPos pPos, BlockState pBlockState) {
         super(AdvancedComputers.NET_ROUTER_BE.get(), pPos, pBlockState, Collections.singletonList(AdvancedComputers.CLUSTER_TYPE_NETWORK));

@@ -1,8 +1,8 @@
 package dev.asdf00.mc.advcomp.types.cluster;
 
-import dev.asdf00.mc.advcomp.api.IAcBaseCableConnectableBlockEntity;
+import dev.asdf00.mc.advcomp.api.AcBaseCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
-import dev.asdf00.mc.advcomp.types.IAcDevCableConnectableEntity;
+import dev.asdf00.mc.advcomp.types.AcDevCableConnectableEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.HashMap;
 import java.util.List;
 
-public abstract class BaseAcCableConnectableBlockEntity extends BaseAcCableEntityBlock implements IAcBaseCableConnectableBlockEntity, IAcDevCableConnectableEntity {
+public abstract class BaseAcCableConnectableBlockEntity extends BaseAcCableEntityBlock implements AcBaseCableConnectableBlockEntity, AcDevCableConnectableEntity {
     private final List<AcClusterType> supportedClusterTypes;
     public HashMap<Direction, CableCluster> connectedNetworks;
 
