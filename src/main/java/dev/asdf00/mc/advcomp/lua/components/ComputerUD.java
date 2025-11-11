@@ -9,21 +9,11 @@ import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
 import java.util.List;
 import java.util.Map;
 
-public class ComputerUD implements LuaUserDataComponent {
+public class ComputerUD extends BaseAcComponent {
     private final LuaVirtualMachine lvm;
 
-    @Override
-    public String getComponentType() {
-        return "computer";
-    }
-
-    @LuaExposed(LuaExposed.Policy.READ)
-    public final LuaProperty id = LuaProperty.ofString(
-            () -> "computer",
-            null
-    );
-
     public ComputerUD(LuaVirtualMachine lvm) {
+        super("computer");
         this.lvm = lvm;
     }
 

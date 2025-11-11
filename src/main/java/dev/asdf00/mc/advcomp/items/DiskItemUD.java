@@ -8,6 +8,7 @@ import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.lua.components.BaseAcComponent;
 import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 import dev.asdf00.mc.advcomp.lua.components.fs.LuaFsFileUD;
 import dev.asdf00.mc.advcomp.lua.components.fs.ManagedStorageHandler;
@@ -17,9 +18,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public class DiskItemUD implements LuaUserDataComponent {
+public class DiskItemUD extends BaseAcComponent {
 
     public DiskItemUD(ItemStack is) {
+        super("disk");
         var tag = is.getOrCreateTag();
 
         if (!tag.contains("mDiskId")) { // no folder associated yet with this disk
@@ -29,11 +31,6 @@ public class DiskItemUD implements LuaUserDataComponent {
 
         if(fs == null)
             initFilesystem(tag.getInt("mDiskId"));
-    }
-
-    @Override
-    public String getComponentType() {
-        return "disk";
     }
 
     //    private UnmanagedStorageHandler storageComponent;

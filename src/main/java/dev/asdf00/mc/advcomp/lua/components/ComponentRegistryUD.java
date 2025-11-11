@@ -13,11 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class ComponentRegistryUD implements LuaUserData {
+public class ComponentRegistryUD extends BaseAcComponent {
     private final ArrayList<LuaComponent> allComponents = new ArrayList<>();
     private final LuaVirtualMachine lvm;
 
     public ComponentRegistryUD(LuaVirtualMachine lvm) {
+        super("component");
         this.lvm = lvm;
     }
 

@@ -9,10 +9,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class NvramUD implements LuaUserDataComponent {
-    @Override
-    public String getComponentType() {
-        return "nvram";
+public class NvramUD extends BaseAcComponent {
+    public NvramUD() {
+        super("nvram");
     }
 
     private final HashMap<String, LuaObject> backing = new HashMap<>();

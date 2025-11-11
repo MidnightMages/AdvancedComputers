@@ -8,7 +8,7 @@ import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.lua.components.ComponentRegistryUD;
 import dev.asdf00.mc.advcomp.lua.components.ComputerUD;
-import dev.asdf00.mc.advcomp.lua.components.IsAssociatedWithLuaUserdata;
+import dev.asdf00.mc.advcomp.lua.components.AcItemComponent;
 import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 import dev.asdf00.mc.advcomp.utils.Tuple;
 
@@ -191,7 +191,7 @@ public class LuaVirtualMachine {
         AdvancedComputers.LOGGER.info("trying to start LVM");
 
 
-        String bootFile = luaBootScript; // entry code
+        String bootFile = luaBootScript; // entry code // TODO load from bios instead
 
         eventQueue = new LuaEventQueue();
 //        console.onKeyPressed = eventQueue::addKeyPressed;
@@ -220,10 +220,15 @@ public class LuaVirtualMachine {
         for (int i = 0; i < inv.getSlots(); i++) {
             var is = inv.getStackInSlot(i);
             var item = is.getItem();
-            if (item instanceof IsAssociatedWithLuaUserdata ud) {
-                componentReg.addComponentAndNotify(ud.CreateUserdata(is));
+            if (item instanceof AcItemComponent ud) {
+                var udo = ud.CreateUserdata(is);
+                componentReg.addComponentAndNotify(udo);
+                udo.onVmInit(this);
             }
         }
+
+        // TODO traverse peripheral network and instantiate and init the block userdata objects similarly
+        // TODO define how exactly the peripheral network should behave (and make it behave that way then)
 
         //componentReg.registerComponent(new InternetUD());
         //componentReg.registerComponent(new BiosUD());
@@ -343,14 +348,14 @@ public class LuaVirtualMachine {
         throw new LvmKillException();
     }
 
-    private final HashMap<Integer, Tuple<IsAssociatedWithLuaUserdata,LuaUserDataComponent>> luaComputerInventoryUserdataObjectsBySlotId = new HashMap<>();
+    private final HashMap<Integer, Tuple<AcItemComponent,LuaUserDataComponent>> luaComputerInventoryUserdataObjectsBySlotId = new HashMap<>();
 
     public void rebuildUserdataFromInventory() {
         var slots = computer.itemHandler.getSlots();
         for (int i = 0; i < slots; i++) {
             var is = computer.itemHandler.getStackInSlot(i);
-            IsAssociatedWithLuaUserdata assoc = null;
-            if(!is.isEmpty() && is.getItem() instanceof IsAssociatedWithLuaUserdata a) {
+            AcItemComponent assoc = null;
+            if(!is.isEmpty() && is.getItem() instanceof AcItemComponent a) {
                 assoc = a;
             }
             var oldTpl = luaComputerInventoryUserdataObjectsBySlotId.get(i);
