@@ -1,6 +1,9 @@
 package dev.asdf00.mc.advcomp.blocks.computer;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.blocks.SlotItemHandlerRequireType;
+import dev.asdf00.mc.advcomp.items.MainboardItem;
+import dev.asdf00.mc.advcomp.lua.components.AcItemComponent;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -34,7 +37,8 @@ public class ComputerBlockMenu extends AbstractContainerMenu {
         addPlayerInventory(playerInv);
         addPlayerHotbar(playerInv);
         this.blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(iItemHandler -> {
-            this.addSlot(new SlotItemHandler(iItemHandler, 0, 78, 10));
+            this.addSlot(new SlotItemHandlerRequireType(iItemHandler, 0, 78, 10,
+                    MainboardItem.class));
             addSlotRow(iItemHandler, 1, 98, 10, 4);
             addSlotRow(iItemHandler, 5, 98, 30, 4);
             addSlotRow(iItemHandler, 9, 62, 50, 6);
@@ -43,7 +47,8 @@ public class ComputerBlockMenu extends AbstractContainerMenu {
 
     void addSlotRow(IItemHandler iItemHandler, int indexStart, int xPos, int yPos, int count) {
         for (int i = 0; i < count; i++) {
-            this.addSlot(new SlotItemHandler(iItemHandler, indexStart + i, xPos + 18 * i, yPos));
+            this.addSlot(new SlotItemHandlerRequireType(iItemHandler, indexStart + i, xPos + 18 * i, yPos,
+                    AcItemComponent.class)); // TODO distinguish between disk and other slot types
         }
     }
 
@@ -66,7 +71,7 @@ public class ComputerBlockMenu extends AbstractContainerMenu {
     public static final int TE_INVENTORY_SLOT_COUNT = 15;  // must be the number of slots you have!
 
     @Override
-    public ItemStack quickMoveStack(Player playerIn, int pIndex) {
+    public @NotNull ItemStack quickMoveStack(@NotNull Player playerIn, int pIndex) {
         Slot sourceSlot = slots.get(pIndex);
         if (sourceSlot == null || !sourceSlot.hasItem()) return ItemStack.EMPTY;  //EMPTY_ITEM
         ItemStack sourceStack = sourceSlot.getItem();
