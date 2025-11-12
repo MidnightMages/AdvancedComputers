@@ -3,7 +3,7 @@ local ok, rv = xpcall(function()
 	local computer = component:getFirst("computer")
 	local idx = 1
 	for t, a in component:list() do
-	   print(t, a.id)
+	   print(t, a.componentType)
 	   computer.nvram.test = 123
 	   print(computer.nvram.test)
 	   computer.nvram.test = "bla"

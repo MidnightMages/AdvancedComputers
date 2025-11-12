@@ -5,18 +5,17 @@ import dev.asdf00.jluavm.api.userdata.LuaProperty;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
 
-import java.util.Objects;
-
 public abstract class BaseAcComponent implements LuaUserDataComponent {
-    private String componentType;
+    private final String componentTypeString;
     protected LuaVirtualMachine acVm;
     private boolean isAccessible = true;
 
     @LuaExposed(LuaExposed.Policy.READ)
-    public final LuaProperty id = LuaProperty.ofString(() -> Objects.requireNonNull(componentType), null);
+    public final LuaProperty componentType;
 
     public BaseAcComponent(String componentType) {
-        this.componentType = componentType;
+        this.componentTypeString = componentType;
+        this.componentType = LuaProperty.ofString(() -> componentType, null);
     }
 
     @Override
@@ -31,7 +30,7 @@ public abstract class BaseAcComponent implements LuaUserDataComponent {
 
     @Override
     public String getComponentType() {
-        return componentType;
+        return componentTypeString;
     }
 
     @Override
