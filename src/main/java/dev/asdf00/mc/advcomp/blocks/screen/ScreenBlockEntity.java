@@ -7,6 +7,8 @@ import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.exceptions.ACError;
+import dev.asdf00.mc.advcomp.lua.components.AcBlockEntityComponent;
+import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
 import dev.asdf00.mc.advcomp.types.AcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;
@@ -32,10 +34,15 @@ import java.util.Collections;
 import java.util.Set;
 
 
-public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity implements MenuProvider {
+public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity implements MenuProvider, AcBlockEntityComponent {
     public final ItemStackHandler itemHandler = new ItemStackHandler(2);
     private LazyOptional<IItemHandler> lazyItemhandler = LazyOptional.empty();
     private final LazyOptional<AcDevCableConnectableEntity> lazyCableConnectable;
+
+    @Override
+    public LuaUserDataComponent CreateUserdata() {
+        return new ScreenBlockUD(this);
+    }
 
     public void tick(Level pLevel, BlockPos pPos, BlockState pState) {
         // todo add logic

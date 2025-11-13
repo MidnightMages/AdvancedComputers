@@ -2,7 +2,6 @@ package dev.asdf00.mc.advcomp.lua;
 
 import dev.asdf00.jluavm.LuaVM;
 import dev.asdf00.jluavm.api.functions.AtomicLuaFunction;
-import dev.asdf00.jluavm.api.userdata.LuaUserData;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
@@ -16,6 +15,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Objects;
@@ -50,7 +50,7 @@ public class LuaVirtualMachine {
     private final Object startStopLock = new Object();
     private volatile boolean suspended;
     private volatile boolean isRunning;
-    private volatile Thread executionEnv;
+    private volatile Thread executorThread;
 
     private LuaStdOut stdOut;
     private String stopCode;
@@ -108,89 +108,18 @@ public class LuaVirtualMachine {
     }
 
     public void start() {
-        AdvancedComputers.LOGGER.info("Starting LVM");
+        AdvancedComputers.LOGGER.info("Trying to start LVM");
         synchronized (startStopLock) {
             if (isRunning) {
                 throw new IllegalStateException("LVM is already running");
             }
             isRunning = true;
-            stdOut = new LuaStdOut();
-            executionEnv = new Thread(this::runLua);
+            executorThread = new Thread(this::runLua);
             stopCode = "";
             stopCode_isGraceful = false;
         }
-        executionEnv.start();
-    }
-
-    public void addComponent(LuaUserData component) {
-
-    }
-
-    public void suspend() {
-        synchronized (startStopLock) {
-            if (isRunning) {
-                suspended = true;
-            }
-        }
-    }
-
-    public void resume() {
-        synchronized (startStopLock) {
-            if (executionEnv == null) {
-                throw new IllegalStateException("no execution environment to resume");
-            }
-            var prev = suspended;
-            suspended = false;
-            if (prev) {
-                // only grant unpark permit if thread was parked in the first place
-                LockSupport.unpark(executionEnv);
-            }
-        }
-    }
-
-    public void tryKill(String reason, boolean isGracefulShutdown) {
-        synchronized (startStopLock) {
-            if (isRunning) {
-                synchronized (startStopLock) {
-                    killingLVM = true;
-                    stopCode = "[KILLED] " + reason;
-                    stopCode_isGraceful = isGracefulShutdown;
-
-                    executionEnv.interrupt();
-                    if (suspended) {
-                        resume();
-                    }
-
-                    // cleanup after kill
-                    isRunning = false;
-                    executionEnv = null;
-                }
-            }
-        }
-    }
-
-    public void toggleOnOff(Runnable onStart, Consumer<Boolean> onExit) {
-        synchronized (startStopLock) {
-            if (getState() == 0) {
-                runOnExit = onExit;
-                onStart.run();
-                start();
-            } else {
-                tryKill("ON/OFF button pushed", true);
-            }
-        }
-    }
-
-    boolean isBeingKilled() {
-        return killingLVM;
-    }
-
-    private void runLua() {
         stdOut = new LuaStdOut();
         stdOut.clear();
-        AdvancedComputers.LOGGER.info("trying to start LVM");
-
-
         String bootFile = luaBootScript; // entry code // TODO load from bios instead
 
         eventQueue = new LuaEventQueue();
@@ -216,15 +145,27 @@ public class LuaVirtualMachine {
 //            ud.init(fs);
 //            componentReg.addComponentAndNotify(ud);
 //        }
+
+        var componentsToInit = new ArrayList<LuaUserDataComponent>();
         var inv = computer.itemHandler;
         for (int i = 0; i < inv.getSlots(); i++) {
             var is = inv.getStackInSlot(i);
             var item = is.getItem();
             if (item instanceof AcItemComponent ud) {
-                var udo = ud.CreateUserdata(is);
-                componentReg.addComponentAndNotify(udo);
-                udo.onVmInit(this);
+                var comp = ud.CreateUserdata(is);
+                componentsToInit.add(comp);
             }
+        }
+
+        var screenBlockPos =  computer.getBlockPos().offset(0,1,0);
+        var screenBe = Objects.requireNonNull(computer.getLevel()).getBlockEntity(screenBlockPos, AdvancedComputers.SCREEN_BE.get());
+
+        if (screenBe.isPresent())
+            componentsToInit.add(screenBe.get().CreateUserdata());
+
+        for (var comp : componentsToInit) {
+            componentReg.addComponentAndNotify(comp);
+            comp.onVmInit(this);
         }
 
         // TODO traverse peripheral network and instantiate and init the block userdata objects similarly
@@ -279,8 +220,6 @@ public class LuaVirtualMachine {
 //        }));
 
 
-        boolean lvmException = false;
-        boolean lvmCleanExit = false;
 //        try {
 //            vm.withRootFunc(luaEntryScript);
 //            var rv = vm.run();
@@ -297,7 +236,74 @@ public class LuaVirtualMachine {
             for (var k : map.keys()) {
                 t.set(k, map.getOrDefault(k, LuaObject.NIL));
             }
-        }).rootFunc(bootFile).build();try {
+        }).rootFunc(bootFile).build();
+
+        executorThread.start();
+    }
+
+    public void suspend() {
+        synchronized (startStopLock) {
+            if (isRunning) {
+                suspended = true;
+            }
+        }
+    }
+
+    public void resume() {
+        synchronized (startStopLock) {
+            if (executorThread == null) {
+                throw new IllegalStateException("no execution environment to resume");
+            }
+            var prev = suspended;
+            suspended = false;
+            if (prev) {
+                // only grant unpark permit if thread was parked in the first place
+                LockSupport.unpark(executorThread);
+            }
+        }
+    }
+
+    public void tryKill(String reason, boolean isGracefulShutdown) {
+        synchronized (startStopLock) {
+            if (isRunning) {
+                synchronized (startStopLock) {
+                    killingLVM = true;
+                    stopCode = "[KILLED] " + reason;
+                    stopCode_isGraceful = isGracefulShutdown;
+
+                    executorThread.interrupt();
+                    if (suspended) {
+                        resume();
+                    }
+
+                    // cleanup after kill
+                    isRunning = false;
+                    executorThread = null;
+                }
+            }
+        }
+    }
+
+    public void toggleOnOff(Runnable onStart, Consumer<Boolean> onExit) {
+        synchronized (startStopLock) {
+            if (getState() == 0) {
+                runOnExit = onExit;
+                onStart.run();
+                start();
+            } else {
+                tryKill("ON/OFF button pushed", true);
+            }
+        }
+    }
+
+    boolean isBeingKilled() {
+        return killingLVM;
+    }
+
+    private void runLua() {
+        boolean lvmException = false;
+        boolean lvmCleanExit = false;
+        try {
             var res = vm.run();
 
             if (res.state() == LuaVM.VmRunState.EXECUTION_ERROR) {
@@ -314,7 +320,7 @@ public class LuaVirtualMachine {
         synchronized (startStopLock) {
             killingLVM = false;
             isRunning = false;
-            executionEnv = null;
+            executorThread = null;
             stdOut = null;
 
             if (lvmCleanExit)
