@@ -5,9 +5,9 @@ import dev.asdf00.jluavm.api.functions.AtomicLuaFunction;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
+import dev.asdf00.mc.advcomp.lua.components.AcItemComponent;
 import dev.asdf00.mc.advcomp.lua.components.ComponentRegistryUD;
 import dev.asdf00.mc.advcomp.lua.components.ComputerUD;
-import dev.asdf00.mc.advcomp.lua.components.AcItemComponent;
 import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 import dev.asdf00.mc.advcomp.utils.Tuple;
 
@@ -109,12 +109,11 @@ public class LuaVirtualMachine {
 
     public void start() {
         AdvancedComputers.LOGGER.info("Trying to start LVM");
-        synchronized (startStopLock) {
+        synchronized (startStopLock) { // TODO cleanup
             if (isRunning) {
                 throw new IllegalStateException("LVM is already running");
             }
             isRunning = true;
-            executorThread = new Thread(this::runLua);
             stopCode = "";
             stopCode_isGraceful = false;
         }
@@ -231,13 +230,15 @@ public class LuaVirtualMachine {
 //        }
 
 
-        vm = LuaVM.builder().withApiRegistry(greg).modifyEnv(t -> {
-            var map = _G.asMap();
-            for (var k : map.keys()) {
-                t.set(k, map.getOrDefault(k, LuaObject.NIL));
-            }
-        }).rootFunc(bootFile).build();
-
+        executorThread = new Thread(() -> {
+            vm = LuaVM.builder().withApiRegistry(greg).modifyEnv(t -> {
+                var map = _G.asMap();
+                for (var k : map.keys()) {
+                    t.set(k, map.getOrDefault(k, LuaObject.NIL));
+                }
+            }).rootFunc(bootFile).build();
+            runLua();
+        });
         executorThread.start();
     }
 
