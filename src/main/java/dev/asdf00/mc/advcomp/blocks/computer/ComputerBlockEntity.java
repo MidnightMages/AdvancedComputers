@@ -319,7 +319,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
                         cbe.toggleLVMPowerState();
                     }
                 } else {
-                    AdvancedComputers.LOGGER.warn("Received invalid package for toggling power state of ComputerBlockEntity");
+                    AdvancedComputers.LOGGER.warn("Received invalid packet for toggling power state of ComputerBlockEntity");
                 }
             });
             ctx.setPacketHandled(true);

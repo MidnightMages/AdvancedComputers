@@ -192,7 +192,7 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
                             break;
                     }
                 } else {
-                    AdvancedComputers.LOGGER.warn("Received invalid package for Screen event2");
+                    AdvancedComputers.LOGGER.warn("Received invalid packet for Screen event2");
                 }
             });
             ctx.setPacketHandled(true);
@@ -251,7 +251,7 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
                     }
                     sbe.triggerMachineEvent(eventName, content);
                 } else {
-                    AdvancedComputers.LOGGER.warn("Received invalid package for Screen event");
+                    AdvancedComputers.LOGGER.warn("Received invalid packet for Screen event");
                 }
             });
             ctx.setPacketHandled(true);
