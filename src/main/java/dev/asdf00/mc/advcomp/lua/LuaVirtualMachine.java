@@ -211,7 +211,7 @@ public class LuaVirtualMachine {
         greg.addFunctionsToTable(_G);
 
         // ADD COMPONENT TO _G
-        _G.set("component", LuaObject.of(componentReg));
+        _G.set("components", LuaObject.of(componentReg));
 
 // TODO set stopCode and stopCode_isGraceful
 

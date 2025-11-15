@@ -1,3 +1,4 @@
+component = components
 local ok, rv = xpcall(function()
 	local oldPrint = print
 	print = function(...)
