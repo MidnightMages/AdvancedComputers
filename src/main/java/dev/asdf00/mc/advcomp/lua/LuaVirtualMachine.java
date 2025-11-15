@@ -38,7 +38,7 @@ public class LuaVirtualMachine {
     }
 
     static {
-        luaBootScript = loadLuaScript("boot.lua");
+        luaBootScript = loadLuaScript("bios.lua");
     }
 
     private final ComputerBlockEntity computer;

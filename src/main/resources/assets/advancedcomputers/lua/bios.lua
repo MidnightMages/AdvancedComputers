@@ -1,4 +1,9 @@
 local ok, rv = xpcall(function()
+	local oldPrint = print
+	print = function(...)
+		oldPrint(...)
+		component:getFirst("screen"):print(...)
+	end
 	_G.components = {}
 	local computer = component:getFirst("computer")
 	local idx = 1
