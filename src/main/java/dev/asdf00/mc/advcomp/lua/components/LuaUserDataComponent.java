@@ -2,13 +2,13 @@ package dev.asdf00.mc.advcomp.lua.components;
 
 import dev.asdf00.jluavm.api.userdata.LuaUserData;
 import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
-import net.minecraft.world.item.ItemStack;
 
 public interface LuaUserDataComponent extends LuaUserData {
     String getComponentType();
 
     /**
      * Purely for passing data to the userdata object upon vm creation.
+     * You may provide an empty body for this method if you do not require the provided objects.
      * @param acVm A reference to the parent {@link LuaVirtualMachine} object.
      */
     void onVmInit(LuaVirtualMachine acVm);
