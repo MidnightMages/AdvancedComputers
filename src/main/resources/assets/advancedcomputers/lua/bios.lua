@@ -4,6 +4,11 @@ local ok, rv = xpcall(function()
 		oldPrint(...)
 		component:getFirst("screen"):print(...)
 	end
+	local oldPrintInline = printInline
+	printInline = function(...)
+		oldPrintInline(...)
+		component:getFirst("screen"):printInline(...)
+	end
 	_G.components = {}
 	local computer = component:getFirst("computer")
 	local idx = 1

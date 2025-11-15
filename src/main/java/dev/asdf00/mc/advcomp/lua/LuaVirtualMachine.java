@@ -5,6 +5,7 @@ import dev.asdf00.jluavm.api.functions.AtomicLuaFunction;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockUD;
 import dev.asdf00.mc.advcomp.lua.components.AcItemComponent;
 import dev.asdf00.mc.advcomp.lua.components.ComponentRegistryUD;
 import dev.asdf00.mc.advcomp.lua.components.ComputerUD;
@@ -159,8 +160,11 @@ public class LuaVirtualMachine {
         var screenBlockPos =  computer.getBlockPos().offset(0,1,0);
         var screenBe = Objects.requireNonNull(computer.getLevel()).getBlockEntity(screenBlockPos, AdvancedComputers.SCREEN_BE.get());
 
-        if (screenBe.isPresent())
-            componentsToInit.add(screenBe.get().CreateUserdata());
+        if (screenBe.isPresent()) {
+            var ud = (ScreenBlockUD) screenBe.get().CreateUserdata();
+            componentsToInit.add(ud);
+            ud.clearGuiScreen();
+        }
 
         for (var comp : componentsToInit) {
             componentReg.addComponentAndNotify(comp);

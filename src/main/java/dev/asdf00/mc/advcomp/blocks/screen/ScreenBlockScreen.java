@@ -9,14 +9,12 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
 
 public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(AdvancedComputers.MODID, "textures/gui/screen_gui.png");
-    private static final Style MONOFONT = Style.EMPTY.withFont(new ResourceLocation(AdvancedComputers.MODID, "dejavusansmono-5m7l")); // otf font
 
     private static final int LINE_CNT = 27;
     private static final int SCREENSIZEY = 253;
@@ -54,17 +52,6 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
         pGuiGraphics.blitWithBorder(TEXTURE, topLDrawPosX, TopLDrawPosY, 0, 0, SCREENSIZEX, SCREENSIZEY, 256, 256, CORNERSZ);
     }
 
-    private void renderScreenContents(@NotNull GuiGraphics pGuiGraphics) {
-
-        int x = (width - imageWidth) / 2 + 6;
-        int y = (height - imageHeight) / 2 + 11;
-        for (int i = 0; i < gb.getHeight(); i++) {
-            var s = "testString!!aaaaaaaaa";
-            var s2 = /*Minecraft.getInstance().font.getSplitter().headByWidth(*/Component.literal(s).withStyle(MONOFONT);//, gb.getWidth(), Style.EMPTY) ;
-            pGuiGraphics.drawString(font, s2 /*gb.getRow(i)*/, x, y + font.lineHeight * i, -1);
-        }
-    }
-
     @Override
     public void render(@NotNull GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         renderBackground(pGuiGraphics);
@@ -76,7 +63,13 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
     }
 
     private void renderStdOut(GuiGraphics pGuiGraphics) {
-        // TODO: render output
+        var lines = this.getScreenEntity().guiContent.replace("\t", "    ").lines().toArray(String[]::new); // TODO handle tabs properly
+        int y = 50;
+        for (int i = Math.max(0, lines.length - 25); i < lines.length; i++) {
+            var l = lines[i];
+            pGuiGraphics.drawString(AdvancedComputers.getMonoFont(), l, 101, y, -1);
+            y += 9;
+        }
 
         /*-
         var out = getComputerEntity().getLvm().getStdOut();

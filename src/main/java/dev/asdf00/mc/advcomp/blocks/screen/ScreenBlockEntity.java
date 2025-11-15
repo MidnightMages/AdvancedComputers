@@ -12,6 +12,7 @@ import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
 import dev.asdf00.mc.advcomp.types.AcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
@@ -32,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 
 public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity implements MenuProvider, AcBlockEntityComponent {
@@ -124,6 +126,88 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
     //       Networking     Networking     Networking     Networking     Networking     Networking     Networking
     // =================================================================================================================
 
+    public String guiContent = "";
+
+    public static class ScreenContentToClientEvent implements NetCodeUtils.NetworkMessage {
+        private final BlockPos sbePos;
+        private final String eventName;
+        private final String content;
+
+        public ScreenContentToClientEvent(ScreenBlockEntity sbe, String eventName, String content) {
+            sbePos = sbe.getBlockPos();
+            this.eventName = eventName;
+            this.content = content;
+        }
+
+        private ScreenContentToClientEvent(BlockPos sbePos, String eventName, String content) {
+            this.sbePos = sbePos;
+            this.eventName = eventName;
+            this.content = content;
+        }
+
+        public static ScreenContentToClientEvent decode(FriendlyByteBuf buffer) {
+            var pos = buffer.readBlockPos();
+            var name = NetCodeUtils.readStringFromBuf(buffer);
+            var cont = NetCodeUtils.readStringFromBuf(buffer);
+            return new ScreenContentToClientEvent(pos, name, cont);
+        }
+
+        @Override
+        public void encode(FriendlyByteBuf buffer) {
+            buffer.writeBlockPos(sbePos);
+            NetCodeUtils.writeStringToBuf(buffer, eventName);
+            NetCodeUtils.writeStringToBuf(buffer, content);
+        }
+
+        @Override
+        public void handle(NetworkEvent.Context ctx) {
+            ctx.enqueueWork(() -> {
+                var obj = Minecraft.getInstance().level.getBlockEntity(sbePos); // TODO maybe blockpos isnt ideal for this // TODO SEND THE DIM ID!!!!
+                if (obj instanceof ScreenBlockEntity sbe) {
+                    ACError.Assert(sbe.getLevel().isClientSide(), "Handling this screen event must be done client-side");
+                    if (eventName == null || content == null) {
+                        AdvancedComputers.LOGGER.warn("Received invalid Screen event containing null values2");
+                        return;
+                    }
+                    switch (eventName) {
+                        case "appendGuiText":
+                            sbe.guiContent += content;
+                            while (true) {
+                                var startLen = sbe.guiContent.length();
+                                // TODO clean this up and optimize it
+                                sbe.guiContent = Pattern.compile("[^\b]\b", Pattern.DOTALL).matcher(sbe.guiContent).replaceAll("");
+                                if (!sbe.guiContent.isEmpty() && sbe.guiContent.charAt(0) == '\b')
+                                    sbe.guiContent = sbe.guiContent.substring(1);
+
+                                var afterLen = sbe.guiContent.length();
+                                if (startLen == afterLen)
+                                    break;
+                            }
+                            break;
+                        case "clearGuiText":
+                            sbe.guiContent = "";
+                            break;
+                        default:
+                            AdvancedComputers.LOGGER.warn("Received invalid Screen event type2: '" + eventName + "'");
+                            break;
+                    }
+                } else {
+                    AdvancedComputers.LOGGER.warn("Received invalid package for Screen event2");
+                }
+            });
+            ctx.setPacketHandled(true);
+        }
+
+        @Override
+        public String toString() {
+            return "ScreenContentToClientEvent{" +
+                   "sbePos=" + sbePos +
+                   ", eventName='" + eventName + '\'' +
+                   ", content='" + content + '\'' +
+                   '}';
+        }
+    }
+
     public static class ScreenOriginatingEvent implements NetCodeUtils.NetworkMessage {
         private final BlockPos sbePos;
         private final String eventName;
@@ -160,7 +244,7 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
             ctx.enqueueWork(() -> {
                 var obj = ctx.getSender().level().getBlockEntity(sbePos);
                 if (obj instanceof ScreenBlockEntity sbe) {
-                    ACError.Assert(!sbe.getLevel().isClientSide(), "Handling Screen event client-side");
+                    ACError.Assert(!sbe.getLevel().isClientSide(), "Handling this screen event must be done server-side");
                     if (eventName == null || content == null) {
                         AdvancedComputers.LOGGER.warn("Received invalid Screen event containing null values");
                         return;

@@ -22,18 +22,20 @@ import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockScreen;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenMenu;
 import dev.asdf00.mc.advcomp.blocks.wan_router.*;
 import dev.asdf00.mc.advcomp.datagen.*;
+import dev.asdf00.mc.advcomp.items.DiskItem;
 import dev.asdf00.mc.advcomp.items.KeycardAdvancedItem;
 import dev.asdf00.mc.advcomp.items.KeycardBasicItem;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
-import dev.asdf00.mc.advcomp.items.DiskItem;
 import dev.asdf00.mc.advcomp.types.AcGlobalDataStorage;
 import dev.asdf00.mc.advcomp.types.DualLayerItemColorHandler;
 import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
 import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -100,6 +102,15 @@ public class AdvancedComputers {
 
     public static final AcClusterType CLUSTER_TYPE_DEVICE = AdvancedComputers.AC_CLUSTER_TYPE_MANAGER.RegisterNewClusterType("device");
     public static final AcClusterType CLUSTER_TYPE_NETWORK = AdvancedComputers.AC_CLUSTER_TYPE_MANAGER.RegisterNewClusterType("network");
+    private static Font monoFont = null;
+
+    public static Font getMonoFont() {
+        if (monoFont == null) {
+            var fontSet = Minecraft.getInstance().fontManager.fontSets.get(new ResourceLocation(AdvancedComputers.MODID, "dejavusansmono"));
+            monoFont = new Font((p_284586_) -> fontSet, false);
+        }
+        return monoFont;
+    }
 
     // Creates a new Block with the id "examplemod:example_block", combining the namespace and path
 //    public static final RegistryObject<Block> EXAMPLE_BLOCK = BLOCKS.register("example_block", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.STONE)));
@@ -273,6 +284,7 @@ public class AdvancedComputers {
         // Register server client communication messages
         NetCodeUtils.registerMessage(ComputerBlockEntity.ClientOriginatingUiEvent.class, ComputerBlockEntity.ClientOriginatingUiEvent::decode);
         NetCodeUtils.registerMessage(ScreenBlockEntity.ScreenOriginatingEvent.class, ScreenBlockEntity.ScreenOriginatingEvent::decode);
+        NetCodeUtils.registerMessage(ScreenBlockEntity.ScreenContentToClientEvent.class, ScreenBlockEntity.ScreenContentToClientEvent::decode);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
