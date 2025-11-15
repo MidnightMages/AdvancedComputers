@@ -1,6 +1,8 @@
 package dev.asdf00.mc.advcomp.blocks.mainboard_programmer;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.blocks.SlotItemHandlerRequireType;
+import dev.asdf00.mc.advcomp.items.MainboardItem;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -32,16 +34,13 @@ public class MainboardProgrammerBlockMenu extends AbstractContainerMenu {
         addPlayerInventory(playerInv);
         addPlayerHotbar(playerInv);
         this.blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(iItemHandler -> {
-            this.addSlot(new SlotItemHandler(iItemHandler, 0, 78, 10));
-            addSlotRow(iItemHandler, 1, 98, 10, 4);
-            addSlotRow(iItemHandler, 5, 98, 30, 4);
-            addSlotRow(iItemHandler, 9, 62, 50, 6);
+            this.addSlot(new SlotItemHandlerRequireType(iItemHandler, 0, 80, 36, MainboardItem.class));
         });
     }
 
     void addSlotRow(IItemHandler iItemHandler, int indexStart, int xPos, int yPos, int count) {
         for (int i = 0; i < count; i++) {
-            this.addSlot(new SlotItemHandler(iItemHandler, indexStart + i, xPos + 18 * i, yPos));
+            this.addSlot(new SlotItemHandlerRequireType(iItemHandler, indexStart + i, xPos + 18 * i, yPos, MainboardItem.class));
         }
     }
 
@@ -61,7 +60,7 @@ public class MainboardProgrammerBlockMenu extends AbstractContainerMenu {
     private static final int TE_INVENTORY_FIRST_SLOT_INDEX = VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT;
 
     // THIS YOU HAVE TO DEFINE!
-    public static final int TE_INVENTORY_SLOT_COUNT = 15;  // must be the number of slots you have!
+    public static final int TE_INVENTORY_SLOT_COUNT = 1;  // must be the number of slots you have!
 
     @Override
     public ItemStack quickMoveStack(Player playerIn, int pIndex) {
