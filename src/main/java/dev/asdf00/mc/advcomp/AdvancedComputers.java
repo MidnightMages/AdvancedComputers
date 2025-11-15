@@ -283,7 +283,7 @@ public class AdvancedComputers {
 
         // Register server client communication messages
         NetCodeUtils.registerMessage(ComputerBlockEntity.ClientOriginatingUiEvent.class, ComputerBlockEntity.ClientOriginatingUiEvent::decode);
-        NetCodeUtils.registerMessage(ScreenBlockEntity.ScreenOriginatingEvent.class, ScreenBlockEntity.ScreenOriginatingEvent::decode);
+        NetCodeUtils.registerMessage(ScreenBlockEntity.ScreenInputToServerEvent.class, ScreenBlockEntity.ScreenInputToServerEvent::decode);
         NetCodeUtils.registerMessage(ScreenBlockEntity.ScreenContentToClientEvent.class, ScreenBlockEntity.ScreenContentToClientEvent::decode);
     }
 

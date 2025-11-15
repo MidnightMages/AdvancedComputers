@@ -107,7 +107,7 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
 
     public void triggerMachineEvent(String name, String content) {
         if (getLevel().isClientSide()) {
-            NetCodeUtils.sendToServer(new ScreenOriginatingEvent(this, name, content));
+            NetCodeUtils.sendToServer(new ScreenInputToServerEvent(this, name, content));
         } else {
             if (!KNOWN_EVENT_NAMES.contains(name)) {
                 AdvancedComputers.LOGGER.error("Server received unknown Screen event");
@@ -208,28 +208,28 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
         }
     }
 
-    public static class ScreenOriginatingEvent implements NetCodeUtils.NetworkMessage {
+    public static class ScreenInputToServerEvent implements NetCodeUtils.NetworkMessage {
         private final BlockPos sbePos;
         private final String eventName;
         private final String content;
 
-        public ScreenOriginatingEvent(ScreenBlockEntity sbe, String eventName, String content) {
+        public ScreenInputToServerEvent(ScreenBlockEntity sbe, String eventName, String content) {
             sbePos = sbe.getBlockPos();
             this.eventName = eventName;
             this.content = content;
         }
 
-        private ScreenOriginatingEvent(BlockPos sbePos, String eventName, String content) {
+        private ScreenInputToServerEvent(BlockPos sbePos, String eventName, String content) {
             this.sbePos = sbePos;
             this.eventName = eventName;
             this.content = content;
         }
 
-        public static ScreenOriginatingEvent decode(FriendlyByteBuf buffer) {
+        public static ScreenInputToServerEvent decode(FriendlyByteBuf buffer) {
             var pos = buffer.readBlockPos();
             var name = NetCodeUtils.readStringFromBuf(buffer);
             var cont = NetCodeUtils.readStringFromBuf(buffer);
-            return new ScreenOriginatingEvent(pos, name, cont);
+            return new ScreenInputToServerEvent(pos, name, cont);
         }
 
         @Override
@@ -259,7 +259,7 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
 
         @Override
         public String toString() {
-            return "ScreenOriginatingEvent{" +
+            return "ScreenInputToServerEvent{" +
                     "sbePos=" + sbePos +
                     ", eventName='" + eventName + '\'' +
                     ", content='" + content + '\'' +
