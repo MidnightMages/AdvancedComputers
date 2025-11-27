@@ -6,10 +6,7 @@ import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockUD;
-import dev.asdf00.mc.advcomp.lua.components.AcItemComponent;
-import dev.asdf00.mc.advcomp.lua.components.ComponentRegistryUD;
-import dev.asdf00.mc.advcomp.lua.components.ComputerUD;
-import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
+import dev.asdf00.mc.advcomp.lua.components.*;
 import dev.asdf00.mc.advcomp.utils.Tuple;
 
 import java.io.BufferedReader;
@@ -147,6 +144,7 @@ public class LuaVirtualMachine {
 //        }
 
         var componentsToInit = new ArrayList<LuaUserDataComponent>();
+        // set up inventory components
         var inv = computer.itemHandler;
         for (int i = 0; i < inv.getSlots(); i++) {
             var is = inv.getStackInSlot(i);
@@ -156,19 +154,28 @@ public class LuaVirtualMachine {
                 componentsToInit.add(comp);
             }
         }
+        // set up peripheral components // TODO this needs to be reworked a little, e.g. a device thats directly attached to a computer does not yet show up here
+        var deviceComponentBlockEntities = computer.connectedNetworks.values().stream()
+                .filter(x->x.clusterType.getClusterName().equals("device"))
+                .flatMap(x-> Arrays.stream(x.connectedEntities))
+                .distinct()
+                .collect(Collectors.toCollection(ArrayList::new));
 
         var screenBlockPos =  computer.getBlockPos().offset(0,1,0);
         var screenBe = Objects.requireNonNull(computer.getLevel()).getBlockEntity(screenBlockPos, AdvancedComputers.SCREEN_BE.get());
+        screenBe.ifPresent(deviceComponentBlockEntities::add);
 
-        if (screenBe.isPresent()) {
-            var ud = (ScreenBlockUD) screenBe.get().CreateUserdata();
-            componentsToInit.add(ud);
-            ud.clearGuiScreen();
+        for (var be : deviceComponentBlockEntities.stream().distinct().toArray()) {
+            if(be instanceof AcBlockEntityComponent bec)
+                componentsToInit.add(bec.CreateUserdata());
         }
+
 
         for (var comp : componentsToInit) {
             componentReg.addComponentAndNotify(comp);
             comp.onVmInit(this);
+            if(comp instanceof ScreenBlockUD sbu)
+                sbu.clearGuiScreen();
         }
 
         // TODO traverse peripheral network and instantiate and init the block userdata objects similarly

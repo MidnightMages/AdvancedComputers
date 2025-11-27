@@ -2,6 +2,8 @@ package dev.asdf00.mc.advcomp.blocks.keycard_reader;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.items.BaseKeycardItem;
+import dev.asdf00.mc.advcomp.lua.components.AcBlockEntityComponent;
+import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
 import dev.asdf00.mc.advcomp.types.AcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;
@@ -16,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 
-public class KeyCardReaderBlockEntity extends BaseAcCableConnectableBlockEntity {
+public class KeyCardReaderBlockEntity extends BaseAcCableConnectableBlockEntity implements AcBlockEntityComponent {
     private final LazyOptional<AcDevCableConnectableEntity> lazyCableConnectable;
 
     public KeyCardReaderBlockEntity(BlockPos pPos, BlockState pBlockState) {
@@ -51,5 +53,10 @@ public class KeyCardReaderBlockEntity extends BaseAcCableConnectableBlockEntity 
 
     public void tick(Level pLevel1, BlockPos pPos, BlockState pState1) {
 
+    }
+
+    @Override
+    public LuaUserDataComponent CreateUserdata() {
+        return new KeyCardReaderBlockEntityUD(this);
     }
 }
