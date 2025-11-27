@@ -56,7 +56,7 @@ public class ManagedStorageHandler implements StorageHandler {
     public Collection<String> getFilesInDirectory(String path) {
         var dirPath = root.getDirectory(trimPath(path)).getRealDiskPath();
         try {
-            return Files.list(dirPath).filter(x->!Files.isDirectory(x)).map(Path::toString).toList();
+            return Files.list(dirPath).filter(x -> !Files.isDirectory(x)).map(x -> x.getFileName().toString()).toList();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -65,7 +65,7 @@ public class ManagedStorageHandler implements StorageHandler {
     public Collection<String> getDirectoriesInDirectory(String path) {
         var dirPath = root.getDirectory(trimPath(path)).getRealDiskPath();
         try (var s = Files.list(dirPath)) {
-            return s.filter(Files::isDirectory).map(Path::toString).toList();
+            return s.filter(Files::isDirectory).map(x -> x.getFileName().toString()).toList();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
