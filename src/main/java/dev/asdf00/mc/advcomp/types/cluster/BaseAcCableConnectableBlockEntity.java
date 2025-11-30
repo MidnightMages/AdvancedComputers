@@ -55,29 +55,25 @@ public abstract class BaseAcCableConnectableBlockEntity extends BaseAcCableEntit
     public void onNetworkUpdated(Direction dir) {
     }
 
-    // Tries to grab the computer block entity that is the peripheral network host.
-    // Returns true if exactly one host is found. Host is provided via first argument if return value is true.
-    protected boolean TryGetComputerBlockEntity(ComputerBlockEntity[] outCbe) {
+    /**
+     * Tries to grab the computer block entity that is the peripheral network host.
+     * Returns the host if exactly one host is found, null otherwise.
+     */
+    protected ComputerBlockEntity getComputerBlockEntityOrNull() {
         var deviceClusterName = CLUSTER_TYPE_DEVICE.getClusterName();
         ACError.Assert(supportedClusterTypes.stream().anyMatch(x -> x.getClusterName().equals(deviceClusterName)),
                 "Block entity seemingly does not support peripheral clusters. Why are we trying to emit an event there?");
 
         var allHosts = new HashSet<AcClusterHostEntity>();
-
         for (var net : connectedNetworks.values()) {
             var hostCnt = net.getHostCount();
             if (hostCnt > 1) {
-                return false;
+                return null;
             } else if (hostCnt == 1) {
                 allHosts.add(net.getHost());
             }
         }
 
-        if (allHosts.size() == 1) {
-            outCbe[0] = (ComputerBlockEntity) allHosts.iterator().next();
-            return true;
-        }
-
-        return false;
+        return allHosts.size() == 1 ? (ComputerBlockEntity) allHosts.iterator().next() : null;
     }
 }

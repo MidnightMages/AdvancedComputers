@@ -114,9 +114,9 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
                 return;
             }
 
-            ComputerBlockEntity[] out_cbe = new ComputerBlockEntity[1];
-            if(TryGetComputerBlockEntity(out_cbe)) {
-                out_cbe[0].getLvm().eventQueue.addRaw(name, LuaObject.of(content));
+            ComputerBlockEntity cbe = getComputerBlockEntityOrNull();
+            if(cbe != null) {
+                cbe.getLvm().eventQueue.addRaw(name, LuaObject.of(content));
             }
             // just drop event if no computer is connected
         }
