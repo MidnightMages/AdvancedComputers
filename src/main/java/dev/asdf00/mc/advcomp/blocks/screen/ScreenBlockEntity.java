@@ -113,12 +113,12 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
                 AdvancedComputers.LOGGER.error("Server received unknown Screen event");
                 return;
             }
-            var cbe = getComputerBlockEntity();
-            if (cbe == null) {
-                // just drop event if no computer is connected
-                return;
+
+            ComputerBlockEntity[] out_cbe = new ComputerBlockEntity[1];
+            if(TryGetComputerBlockEntity(out_cbe)) {
+                out_cbe[0].getLvm().eventQueue.addRaw(name, LuaObject.of(content));
             }
-            cbe.getLvm().eventQueue.addRaw(name, LuaObject.of(content));
+            // just drop event if no computer is connected
         }
     }
 
