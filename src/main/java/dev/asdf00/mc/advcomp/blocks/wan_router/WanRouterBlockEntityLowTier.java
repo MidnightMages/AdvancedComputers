@@ -42,7 +42,12 @@ public class WanRouterBlockEntityLowTier extends BaseAcCableConnectableBlockEnti
     public boolean canConnectTo(IAcBaseCableConnectableEntity entity, Direction side) {
         var lvl = this.getLevel();
         assert lvl != null;
-        return side == lvl.getBlockState(worldPosition).getValue(WanRouterBlockLowTier.FACING);
+        var goodFace = lvl.getBlockState(worldPosition).getValue(WanRouterBlockLowTier.FACING);
+        if (goodFace == Direction.UP)
+            goodFace = Direction.DOWN;
+        else if (goodFace == Direction.DOWN)
+            goodFace = Direction.UP;
+        return side == goodFace;
     }
 
     @Override
