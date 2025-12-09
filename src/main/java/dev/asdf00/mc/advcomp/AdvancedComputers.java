@@ -22,10 +22,7 @@ import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockScreen;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenMenu;
 import dev.asdf00.mc.advcomp.blocks.wan_router.*;
 import dev.asdf00.mc.advcomp.datagen.*;
-import dev.asdf00.mc.advcomp.items.DiskItem;
-import dev.asdf00.mc.advcomp.items.KeycardAdvancedItem;
-import dev.asdf00.mc.advcomp.items.KeycardBasicItem;
-import dev.asdf00.mc.advcomp.items.MainboardItem;
+import dev.asdf00.mc.advcomp.items.*;
 import dev.asdf00.mc.advcomp.types.AcGlobalDataStorage;
 import dev.asdf00.mc.advcomp.types.DualLayerItemColorHandler;
 import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
@@ -243,6 +240,7 @@ public class AdvancedComputers {
 
     public static final RegistryObject<Item> KEYCARD_BASIC_ITEM = RegisterItem("keycard_basic_item", () -> new KeycardBasicItem(new Item.Properties()));
     public static final RegistryObject<Item> KEYCARD_ADVANCED_ITEM = RegisterItem("keycard_advanced_item", () -> new KeycardAdvancedItem(new Item.Properties()));
+    public static final RegistryObject<Item> FLOPPY_DISK_ITEM = RegisterItem("floppy_disk_item", () -> new FloppyDiskItem(new Item.Properties()));
 
     public static final RegistryObject<Item> MAINBOARD_TIER_1_ITEM = RegisterItem("mainboard_tier1_item", () -> new MainboardItem(MainboardItem.MainboardTier.T1));
     public static final RegistryObject<Item> MAINBOARD_TIER_2_ITEM = RegisterItem("mainboard_tier2_item", () -> new MainboardItem(MainboardItem.MainboardTier.T2));
@@ -302,6 +300,7 @@ public class AdvancedComputers {
     private void registerColorHandlers(final RegisterColorHandlersEvent.Item event) {
         event.register(new DualLayerItemColorHandler(), KEYCARD_BASIC_ITEM.get());
         event.register(new DualLayerItemColorHandler(), KEYCARD_ADVANCED_ITEM.get());
+        event.register(new DualLayerItemColorHandler(), FLOPPY_DISK_ITEM.get());
     }
 
     private void registerDatagen(final GatherDataEvent event) {

@@ -57,6 +57,21 @@ public class RecipeGenerator extends RecipeProvider {
                 .unlockedBy("item", has(advKeyCarditem))
                 .save(pWriter, "advancedcomputers:keycard_advanced_item_dye");
 
+        var floppyDiskitem = AdvancedComputers.FLOPPY_DISK_ITEM.get();
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, floppyDiskitem)
+                .requires(floppyDiskitem)
+                .requires(Tags.Items.DYES)
+                .unlockedBy("item", has(floppyDiskitem))
+                .save(pWriter, "advancedcomputers:floppy_disk_item_dye");
+
+        shaped(floppyDiskitem)
+                .pattern("III")
+                .pattern("IPI")
+                .pattern("IPI")
+                .define('I', Tags.Items.NUGGETS_IRON)
+                .define('P', paper)
+                .unlockedBy("item", has(paper))
+                .save(pWriter);
 
         var stone = getVanillaItem("stone");
         var logs = ItemTags.create(new ResourceLocation("minecraft", "logs"));

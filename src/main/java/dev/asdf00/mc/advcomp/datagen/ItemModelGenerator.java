@@ -29,9 +29,13 @@ public class ItemModelGenerator extends ItemModelProvider {
                 .texture("layer0", rl("item/keycard_advanced_item_0"))
                 .texture("layer1", rl("item/keycard_advanced_item_1"));
 
+        scaleThirdPerson(this.withExistingParent("floppy_disk_item", "item/handheld"))
+                .texture("layer0", rl("item/floppy_disk_item_0"))
+                .texture("layer1", rl("item/floppy_disk_item_1"));
+
         basicItem("example");
 
-        for (int i = 1; i<=3; i++)
+        for (int i = 1; i <= 3; i++)
             basicItem("mainboard_tier%s".formatted(i));
 
         for (int i = 1; i < 6; i++) {

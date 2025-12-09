@@ -27,6 +27,7 @@
 	"item.advancedcomputers.example_item": "Example Item",
 	"item.advancedcomputers.keycard_basic_item": "Basic %s Keycard",
 	"item.advancedcomputers.keycard_advanced_item": "Advanced %s Keycard",
+	"item.advancedcomputers.floppy_disk_item": "%s Floppy Disk",
 	"item.advancedcomputers.mainboard_tier1_item": "Mainboard (Tier 1)",
 	"item.advancedcomputers.mainboard_tier2_item": "Mainboard (Tier 2)",
 	"item.advancedcomputers.mainboard_tier3_item": "Mainboard (Tier 3)",
