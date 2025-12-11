@@ -67,9 +67,10 @@ public class RecipeGenerator extends RecipeProvider {
         shaped(floppyDiskitem)
                 .pattern("III")
                 .pattern("IPI")
-                .pattern("IPI")
+                .pattern("ICI")
                 .define('I', Tags.Items.NUGGETS_IRON)
                 .define('P', paper)
+                .define('C', Tags.Items.INGOTS_COPPER)
                 .unlockedBy("item", has(paper))
                 .save(pWriter);
 

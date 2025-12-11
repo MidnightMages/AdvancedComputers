@@ -2,6 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
+    "C": {
+      "tag": "forge:ingots/copper"
+    },
     "I": {
       "tag": "forge:nuggets/iron"
     },
@@ -12,7 +15,7 @@
   "pattern": [
     "III",
     "IPI",
-    "IPI"
+    "ICI"
   ],
   "result": {
     "item": "advancedcomputers:floppy_disk_item"
