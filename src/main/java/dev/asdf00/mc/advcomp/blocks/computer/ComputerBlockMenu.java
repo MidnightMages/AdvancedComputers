@@ -40,8 +40,7 @@ public class ComputerBlockMenu extends AbstractContainerMenu {
             this.addSlot(new SlotItemHandlerRequireType(iItemHandler, 0, 78, 10,
                     MainboardItem.class));
             addSlotRow(iItemHandler, 1, 98, 10, 4);
-            addSlotRow(iItemHandler, 5, 98, 30, 4);
-            addSlotRow(iItemHandler, 9, 62, 50, 6);
+            addSlotRow(iItemHandler, 5, 62, 50, 6);
         });
     }
 
@@ -68,7 +67,7 @@ public class ComputerBlockMenu extends AbstractContainerMenu {
     private static final int TE_INVENTORY_FIRST_SLOT_INDEX = VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT;
 
     // THIS YOU HAVE TO DEFINE!
-    public static final int TE_INVENTORY_SLOT_COUNT = 15;  // must be the number of slots you have!
+    public static final int TE_INVENTORY_SLOT_COUNT = 11;  // must be the number of slots you have!
 
     @Override
     public @NotNull ItemStack quickMoveStack(@NotNull Player playerIn, int pIndex) {
