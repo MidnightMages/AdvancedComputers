@@ -1,5 +1,6 @@
 package dev.asdf00.mc.advcomp.lua.components.fs;
 
+import dev.asdf00.mc.advcomp.types.RuntimeAssert;
 import dev.asdf00.mc.advcomp.utils.AcPaths;
 
 import java.io.IOException;
@@ -14,6 +15,42 @@ public class ManagedStorageHandler implements StorageHandler {
     @Override
     public void DeleteAllData() {
 
+    }
+
+    public static String encodeFilename(String filename) {
+        var rv = new StringBuilder(filename.length() * 2);
+        for (int i = 0; i < filename.length(); i++) {
+            var c = filename.charAt(i);
+            if (Character.isUpperCase(c)) {
+                rv.append('=').append(Character.toLowerCase(c));
+            } else if (c == '=') {
+                rv.append("==");
+            } else {
+                rv.append(c);
+            }
+        }
+        return rv.toString();
+    }
+
+    public static String decodeFilename(String filename) {
+        var rv = new StringBuilder(filename.length());
+        for (int i = 0; i < filename.length(); i++) {
+            var c = filename.charAt(i);
+            RuntimeAssert.RuntimeAssert(!Character.isUpperCase(c), "expected no uppercase chars in %s".formatted(filename));
+            if (c != '=') {
+                rv.append(c);
+            } else {
+                i++;
+                var c2 = filename.charAt(i);
+                if (c2 == '=') {
+                    rv.append("=");
+                } else {
+                    RuntimeAssert.RuntimeAssert(Character.isLowerCase(c2), "expected lowercase char after = but got %s".formatted(c2));
+                    rv.append(Character.toUpperCase(c2));
+                }
+            }
+        }
+        return rv.toString();
     }
 
     public ManagedStorageHandler(int diskId) {
