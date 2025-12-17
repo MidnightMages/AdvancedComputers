@@ -202,13 +202,25 @@ public class RecipeGenerator extends RecipeProvider {
                 .define('I', Tags.Items.NUGGETS_IRON)
                 .unlockedBy("item", has(Tags.Items.INGOTS_COPPER))
                 .save(pWriter);
+        shaped(AdvancedComputers.DEVICE_CABLE_BLOCK.blockItem().get(), 16)
+                .pattern("WWW")
+                .pattern("III")
+                .pattern("WWW")
+                .define('W', Items.BLUE_WOOL)
+                .define('I', Tags.Items.INGOTS_IRON)
+                .unlockedBy("item", has(Tags.Items.INGOTS_IRON))
+                .save(pWriter);
     }
 
     private ItemLike getVanillaItem(String name) {
         return ForgeRegistries.ITEMS.getValue(ResourceLocation.tryParse("minecraft:" + name));
     }
 
+    private ShapedRecipeBuilder shaped(ItemLike item, int count) {
+        return ShapedRecipeBuilder.shaped(RecipeCategory.MISC, item, count);
+    }
+
     private ShapedRecipeBuilder shaped(ItemLike item) {
-        return ShapedRecipeBuilder.shaped(RecipeCategory.MISC, item);
+        return shaped(item, 1);
     }
 }

@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": {
+      "tag": "forge:ingots/iron"
+    },
+    "W": {
+      "item": "minecraft:blue_wool"
+    }
+  },
+  "pattern": [
+    "WWW",
+    "III",
+    "WWW"
+  ],
+  "result": {
+    "count": 16,
+    "item": "advancedcomputers:device_cable_block"
+  },
+  "show_notification": true
+}
