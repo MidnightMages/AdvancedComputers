@@ -174,6 +174,34 @@ public class RecipeGenerator extends RecipeProvider {
                 .unlockedBy("item", has(planks))
                 .save(pWriter);
 
+
+        shaped(AdvancedComputers.MAINBOARD_TIER_1_ITEM.get())
+                .pattern("CXI")
+                .pattern("XXI")
+                .pattern("IIX")
+                .define('C', Tags.Items.INGOTS_COPPER)
+                .define('X', planks)
+                .define('I', Tags.Items.NUGGETS_IRON)
+                .unlockedBy("item", has(Tags.Items.INGOTS_COPPER))
+                .save(pWriter);
+        shaped(AdvancedComputers.MAINBOARD_TIER_2_ITEM.get())
+                .pattern("CXI")
+                .pattern("XXI")
+                .pattern("IIX")
+                .define('C', Tags.Items.INGOTS_COPPER)
+                .define('X', Tags.Items.INGOTS_GOLD)
+                .define('I', Tags.Items.NUGGETS_IRON)
+                .unlockedBy("item", has(Tags.Items.INGOTS_COPPER))
+                .save(pWriter);
+        shaped(AdvancedComputers.MAINBOARD_TIER_3_ITEM.get())
+                .pattern("CXI")
+                .pattern("XXI")
+                .pattern("IIX")
+                .define('C', Tags.Items.INGOTS_COPPER)
+                .define('X', Tags.Items.GEMS_DIAMOND)
+                .define('I', Tags.Items.NUGGETS_IRON)
+                .unlockedBy("item", has(Tags.Items.INGOTS_COPPER))
+                .save(pWriter);
     }
 
     private ItemLike getVanillaItem(String name) {

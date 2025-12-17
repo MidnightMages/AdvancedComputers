@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "tag": "forge:ingots/copper"
+    },
+    "I": {
+      "tag": "forge:nuggets/iron"
+    },
+    "X": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "pattern": [
+    "CXI",
+    "XXI",
+    "IIX"
+  ],
+  "result": {
+    "item": "advancedcomputers:mainboard_tier1_item"
+  },
+  "show_notification": true
+}
