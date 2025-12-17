@@ -4,8 +4,10 @@ import dev.asdf00.jluavm.LuaVM;
 import dev.asdf00.jluavm.api.functions.AtomicLuaFunction;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.api.itemCanBeInitialized;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockUD;
+import dev.asdf00.mc.advcomp.items.MainboardItem;
 import dev.asdf00.mc.advcomp.lua.components.*;
 import dev.asdf00.mc.advcomp.utils.Tuple;
 
@@ -23,21 +25,7 @@ import java.util.stream.Collectors;
 
 public class LuaVirtualMachine {
     private static final int TPS = 20;
-    private static final String luaBootScript;
     public LuaEventQueue eventQueue;
-
-    private static String loadLuaScript(String name) {
-        try (var stream = LuaMain.class.getClassLoader().getResourceAsStream("assets/advancedcomputers/lua/" + name)) {
-            Objects.requireNonNull(stream, "Error reading resource '%s'".formatted(name));
-            return new String(stream.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new IllegalStateException("Resource '%s' not found!".formatted(name));
-        }
-    }
-
-    static {
-        luaBootScript = loadLuaScript("bios.lua");
-    }
 
     private final ComputerBlockEntity computer;
 
@@ -117,7 +105,6 @@ public class LuaVirtualMachine {
         }
         stdOut = new LuaStdOut();
         stdOut.clear();
-        String bootFile = luaBootScript; // entry code // TODO load from bios instead
 
         eventQueue = new LuaEventQueue();
 //        console.onKeyPressed = eventQueue::addKeyPressed;
@@ -143,17 +130,30 @@ public class LuaVirtualMachine {
 //            componentReg.addComponentAndNotify(ud);
 //        }
 
+        String uefiScript = null; // entry code; i.e. uefi
         var componentsToInit = new ArrayList<LuaUserDataComponent>();
         // set up inventory components
         var inv = computer.itemHandler;
         for (int i = 0; i < inv.getSlots(); i++) {
             var is = inv.getStackInSlot(i);
             var item = is.getItem();
+            if (item instanceof itemCanBeInitialized icbi) {
+                icbi.Initialize(is);
+            }
+
             if (item instanceof AcItemComponent ud) {
                 var comp = ud.CreateUserdata(is);
                 componentsToInit.add(comp);
+            } else if (item instanceof MainboardItem mi) {
+                uefiScript = mi.readUefiScript(is);
             }
         }
+
+        if (uefiScript == null) {
+            tryKill("No uefi installed", false);
+            return;
+        }
+
         // set up peripheral components // TODO this needs to be reworked a little, e.g. a device thats directly attached to a computer does not yet show up here
         var deviceComponentBlockEntities = computer.connectedNetworks.values().stream()
                 .filter(x->x.clusterType.getClusterName().equals("device"))
@@ -241,13 +241,14 @@ public class LuaVirtualMachine {
 //        }
 
 
+        final String uefiScriptForLambda = uefiScript;
         executorThread = new Thread(() -> {
             vm = LuaVM.builder().withApiRegistry(greg).modifyEnv(t -> {
                 var map = _G.asMap();
                 for (var k : map.keys()) {
                     t.set(k, map.getOrDefault(k, LuaObject.NIL));
                 }
-            }).rootFunc(bootFile).build();
+            }).rootFunc(uefiScriptForLambda).build();
             runLua();
         });
         executorThread.start();

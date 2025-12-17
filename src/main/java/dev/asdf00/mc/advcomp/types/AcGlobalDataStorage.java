@@ -10,8 +10,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class AcGlobalDataStorage extends SavedData {
 
     private final AtomicInteger nextManagedDiskId = new AtomicInteger(0);
+    private final AtomicInteger nextUefiId = new AtomicInteger(0);
     public int getNextFreeManagedDiskId() {
         var rv = nextManagedDiskId.getAndIncrement();
+        setDirty();
+        return rv;
+    }
+    public int getNextUefiId() {
+        var rv = nextUefiId.getAndIncrement();
         setDirty();
         return rv;
     }
@@ -21,11 +27,13 @@ public class AcGlobalDataStorage extends SavedData {
     }
     public AcGlobalDataStorage(CompoundTag tag) {
         nextManagedDiskId.set(tag.getInt("nextManagedDiskId"));
+        nextUefiId.set(tag.getInt("nextUefiId"));
     }
 
     @Override
     public @NotNull CompoundTag save(@NotNull CompoundTag compoundTag) {
         compoundTag.putInt("nextManagedDiskId", nextManagedDiskId.get());
+        compoundTag.putInt("nextUefiId", nextUefiId.get());
         return compoundTag;
     }
 

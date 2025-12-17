@@ -27,6 +27,7 @@ import dev.asdf00.mc.advcomp.types.AcGlobalDataStorage;
 import dev.asdf00.mc.advcomp.types.DualLayerItemColorHandler;
 import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
 import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
+import dev.asdf00.mc.advcomp.utils.AcPaths;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.MenuScreens;
@@ -338,6 +339,7 @@ public class AdvancedComputers {
     @SubscribeEvent
     public void onServerStarted(ServerStartedEvent event) {
         AC_CLUSTER_TYPE_MANAGER.closeRegistration();
+        AcPaths.createPathsIfNecessary();
     }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent

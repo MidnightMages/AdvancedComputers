@@ -1,10 +1,9 @@
 package dev.asdf00.mc.advcomp.lua.components.fs;
 
-import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.utils.AcPaths;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collection;
 
 public class ManagedStorageHandler implements StorageHandler {
@@ -19,16 +18,12 @@ public class ManagedStorageHandler implements StorageHandler {
 
     public ManagedStorageHandler(int diskId) {
         this.diskId = diskId;
-        root = new DirectoryNode(getDiskStorageFolder().toString(), null, isReadOnly);
+        root = new DirectoryNode(AcPaths.getManagedDiskFolderPath(diskId).toString(), null, isReadOnly);
         try {
             Files.createDirectories(root.getRealDiskPath());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private Path getDiskStorageFolder() {
-        return AdvancedComputers.getAcWorldSaveSubFolder().resolve("managed/%s/".formatted(diskId));
     }
 
     private static String trimPath(String s) {

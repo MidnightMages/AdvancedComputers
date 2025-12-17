@@ -2,6 +2,7 @@ package dev.asdf00.mc.advcomp.blocks.mainboard_programmer;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.TranslationMap;
+import dev.asdf00.mc.advcomp.api.itemCanBeInitialized;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
 import dev.asdf00.mc.advcomp.types.AcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;
@@ -29,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class MainboardProgrammerBlockEntity extends BaseAcCableConnectableBlockEntity implements MenuProvider {
-    public final NotifyingItemHandler itemHandler = new NotifyingItemHandler(this, MainboardProgrammerBlockMenu.TE_INVENTORY_SLOT_COUNT);
+    public final NotifyingItemHandler itemHandler = new NotifyingItemHandler(this, MainboardProgrammerBlockMenu.TE_INVENTORY_SLOT_COUNT, this::itemHandler_onSlotChanged);
     private LazyOptional<IItemHandler> lazyItemHandler = LazyOptional.empty();
     private final LazyOptional<AcDevCableConnectableEntity> lazyCableConnectable;
     protected final ContainerData data;
@@ -60,6 +61,15 @@ public class MainboardProgrammerBlockEntity extends BaseAcCableConnectableBlockE
             }
         };
         this.lazyCableConnectable = LazyOptional.of(() -> this);
+    }
+
+    void itemHandler_onSlotChanged(int slot) {
+        if(getLevel().isClientSide()) return;
+
+        var is = itemHandler.getStackInSlot(slot);
+        if (is.getItem() instanceof itemCanBeInitialized cbi) {
+            cbi.Initialize(is);
+        }
     }
 
     @Override

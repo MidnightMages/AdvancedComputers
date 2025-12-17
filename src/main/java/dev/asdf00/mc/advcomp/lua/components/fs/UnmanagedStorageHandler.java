@@ -1,7 +1,7 @@
 package dev.asdf00.mc.advcomp.lua.components.fs;
 
 import com.mojang.logging.LogUtils;
-import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.utils.AcPaths;
 import dev.asdf00.mc.advcomp.api.AcLuaFunction;
 import org.slf4j.Logger;
 
@@ -13,17 +13,17 @@ import java.nio.file.Path;
 public class UnmanagedStorageHandler implements StorageHandler {
 
     private static final Logger LOGGER = LogUtils.getLogger();
-    private final Path suffix;
     private final int capacity;
     private static final int headerLength = 0; // TODO 1 byte saveformat version; 4 byte data file size
+    private final int storageId;
 
-    public UnmanagedStorageHandler(String storageId, int capacity) {
+    public UnmanagedStorageHandler(int storageId, int capacity) {
         this.capacity = capacity;
-        suffix = Path.of("unmanaged", storageId + ".bin");
+        this.storageId = storageId;
     }
 
     private Path getSaveFilePath() {
-        return AdvancedComputers.getAcWorldSaveSubFolder().resolve(suffix);
+        return AcPaths.getUnmanagedDiskFilePath(storageId);
     }
 
     @AcLuaFunction(functionName = "writeToPosition", doc = "function(int position, int length):byte[] data; Reads the specified range of bytes from this storage medium.")
