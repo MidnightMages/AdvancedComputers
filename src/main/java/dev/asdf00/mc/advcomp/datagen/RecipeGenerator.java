@@ -6,10 +6,13 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
@@ -210,6 +213,26 @@ public class RecipeGenerator extends RecipeProvider {
                 .define('I', Tags.Items.INGOTS_IRON)
                 .unlockedBy("item", has(Tags.Items.INGOTS_IRON))
                 .save(pWriter);
+
+        var hddResults = new RegistryObject[]{AdvancedComputers.HDD_TIER_1_ITEM, AdvancedComputers.HDD_TIER_2_ITEM,
+                AdvancedComputers.HDD_TIER_3_ITEM, AdvancedComputers.HDD_TIER_4_ITEM, AdvancedComputers.HDD_TIER_5_ITEM};
+
+        var hddIngredients = new TagKey[]{Tags.Items.INGOTS_IRON, Tags.Items.INGOTS_COPPER, Tags.Items.INGOTS_GOLD,
+                Tags.Items.GEMS_DIAMOND, Tags.Items.INGOTS_NETHERITE};
+
+        for (int i = 0; i < hddResults.length; i++) {
+            //noinspection unchecked
+            shaped(((RegistryObject<Item>) hddResults[i]).get())
+                    .pattern("NXN")
+                    .pattern("XWX")
+                    .pattern("NCN")
+                    .define('N', Tags.Items.NUGGETS_IRON)
+                    .define('X', hddIngredients[i])
+                    .define('C', Tags.Items.INGOTS_COPPER)
+                    .define('W', planks)
+                    .unlockedBy("item", has(Tags.Items.INGOTS_COPPER))
+                    .save(pWriter);
+        }
     }
 
     private ItemLike getVanillaItem(String name) {
