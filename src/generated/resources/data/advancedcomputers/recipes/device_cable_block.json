@@ -5,13 +5,16 @@
     "I": {
       "tag": "forge:ingots/iron"
     },
+    "R": {
+      "tag": "forge:dusts/redstone"
+    },
     "W": {
       "item": "minecraft:blue_wool"
     }
   },
   "pattern": [
     "WWW",
-    "III",
+    "IRI",
     "WWW"
   ],
   "result": {
