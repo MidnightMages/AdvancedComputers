@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "advancedcomputers:floppy_disk_item"
+    },
+    {
+      "item": "minecraft:book"
+    }
+  ],
+  "result": {
+    "item": "advancedcomputers:floppy_disk_item",
+    "nbt": {
+      "color": 4312372,
+      "desiredDiskData": "acos"
+    }
+  }
+}

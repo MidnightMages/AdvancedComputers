@@ -1,12 +1,15 @@
 package dev.asdf00.mc.advcomp.datagen;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.datagen.util.ShapelessNbtRecipeBuilder;
 import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
+import net.minecraft.client.Minecraft;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
@@ -234,6 +237,15 @@ public class RecipeGenerator extends RecipeProvider {
                     .unlockedBy("item", has(Tags.Items.INGOTS_COPPER))
                     .save(pWriter);
         }
+
+        ShapelessNbtRecipeBuilder.shapeless(RecipeCategory.MISC, floppyDiskitem)
+                .addNbtToResult("desiredDiskData", "acos")
+                .addNbtToResult("color", DyeColor.LIME.getFireworkColor())
+                .requires(floppyDiskitem)
+                .requires(Items.BOOK)
+                .unlockedBy("item",has(floppyDiskitem))
+                .save(pWriter,"advancedcomputers:floppy_disk_item_acos");
+
     }
 
     private ItemLike getVanillaItem(String name) {
