@@ -2,8 +2,8 @@ package dev.asdf00.mc.advcomp.datagen;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.datagen.util.ShapelessNbtRecipeBuilder;
+import dev.asdf00.mc.advcomp.items.FloppyDiskItem;
 import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
-import net.minecraft.client.Minecraft;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.*;
 import net.minecraft.resources.ResourceLocation;
@@ -238,15 +238,23 @@ public class RecipeGenerator extends RecipeProvider {
                     .save(pWriter);
         }
 
+        addPremadeFloppy(pWriter,"acos", "AdvancedOS", Items.BOOK, DyeColor.LIME.getFireworkColor());
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private void addPremadeFloppy(Consumer<FinishedRecipe> pWriter, String folderId, String resultFloppyLabel, ItemLike otherIngredient, int color) {
+        if(!FloppyDiskItem.IsValidPremadeFloppyName(folderId))
+            throw new RuntimeException("Improperly formatted premade floppy name: '%s'".formatted(folderId));
+
+        var floppyDiskitem = AdvancedComputers.FLOPPY_DISK_ITEM.get();
         ShapelessNbtRecipeBuilder.shapeless(RecipeCategory.MISC, floppyDiskitem)
-                .addNbtToResult("desiredDiskData", "acos")
-                .addNbtToResult("color", DyeColor.LIME.getFireworkColor())
-                .addNbtToResult("label", "AdvancedOS")
+                .addNbtToResult("desiredDiskData", folderId)
+                .addNbtToResult("color", color)
+                .addNbtToResult("label", resultFloppyLabel)
                 .requires(floppyDiskitem)
-                .requires(Items.BOOK)
+                .requires(otherIngredient)
                 .unlockedBy("item",has(floppyDiskitem))
                 .save(pWriter,"advancedcomputers:floppy_disk_item_acos");
-
     }
 
     private ItemLike getVanillaItem(String name) {

@@ -1,7 +1,7 @@
 package dev.asdf00.mc.advcomp.items;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.api.itemCanBeInitialized;
+import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
 import dev.asdf00.mc.advcomp.types.RuntimeAssert;
 import dev.asdf00.mc.advcomp.utils.AcPaths;
 import net.minecraft.world.item.Item;
@@ -12,7 +12,7 @@ import java.nio.file.Files;
 
 import static dev.asdf00.mc.advcomp.utils.ResourceUtil.loadLuaScript;
 
-public class MainboardItem extends Item implements itemCanBeInitialized {
+public class MainboardItem extends Item implements ItemCanBeInitialized {
     private final static String UEFI_TAG_NAME = "acUefiId";
     private final MainboardTier tier;
 

@@ -5,7 +5,7 @@ import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.NetCodeUtils.NetworkMessage;
 import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.api.AcClusterHostEntity;
-import dev.asdf00.mc.advcomp.api.itemCanBeInitialized;
+import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.exceptions.ACError;
 import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
@@ -65,7 +65,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
 
         for (int i = 0; i < itemHandler.getSlots(); i++) {
             var is = itemHandler.getStackInSlot(i);
-            if (is.getItem() instanceof itemCanBeInitialized cbi) {
+            if (is.getItem() instanceof ItemCanBeInitialized cbi) {
                 cbi.Initialize(is);
             }
         }

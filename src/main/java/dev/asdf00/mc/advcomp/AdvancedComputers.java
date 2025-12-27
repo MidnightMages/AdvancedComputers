@@ -241,7 +241,7 @@ public class AdvancedComputers {
 
     public static final RegistryObject<Item> KEYCARD_BASIC_ITEM = RegisterItem("keycard_basic_item", () -> new KeycardBasicItem(new Item.Properties()));
     public static final RegistryObject<Item> KEYCARD_ADVANCED_ITEM = RegisterItem("keycard_advanced_item", () -> new KeycardAdvancedItem(new Item.Properties()));
-    public static final RegistryObject<Item> FLOPPY_DISK_ITEM = RegisterItem("floppy_disk_item", () -> new FloppyDiskItem(new Item.Properties()));
+    public static final RegistryObject<Item> FLOPPY_DISK_ITEM = RegisterItem("floppy_disk_item", () -> new FloppyDiskItem(new Item.Properties(), Constants.MiB));
 
     public static final RegistryObject<Item> MAINBOARD_TIER_1_ITEM = RegisterItem("mainboard_tier1_item", () -> new MainboardItem(MainboardItem.MainboardTier.T1));
     public static final RegistryObject<Item> MAINBOARD_TIER_2_ITEM = RegisterItem("mainboard_tier2_item", () -> new MainboardItem(MainboardItem.MainboardTier.T2));

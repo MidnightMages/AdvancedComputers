@@ -4,7 +4,7 @@ import dev.asdf00.jluavm.LuaVM;
 import dev.asdf00.jluavm.api.functions.AtomicLuaFunction;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.api.itemCanBeInitialized;
+import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockUD;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
@@ -12,9 +12,7 @@ import dev.asdf00.mc.advcomp.lua.components.*;
 import dev.asdf00.mc.advcomp.utils.Tuple;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -137,7 +135,7 @@ public class LuaVirtualMachine {
         for (int i = 0; i < inv.getSlots(); i++) {
             var is = inv.getStackInSlot(i);
             var item = is.getItem();
-            if (item instanceof itemCanBeInitialized icbi) {
+            if (item instanceof ItemCanBeInitialized icbi) {
                 icbi.Initialize(is);
             }
 

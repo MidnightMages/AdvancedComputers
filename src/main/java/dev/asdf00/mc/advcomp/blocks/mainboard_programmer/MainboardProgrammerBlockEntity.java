@@ -2,7 +2,7 @@ package dev.asdf00.mc.advcomp.blocks.mainboard_programmer;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.TranslationMap;
-import dev.asdf00.mc.advcomp.api.itemCanBeInitialized;
+import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
 import dev.asdf00.mc.advcomp.types.AcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;
@@ -67,7 +67,7 @@ public class MainboardProgrammerBlockEntity extends BaseAcCableConnectableBlockE
         if(getLevel().isClientSide()) return;
 
         var is = itemHandler.getStackInSlot(slot);
-        if (is.getItem() instanceof itemCanBeInitialized cbi) {
+        if (is.getItem() instanceof ItemCanBeInitialized cbi) {
             cbi.Initialize(is);
         }
     }
