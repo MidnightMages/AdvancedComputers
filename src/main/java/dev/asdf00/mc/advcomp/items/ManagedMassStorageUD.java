@@ -2,14 +2,10 @@ package dev.asdf00.mc.advcomp.items;
 
 import dev.asdf00.jluavm.api.userdata.LuaCallable;
 import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
-import dev.asdf00.jluavm.api.userdata.LuaExposed;
-import dev.asdf00.jluavm.api.userdata.LuaProperty;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.lua.components.BaseAcComponent;
-import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 import dev.asdf00.mc.advcomp.lua.components.fs.LuaFsFileUD;
 import dev.asdf00.mc.advcomp.lua.components.fs.ManagedStorageHandler;
 import net.minecraft.world.item.ItemStack;
@@ -18,10 +14,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public class DiskItemUD extends BaseAcComponent {
+public class ManagedMassStorageUD extends BaseMassStorageUD {
+    private final ItemStack is;
+    private final int totalCapacityBytes;
+    private int diskStorageId = -1;
+    private ManagedStorageHandler fs = null;
 
-    public DiskItemUD(ItemStack is) {
-        super("disk");
+
+    public static ManagedMassStorageUD initFromItemStack(String storageFamilyName, ItemStack stack, int totalCapacityBytes) {
+        var rv = new ManagedMassStorageUD(storageFamilyName, stack, totalCapacityBytes);
+        rv.initFilesystem();
+        return rv;
+    }
+
+    protected ManagedMassStorageUD(String storageFamilyName, ItemStack stack, int totalCapacityBytes) {
+        super(storageFamilyName, "managed");
+        this.is = stack;
+        this.totalCapacityBytes = totalCapacityBytes;
+    }
+
+    public void initFilesystem() {
+        if(fs != null)
+            throw new RuntimeException("Fs is already inited for disk id %d but was attempted to be initialized again.".formatted(diskStorageId));
+
         var tag = is.getOrCreateTag();
 
         if (!tag.contains("mDiskId")) { // no folder associated yet with this disk
@@ -29,29 +44,9 @@ public class DiskItemUD extends BaseAcComponent {
             tag.putInt("mDiskId", newDiskId);
         }
 
-        if(fs == null)
-            initFilesystem(tag.getInt("mDiskId"));
-    }
-
-    //    private UnmanagedStorageHandler storageComponent;
-    private int diskStorageId = -1;
-    private ManagedStorageHandler fs = null;
-
-    public void initFilesystem(int diskId) {
-        diskStorageId = diskId;
-        if(fs != null)
-            throw new RuntimeException("Fs is already inited for disk id "+diskId);
-
+        diskStorageId = tag.getInt("mDiskId");
         fs = new ManagedStorageHandler(diskStorageId);
     }
-
-    private int diskSlotId = -1;
-
-    @LuaExposed(LuaExposed.Policy.READ)
-    public final LuaProperty diskSlot = LuaProperty.ofInt(
-            () -> diskSlotId,
-            null
-    );
 
     @LuaCallable
     public LuaObject open(LuaObject[] args) {
@@ -61,20 +56,19 @@ public class DiskItemUD extends BaseAcComponent {
                 throw new LuaJavaError("Second argument must be string but was %s".formatted(fileName.getTypeAsString()));
             }
             if (args.length == 1) {
-                return open(fileName.asString(), false);
+                return openInner(fileName.asString(), false);
             } else if (args.length == 2) {
                 var autoCreate = args[1];
                 if (!autoCreate.isBoolean()) {
                     throw new LuaJavaError("Third argument must be boolean but was %s".formatted(autoCreate.getTypeAsString()));
                 }
-                return open(fileName.asString(), autoCreate.getBool());
+                return openInner(fileName.asString(), autoCreate.getBool());
             }
         }
         throw new LuaJavaError("Expected 3 arguments but got %s".formatted(args.length + 1));
     }
 
-    //@LuaCallable
-    public LuaObject open(String fileNameL, boolean autoCreate) {
+    public LuaObject openInner(String fileNameL, boolean autoCreate) {
         var fileName = fileNameL;
         if (fileName.startsWith("/"))
             fileName = fileName.substring(1);
@@ -162,7 +156,7 @@ public class DiskItemUD extends BaseAcComponent {
     }
 
     @LuaDeserializer
-    public static DiskItemUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
+    public static ManagedMassStorageUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
         // TODO actually provide serializaion
         return null;
     }

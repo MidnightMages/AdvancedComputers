@@ -23,6 +23,9 @@ public class ComponentRegistryUD implements LuaUserData {
 
     @LuaCallable
     public LuaObject[] list() { // TODO replace with something that can be serialized
+
+        // TODO sort allComponents by inventory-first, then euclidean distance, then by y x and z distances
+        // or more generally, sort first by euclidean distance, then by y x z distances, then by slot index
         var rets = allComponents.stream().map(LuaComponent::asLuaObj).toArray(LuaObject[][]::new);
         return new LuaObject[]{
                 AtomicLuaFunction.forManyResults(null, (vm, state) -> {
