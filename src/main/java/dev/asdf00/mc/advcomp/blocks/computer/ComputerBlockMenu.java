@@ -2,6 +2,8 @@ package dev.asdf00.mc.advcomp.blocks.computer;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.SlotItemHandlerRequireType;
+import dev.asdf00.mc.advcomp.items.DiskItem;
+import dev.asdf00.mc.advcomp.items.FloppyDiskItem;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
 import dev.asdf00.mc.advcomp.lua.components.AcItemComponent;
 import net.minecraft.network.FriendlyByteBuf;
@@ -37,10 +39,15 @@ public class ComputerBlockMenu extends AbstractContainerMenu {
         addPlayerInventory(playerInv);
         addPlayerHotbar(playerInv);
         this.blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(iItemHandler -> {
-            this.addSlot(new SlotItemHandlerRequireType(iItemHandler, 0, 78, 10,
+            int currSlotIndex = 0;
+            this.addSlot(new SlotItemHandlerRequireType(iItemHandler, currSlotIndex++, 78, 10,
                     MainboardItem.class));
-            addSlotRow(iItemHandler, 1, 98, 10, 4);
-            addSlotRow(iItemHandler, 5, 62, 50, 6);
+
+            for (int i = 0; i < 3; i++) {
+                this.addSlot(new SlotItemHandlerRequireType(iItemHandler, currSlotIndex++, 98 + 18 * i, 10, DiskItem.class));
+            }
+            this.addSlot(new SlotItemHandlerRequireType(iItemHandler, currSlotIndex++, 98 + 18 * 3, 10, FloppyDiskItem.class));
+            addSlotRow(iItemHandler, currSlotIndex, 62, 50, 6);
         });
     }
 

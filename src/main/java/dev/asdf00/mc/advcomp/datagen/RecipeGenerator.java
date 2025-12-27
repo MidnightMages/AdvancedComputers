@@ -241,6 +241,7 @@ public class RecipeGenerator extends RecipeProvider {
         ShapelessNbtRecipeBuilder.shapeless(RecipeCategory.MISC, floppyDiskitem)
                 .addNbtToResult("desiredDiskData", "acos")
                 .addNbtToResult("color", DyeColor.LIME.getFireworkColor())
+                .addNbtToResult("label", "AdvancedOS")
                 .requires(floppyDiskitem)
                 .requires(Items.BOOK)
                 .unlockedBy("item",has(floppyDiskitem))

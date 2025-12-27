@@ -16,13 +16,19 @@ public abstract class BaseAcDyableItem extends Item implements AcDyableItem {
     public @NotNull Component getName(ItemStack pStack) {
         var comp = pStack.getTag();
         String dyeName = "White";
+        String label = "";
         if (comp != null) {
             var dyeColor = DyeColor.byFireworkColor(comp.getInt("color"));
             if (dyeColor != null) {
                 dyeName = Component.translatable("item.minecraft.firework_star." + dyeColor).getString();
             }
+
+            label = comp.getString("label");
         }
 
-        return Component.literal(super.getName(pStack).getString().formatted(dyeName));
+        var itemName = super.getName(pStack).getString().formatted(dyeName);
+        if (!label.isEmpty())
+            itemName += " (%s)".formatted(label);
+        return Component.literal(itemName);
     }
 }

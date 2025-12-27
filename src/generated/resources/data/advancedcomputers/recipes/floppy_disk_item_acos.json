@@ -13,7 +13,8 @@
     "item": "advancedcomputers:floppy_disk_item",
     "nbt": {
       "color": 4312372,
-      "desiredDiskData": "acos"
+      "desiredDiskData": "acos",
+      "label": "AdvancedOS"
     }
   }
 }
