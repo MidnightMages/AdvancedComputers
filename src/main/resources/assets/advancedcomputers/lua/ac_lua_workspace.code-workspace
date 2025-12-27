@@ -1,8 +1,0 @@
-{
-	"folders": [],
-	"settings": {
-		"Lua.diagnostics.globals": [
-			"computer"
-		]
-	}
-}
