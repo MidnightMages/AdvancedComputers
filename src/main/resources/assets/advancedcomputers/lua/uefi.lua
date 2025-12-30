@@ -2,12 +2,12 @@ component = components
 local ok, rv = xpcall(function()
 	local oldPrint = print
 	print = function(...)
-		oldPrint(...)
+		if oldPrint then oldPrint(...) end
 		component:getFirst("screen"):print(...)
 	end
 	local oldPrintInline = printInline
 	printInline = function(...)
-		oldPrintInline(...)
+		if oldPrintInline then oldPrintInline(...) end
 		component:getFirst("screen"):printInline(...)
 	end
 	_G.components = {}
@@ -39,7 +39,7 @@ local ok, rv = xpcall(function()
 				print(etext)
 				error(etext)
 			 end
-			 break
+			 return
 		  else
 			 idx = idx+1
 		  end
@@ -50,5 +50,5 @@ end, debug.traceback)
 if not ok then
 	error("bios error: "..tostring(rv), 0)
 end
-
+print("system has exited")
 --error("No bootable filesystem found!")
