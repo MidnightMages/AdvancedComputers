@@ -24,7 +24,7 @@ public class VirtualFile {
     }
 
     public void writeAllText(String s) {
-        if (!parentFolder.isPhysReadOnly) {
+        if (parentFolder.isPhysReadOnly) {
             throw new LuaJavaError("Filesystem is readonly!");
         }
         try {
