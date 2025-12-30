@@ -20,4 +20,13 @@ public abstract class BaseMassStorageUD extends BaseAcComponent {
     @LuaExposed(LuaExposed.Policy.READ)
     public final LuaProperty storageFamilyName = LuaProperty.ofString(() -> _storageFamilyName, null);
 
+    @LuaExposed(LuaExposed.Policy.READ)
+    public final LuaProperty diskId = LuaProperty.ofInt(this::getDiskId, null);
+
+    /**
+     * This is supposed to return a unique disk id so that computers in minecraft can uniquely identify a disk.
+     * The ids may change but there must never be any re-using going on.
+     * No two different disks shall at any point use the same id.
+     */
+    abstract int getDiskId();
 }

@@ -9,10 +9,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class AcGlobalDataStorage extends SavedData {
 
-    private final AtomicInteger nextManagedDiskId = new AtomicInteger(0);
+    private final AtomicInteger nextUniqueStorageId = new AtomicInteger(0);
     private final AtomicInteger nextUefiId = new AtomicInteger(0);
-    public int getNextFreeManagedDiskId() {
-        var rv = nextManagedDiskId.getAndIncrement();
+    public int getNextFreeUniqueStorageId() {
+        var rv = nextUniqueStorageId.getAndIncrement();
         setDirty();
         return rv;
     }
@@ -26,13 +26,13 @@ public class AcGlobalDataStorage extends SavedData {
         setDirty();
     }
     public AcGlobalDataStorage(CompoundTag tag) {
-        nextManagedDiskId.set(tag.getInt("nextManagedDiskId"));
+        nextUniqueStorageId.set(tag.getInt("nextManagedDiskId")); // TODO before release? maybe rename this to nextUniqueStorageId
         nextUefiId.set(tag.getInt("nextUefiId"));
     }
 
     @Override
     public @NotNull CompoundTag save(@NotNull CompoundTag compoundTag) {
-        compoundTag.putInt("nextManagedDiskId", nextManagedDiskId.get());
+        compoundTag.putInt("nextManagedDiskId", nextUniqueStorageId.get());
         compoundTag.putInt("nextUefiId", nextUefiId.get());
         return compoundTag;
     }

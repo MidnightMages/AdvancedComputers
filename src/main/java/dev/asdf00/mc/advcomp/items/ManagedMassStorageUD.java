@@ -40,7 +40,7 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
         var tag = is.getOrCreateTag();
 
         if (!tag.contains("mDiskId")) { // no folder associated yet with this disk
-            int newDiskId = AdvancedComputers.globalDataStorage.getNextFreeManagedDiskId();
+            int newDiskId = AdvancedComputers.globalDataStorage.getNextFreeUniqueStorageId();
             tag.putInt("mDiskId", newDiskId);
         }
 
@@ -159,5 +159,10 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
     public static ManagedMassStorageUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
         // TODO actually provide serializaion
         return null;
+    }
+
+    @Override
+    int getDiskId() {
+        return diskStorageId;
     }
 }
