@@ -33,8 +33,6 @@ public class ItemModelGenerator extends ItemModelProvider {
                 .texture("layer0", rl("item/floppy_disk_item_0"))
                 .texture("layer1", rl("item/floppy_disk_item_1"));
 
-        basicItem("example");
-
         for (int i = 1; i <= 3; i++)
             basicItem("mainboard_tier%s".formatted(i));
 
@@ -54,7 +52,7 @@ public class ItemModelGenerator extends ItemModelProvider {
 
         this.withExistingParent("keycard_reader_block", rl("block/keycard_reader_block"));
         this.withExistingParent("mainboard_programmer_block", rl("block/mainboard_programmer_block"));
-        this.withExistingParent("example_block", rl("block/example_block"));
+        this.withExistingParent("redstone_io_block", rl("block/redstone_io_block"));
         this.withExistingParent("wan_router", rl("block/wan_router"));
         this.withExistingParent("wan_router_lowtier", rl("block/wan_router_lowtier"));
         this.withExistingParent("net_router", rl("block/net_router"));

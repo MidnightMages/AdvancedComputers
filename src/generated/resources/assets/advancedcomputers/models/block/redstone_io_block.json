@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "advancedcomputers:block/example_block"
+    "all": "advancedcomputers:block/redstone_io_block"
   }
 }

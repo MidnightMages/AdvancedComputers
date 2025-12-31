@@ -33,6 +33,6 @@ public class BlockModelGenerator extends BlockModelProvider {
         this.orientable("mainboard_programmer_block", rl("block/machine_base"),
                 rl("block/mainboard_programmer_block_front"), rl("block/machine_base"));
 
-        this.cubeAll("example_block", rl("block/example_block"));
+        this.cubeAll("redstone_io_block", rl("block/redstone_io_block"));
     }
 }

@@ -16,6 +16,8 @@ import dev.asdf00.mc.advcomp.blocks.mainboard_programmer.MainboardProgrammerBloc
 import dev.asdf00.mc.advcomp.blocks.mainboard_programmer.MainboardProgrammerBlockScreen;
 import dev.asdf00.mc.advcomp.blocks.net_router.NetRouterBlock;
 import dev.asdf00.mc.advcomp.blocks.net_router.NetRouterBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.redstone_io.RedstoneIoBlock;
+import dev.asdf00.mc.advcomp.blocks.redstone_io.RedstoneIoBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlock;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockScreen;
@@ -115,9 +117,6 @@ public class AdvancedComputers {
 //    // Creates a new BlockItem with the id "examplemod:example_block", combining the namespace and path
 //    public static final RegistryObject<Item> EXAMPLE_BLOCK_ITEM = ITEMS.register("example_block", () -> new BlockItem(EXAMPLE_BLOCK.get(), new Item.Properties()));
 
-    public static final RegistryBlockItemPair<Block> EXAMPLE_BLOCK = registerBlockWithItem("example_block",
-            () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.STONE)));
-
     public static final RegistryBlockItemPair<Block> COMPUTER_BLOCK_WOOD = registerBlockWithItem("computer_block_wood",
             () -> new ComputerBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK), ComputerTier.Wood));
     public static final RegistryBlockItemPair<Block> COMPUTER_BLOCK = registerBlockWithItem("computer_block",
@@ -139,6 +138,9 @@ public class AdvancedComputers {
 
     public static final RegistryBlockItemPair<Block> MAINBOARD_PROGRAMMER_BLOCK = registerBlockWithItem("mainboard_programmer_block",
             () -> new MainboardProgrammerBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
+
+    public static final RegistryBlockItemPair<Block> REDSTONE_IO_BLOCK = registerBlockWithItem("redstone_io_block",
+            () -> new RedstoneIoBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
 
     public static final RegistryBlockItemPair<Block> DEVICE_CABLE_BLOCK = registerBlockWithItem("device_cable_block",
             () -> new DeviceCableBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
@@ -168,6 +170,9 @@ public class AdvancedComputers {
 
     public static final RegistryObject<BlockEntityType<MainboardProgrammerBlockEntity>> MAINBOARD_PROGRAMMER_BE = BLOCK_ENTITY_TYPES.register("mainboard_programmer_be",
             () -> BlockEntityType.Builder.of(MainboardProgrammerBlockEntity::new, MAINBOARD_PROGRAMMER_BLOCK.block().get()).build(null));
+
+    public static final RegistryObject<BlockEntityType<RedstoneIoBlockEntity>> REDSTONE_IO_BE = BLOCK_ENTITY_TYPES.register("redstone_io_be",
+            () -> BlockEntityType.Builder.of(RedstoneIoBlockEntity::new, REDSTONE_IO_BLOCK.block().get()).build(null));
 
     public static final RegistryObject<BlockEntityType<WanRouterBlockEntity>> WAN_ROUTER_BE = BLOCK_ENTITY_TYPES.register("wan_router_be",
             () -> BlockEntityType.Builder.of(WanRouterBlockEntity::new, WAN_ROUTER_BLOCK.block().get()).build(null));
@@ -228,10 +233,6 @@ public class AdvancedComputers {
                     })
                     .build()
     );
-
-    // Creates a new food item with the id "examplemod:example_id", nutrition 1 and saturation 2
-    public static final RegistryObject<Item> EXAMPLE_ITEM = ITEMS.register("example_item", () -> new Item(new Item.Properties().food(new FoodProperties.Builder()
-            .alwaysEat().nutrition(1).saturationMod(2f).build())));
 
     public static final RegistryObject<Item> HDD_TIER_1_ITEM = RegisterItem("hdd_tier1_item", () -> new DiskItem(Constants.MiB));
     public static final RegistryObject<Item> HDD_TIER_2_ITEM = RegisterItem("hdd_tier2_item", () -> new DiskItem(5 * Constants.MiB));

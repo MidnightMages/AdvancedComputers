@@ -1,6 +1,5 @@
 {
   "values": [
-    "advancedcomputers:example_block",
     "advancedcomputers:computer_block_wood",
     "advancedcomputers:computer_block",
     "advancedcomputers:computer_block_diamond",
@@ -10,6 +9,7 @@
     "advancedcomputers:screen_block_diamond",
     "advancedcomputers:keycard_reader_block",
     "advancedcomputers:mainboard_programmer_block",
+    "advancedcomputers:redstone_io_block",
     "advancedcomputers:device_cable_block",
     "advancedcomputers:network_cable_block",
     "advancedcomputers:wan_router",
