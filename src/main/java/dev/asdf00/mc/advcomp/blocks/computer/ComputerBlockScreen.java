@@ -4,6 +4,8 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.types.MultiImageButton;
+import dev.asdf00.mc.advcomp.utils.TriConsumer;
+import dev.asdf00.mc.advcomp.utils.Tuple;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -11,6 +13,10 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class ComputerBlockScreen extends AbstractContainerScreen<ComputerBlockMenu> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(AdvancedComputers.MODID, "textures/gui/computer_gui.png");
@@ -23,6 +29,7 @@ public class ComputerBlockScreen extends AbstractContainerScreen<ComputerBlockMe
 
     private static final int OnOffButtonSize = 14;
 
+    private ComputerTier tier = null;
     @Override
     protected void init() {
         super.init();
@@ -32,6 +39,7 @@ public class ComputerBlockScreen extends AbstractContainerScreen<ComputerBlockMe
                 new MultiImageButton(this.leftPos + 22, this.topPos + 29, OnOffButtonSize, OnOffButtonSize, 0, 166, TEXTURE, this::handleOnOffButton)
         );
         onMachineStateChanged();
+        tier = menu.blockEntity.getTier();
     }
 
     private boolean isMachineRunning() {
@@ -51,9 +59,26 @@ public class ComputerBlockScreen extends AbstractContainerScreen<ComputerBlockMe
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1, 1, 1, 1);
         RenderSystem.setShaderTexture(0, TEXTURE);
-        int x = (width - imageWidth) / 2;
-        int y = (height - imageHeight) / 2;
+        final int x = (width - imageWidth) / 2;
+        final int y = (height - imageHeight) / 2;
         pGuiGraphics.blit(TEXTURE, x, y, 0, 0, imageWidth, imageHeight);
+
+        // cover up excess hdd slots
+        BiConsumer<Integer, Integer> coverSingleSlot = (slotToCoverX,slotToCoverY) -> {
+            pGuiGraphics.blit(TEXTURE, x+slotToCoverX-1, y+slotToCoverY-1, 10,10, 18,18);
+        };
+
+        TriConsumer<Integer,Integer, Function<ComputerTier, Integer>> coverSlotRowIfNeeded = (xPos, yPos, availableSlotCountSelector) -> {
+            var supportedSlots = availableSlotCountSelector.apply(tier);
+            var maxSlots = availableSlotCountSelector.apply(ComputerTier.Netherite);
+            // cover all between supportedSlots and maxSlots
+            for (int i = 0; i < maxSlots-supportedSlots; i++) {
+                coverSingleSlot.accept((i+supportedSlots)*18+xPos, yPos);
+            }
+        };
+
+        coverSlotRowIfNeeded.accept(98, 10, tier -> tier.diskSlotCount);
+        coverSlotRowIfNeeded.accept(62, 50, tier -> tier.componentSlotCount);
     }
 
     @Override

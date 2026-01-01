@@ -5,17 +5,44 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.function.Function;
+
 public class SlotItemHandlerRequireType extends SlotItemHandler {
-    private final Class<?> requiredType;
+    private final Function<ItemStack, Boolean> mayPlace;
 
     public SlotItemHandlerRequireType(IItemHandler itemHandler, int index, int xPosition, int yPosition, Class<?> requiredType) {
         super(itemHandler, index, xPosition, yPosition);
-        this.requiredType = requiredType;
+        this.mayPlace = stack -> isItemDerivedFromType(stack, requiredType);
+    }
+
+    public SlotItemHandlerRequireType(IItemHandler itemHandler, int index, int xPosition, int yPosition, Function<ItemStack, Boolean> mayPlace) {
+        super(itemHandler, index, xPosition, yPosition);
+        this.mayPlace = mayPlace;
+    }
+
+    public static SlotItemHandlerRequireType fromTypeConstraints(IItemHandler itemHandler, int index, int xPosition, int yPosition,
+                                                                 Class<?> mustInheritFrom, Class<?>[] andMustNotInheritFrom) {
+        return new SlotItemHandlerRequireType(itemHandler, index, xPosition, yPosition, stack -> {
+            if (!isItemDerivedFromType(stack, mustInheritFrom))
+                return false;
+
+            for (Class<?> e : andMustNotInheritFrom) {
+                if (isItemDerivedFromType(stack, e))
+                    return false;
+            }
+
+            return true;
+        });
+    }
+
+    private static boolean isItemDerivedFromType(ItemStack stack, Class<?> requiredType) {
+        return requiredType.isAssignableFrom(stack.getItem().getClass());
     }
 
     @Override
     public boolean mayPlace(@NotNull ItemStack stack) {
-        return requiredType.isAssignableFrom(stack.getItem().getClass()) && super.mayPlace(stack);
+        return mayPlace.apply(stack) && super.mayPlace(stack);
     }
 
     @Override

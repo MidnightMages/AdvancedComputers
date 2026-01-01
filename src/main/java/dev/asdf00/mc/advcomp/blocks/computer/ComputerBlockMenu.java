@@ -2,10 +2,12 @@ package dev.asdf00.mc.advcomp.blocks.computer;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.SlotItemHandlerRequireType;
+import dev.asdf00.mc.advcomp.items.BaseDataStorageItem;
 import dev.asdf00.mc.advcomp.items.DiskItem;
 import dev.asdf00.mc.advcomp.items.FloppyDiskItem;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
 import dev.asdf00.mc.advcomp.lua.components.AcItemComponent;
+import dev.asdf00.mc.advcomp.utils.Tuple;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -13,12 +15,12 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
 
 public class ComputerBlockMenu extends AbstractContainerMenu {
     public final ComputerBlockEntity blockEntity;
@@ -26,13 +28,19 @@ public class ComputerBlockMenu extends AbstractContainerMenu {
     private final ContainerData data;
 
     public ComputerBlockMenu(int pContainerId, Inventory inv, FriendlyByteBuf extraData) {
-        this(pContainerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()), new SimpleContainerData(TE_INVENTORY_SLOT_COUNT));
+        this(pContainerId, inv, (ComputerBlockEntity) (inv.player.level().getBlockEntity(extraData.readBlockPos())));
     }
 
-    public ComputerBlockMenu(int pContainerId, Inventory playerInv, BlockEntity be, ContainerData cd) {
+    private ComputerBlockMenu(int pContainerId, Inventory inv, ComputerBlockEntity cbe) {
+        this(pContainerId, inv, cbe, new SimpleContainerData(TE_INVENTORY_SLOT_COUNT(cbe.getTier())));
+    }
+
+    public ComputerBlockMenu(int pContainerId, Inventory playerInv, ComputerBlockEntity be, ContainerData cd) {
         super(AdvancedComputers.COMPUTER_MENU.get(), pContainerId);
-        checkContainerSize(playerInv, TE_INVENTORY_SLOT_COUNT);
-        blockEntity = (ComputerBlockEntity) be;
+        var tier = be.getTier();
+        var teInvSlotCount = TE_INVENTORY_SLOT_COUNT(tier);
+        checkContainerSize(playerInv, teInvSlotCount);
+        blockEntity = be;
         level = playerInv.player.level();
         data = cd;
 
@@ -43,18 +51,21 @@ public class ComputerBlockMenu extends AbstractContainerMenu {
             this.addSlot(new SlotItemHandlerRequireType(iItemHandler, currSlotIndex++, 78, 10,
                     MainboardItem.class));
 
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < tier.diskSlotCount; i++) {
                 this.addSlot(new SlotItemHandlerRequireType(iItemHandler, currSlotIndex++, 98 + 18 * i, 10, DiskItem.class));
             }
             this.addSlot(new SlotItemHandlerRequireType(iItemHandler, currSlotIndex++, 98 + 18 * 3, 10, FloppyDiskItem.class));
-            addSlotRow(iItemHandler, currSlotIndex, 62, 50, 6);
+
+            addSlotRow(iItemHandler, currSlotIndex, 62, 50, tier.componentSlotCount);
         });
     }
 
     void addSlotRow(IItemHandler iItemHandler, int indexStart, int xPos, int yPos, int count) {
         for (int i = 0; i < count; i++) {
-            this.addSlot(new SlotItemHandlerRequireType(iItemHandler, indexStart + i, xPos + 18 * i, yPos,
-                    AcItemComponent.class)); // TODO distinguish between disk and other slot types
+            this.addSlot(SlotItemHandlerRequireType.fromTypeConstraints(iItemHandler, indexStart + i, xPos + 18 * i, yPos,
+                    AcItemComponent.class, new Class[]{
+                            MainboardItem.class, BaseDataStorageItem.class
+                    }));
         }
     }
 
@@ -71,13 +82,19 @@ public class ComputerBlockMenu extends AbstractContainerMenu {
     private static final int PLAYER_INVENTORY_SLOT_COUNT = PLAYER_INVENTORY_COLUMN_COUNT * PLAYER_INVENTORY_ROW_COUNT;
     private static final int VANILLA_SLOT_COUNT = HOTBAR_SLOT_COUNT + PLAYER_INVENTORY_SLOT_COUNT;
     private static final int VANILLA_FIRST_SLOT_INDEX = 0;
-    private static final int TE_INVENTORY_FIRST_SLOT_INDEX = VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT;
+    static final int TE_INVENTORY_FIRST_SLOT_INDEX = VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT;
 
     // THIS YOU HAVE TO DEFINE!
-    public static final int TE_INVENTORY_SLOT_COUNT = 11;  // must be the number of slots you have!
+    public static int TE_INVENTORY_SLOT_COUNT(ComputerTier tier) {
+        return 1 + // mainboard
+               tier.diskSlotCount +
+               1 + // floppy
+               tier.componentSlotCount; // used to be 11 for max tier
+    } // must be the number of slots you have!
 
     @Override
     public @NotNull ItemStack quickMoveStack(@NotNull Player playerIn, int pIndex) {
+        var tier = blockEntity.getTier();
         Slot sourceSlot = slots.get(pIndex);
         if (sourceSlot == null || !sourceSlot.hasItem()) return ItemStack.EMPTY;  //EMPTY_ITEM
         ItemStack sourceStack = sourceSlot.getItem();
@@ -87,10 +104,10 @@ public class ComputerBlockMenu extends AbstractContainerMenu {
         if (pIndex < VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT) {
             // This is a vanilla container slot so merge the stack into the tile inventory
             if (!moveItemStackTo(sourceStack, TE_INVENTORY_FIRST_SLOT_INDEX, TE_INVENTORY_FIRST_SLOT_INDEX
-                                                                             + TE_INVENTORY_SLOT_COUNT, false)) {
+                                                                             + TE_INVENTORY_SLOT_COUNT(tier), false)) {
                 return ItemStack.EMPTY;  // EMPTY_ITEM
             }
-        } else if (pIndex < TE_INVENTORY_FIRST_SLOT_INDEX + TE_INVENTORY_SLOT_COUNT) {
+        } else if (pIndex < TE_INVENTORY_FIRST_SLOT_INDEX + TE_INVENTORY_SLOT_COUNT(tier)) {
             // This is a TE slot so merge the stack into the players inventory
             if (!moveItemStackTo(sourceStack, VANILLA_FIRST_SLOT_INDEX, VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT, false)) {
                 return ItemStack.EMPTY;

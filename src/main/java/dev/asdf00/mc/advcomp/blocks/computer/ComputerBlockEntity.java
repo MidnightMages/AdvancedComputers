@@ -41,7 +41,7 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity implements MenuProvider, AcClusterHostEntity {
-    public final NotifyingItemHandler itemHandler = new NotifyingItemHandler(this, ComputerBlockMenu.TE_INVENTORY_SLOT_COUNT, this::itemHandler_onSlotChanged);
+    public final NotifyingItemHandler itemHandler;
     private ComputerTier tier;
     private ComputerBlock block;
     private LazyOptional<IItemHandler> lazyItemHandler = LazyOptional.empty();
@@ -86,7 +86,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
 
     public ComputerBlockEntity(BlockPos pPos, BlockState pBlockState) {
         super(AdvancedComputers.COMPUTER_BE.get(), pPos, pBlockState, Arrays.asList(AdvancedComputers.CLUSTER_TYPE_DEVICE, AdvancedComputers.CLUSTER_TYPE_NETWORK));
-
+        itemHandler = new NotifyingItemHandler(this, ComputerBlockMenu.TE_INVENTORY_SLOT_COUNT(((ComputerBlock) pBlockState.getBlock()).TIER), this::itemHandler_onSlotChanged);
         this.data = new ContainerData() {
             @Override
             public int get(int pIndex) {
@@ -114,6 +114,10 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
 
     private boolean isServer() {
         return !getLevel().isClientSide();
+    }
+
+    public ComputerTier getTier() {
+        return tier != null ? tier : ((ComputerBlock)level.getBlockState(getBlockPos()).getBlock()).TIER;
     }
 
     @Override
