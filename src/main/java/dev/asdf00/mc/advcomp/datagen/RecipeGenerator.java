@@ -13,6 +13,7 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
@@ -239,6 +240,17 @@ public class RecipeGenerator extends RecipeProvider {
         }
 
         addPremadeFloppy(pWriter,"acos", "AdvancedOS", Items.BOOK, DyeColor.LIME.getFireworkColor());
+
+        shaped(AdvancedComputers.REDSTONE_IO_BLOCK.blockItem().get())
+                .pattern("NCN")
+                .pattern("CRC")
+                .pattern("NDN")
+                .define('N', Tags.Items.NUGGETS_IRON)
+                .define('C', Tags.Items.INGOTS_COPPER)
+                .define('R', Blocks.REDSTONE_BLOCK)
+                .define('D', AdvancedComputers.DEVICE_CABLE_BLOCK.blockItem().get())
+                .unlockedBy("item", has(Tags.Items.INGOTS_COPPER))
+                .save(pWriter);
     }
 
     @SuppressWarnings("SameParameterValue")
