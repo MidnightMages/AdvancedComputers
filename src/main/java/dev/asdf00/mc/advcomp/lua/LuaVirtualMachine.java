@@ -241,13 +241,17 @@ public class LuaVirtualMachine {
 
         final String uefiScriptForLambda = uefiScript;
         executorThread = new Thread(() -> {
-            vm = LuaVM.builder().withApiRegistry(greg).modifyEnv(t -> {
-                var map = _G.asMap();
-                for (var k : map.keys()) {
-                    t.set(k, map.getOrDefault(k, LuaObject.NIL));
-                }
-            }).rootFunc(uefiScriptForLambda).build();
-            runLua();
+            try {
+                vm = LuaVM.builder().withApiRegistry(greg).modifyEnv(t -> {
+                    var map = _G.asMap();
+                    for (var k : map.keys()) {
+                        t.set(k, map.getOrDefault(k, LuaObject.NIL));
+                    }
+                }).rootFunc(uefiScriptForLambda).build();
+                runLua();
+            } catch (Exception e) {
+                AdvancedComputers.LOGGER.error("Caught lua executor exception: %s".formatted(e.toString()));
+            }
         });
         executorThread.start();
     }
