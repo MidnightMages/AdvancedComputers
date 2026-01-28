@@ -6,6 +6,7 @@ import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockUD;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
 import dev.asdf00.mc.advcomp.lua.components.*;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -44,6 +46,8 @@ public class LuaVirtualMachine {
     private volatile boolean killingLVM = false;
 
     public ComputerUD computerUD = null;
+
+    public final List<ScreenBlockEntity> screenBEs = new ArrayList<>();
 
 
     public LuaVirtualMachine(ComputerBlockEntity computer, int instructionsPerSecond) {
@@ -154,27 +158,32 @@ public class LuaVirtualMachine {
 
         // set up peripheral components // TODO this needs to be reworked a little, e.g. a device thats directly attached to a computer does not yet show up here
         var deviceComponentBlockEntities = computer.connectedNetworks.values().stream()
-                .filter(x->x.clusterType.getClusterName().equals("device"))
-                .flatMap(x-> Arrays.stream(x.connectedEntities))
+                .filter(x -> x.clusterType.getClusterName().equals("device"))
+                .flatMap(x -> Arrays.stream(x.connectedEntities))
                 .distinct()
                 .collect(Collectors.toCollection(ArrayList::new));
 
-        var screenBlockPos =  computer.getBlockPos().offset(0,1,0);
+        var screenBlockPos = computer.getBlockPos().offset(0, 1, 0);
         var screenBe = Objects.requireNonNull(computer.getLevel()).getBlockEntity(screenBlockPos, AdvancedComputers.SCREEN_BE.get());
         screenBe.ifPresent(deviceComponentBlockEntities::add);
 
         for (var be : deviceComponentBlockEntities.stream().distinct().toArray()) {
-            if(be instanceof AcBlockEntityComponent bec)
+            if (be instanceof AcBlockEntityComponent bec) {
                 componentsToInit.add(bec.CreateUserdata());
+            }
+            if (be instanceof ScreenBlockEntity sbe) {
+                screenBEs.add(sbe);
+            }
         }
 
-
+        // TODO drop that
         for (var comp : componentsToInit) {
             componentReg.addComponentAndNotify(comp);
             comp.onVmInit(this);
-            if(comp instanceof ScreenBlockUD sbu)
+            if (comp instanceof ScreenBlockUD sbu)
                 sbu.clearGuiScreen();
         }
+
 
         // TODO traverse peripheral network and instantiate and init the block userdata objects similarly
         // TODO define how exactly the peripheral network should behave (and make it behave that way then)
@@ -182,6 +191,7 @@ public class LuaVirtualMachine {
         //componentReg.registerComponent(new InternetUD());
         //componentReg.registerComponent(new BiosUD());
         componentReg.addComponentAndNotify(new ComputerUD(this));
+        componentReg.addComponentAndNotify(new GpuUD(this));
         // --------------------------
         // DEFINE GLOBALS
         var greg = new ExtendedMixedStateFunctionRegistry("advancedcomputers");
@@ -322,12 +332,12 @@ public class LuaVirtualMachine {
             var res = vm.run();
 
             if (res.state() == LuaVM.VmRunState.EXECUTION_ERROR) {
-                AdvancedComputers.LOGGER.error("vm exited with error: %s".formatted(res.toString().replace("\\n","\n")));
+                AdvancedComputers.LOGGER.error("vm exited with error: %s".formatted(res.toString().replace("\\n", "\n")));
             } else {
-                AdvancedComputers.LOGGER.info("vm exited with result: %s".formatted(res.toString().replace("\\n","\n")));
+                AdvancedComputers.LOGGER.info("vm exited with result: %s".formatted(res.toString().replace("\\n", "\n")));
             }
         } catch (Exception ex) {
-            AdvancedComputers.LOGGER.error("caught lvm exception: ",ex);
+            AdvancedComputers.LOGGER.error("caught lvm exception: ", ex);
         }
 
         boolean shutdownWasGraceful;
@@ -340,10 +350,9 @@ public class LuaVirtualMachine {
 
             if (lvmCleanExit)
                 shutdownWasGraceful = true;
-            else if (lvmException){
+            else if (lvmException) {
                 shutdownWasGraceful = false;
-            }
-            else {
+            } else {
                 shutdownWasGraceful = stopCode_isGraceful;
             }
         }
@@ -369,26 +378,24 @@ public class LuaVirtualMachine {
         throw new LvmKillException();
     }
 
-    private final HashMap<Integer, Tuple<AcItemComponent,LuaUserDataComponent>> luaComputerInventoryUserdataObjectsBySlotId = new HashMap<>();
+    private final HashMap<Integer, Tuple<AcItemComponent, LuaUserDataComponent>> luaComputerInventoryUserdataObjectsBySlotId = new HashMap<>();
 
     public void rebuildUserdataFromInventory() {
         var slots = computer.itemHandler.getSlots();
         for (int i = 0; i < slots; i++) {
             var is = computer.itemHandler.getStackInSlot(i);
             AcItemComponent assoc = null;
-            if(!is.isEmpty() && is.getItem() instanceof AcItemComponent a) {
+            if (!is.isEmpty() && is.getItem() instanceof AcItemComponent a) {
                 assoc = a;
             }
             var oldTpl = luaComputerInventoryUserdataObjectsBySlotId.get(i);
             var old = oldTpl == null ? null : oldTpl.x();
-            if (old != assoc)
-            {
+            if (old != assoc) {
                 // TODO invalidate the original user data object
             }
 
             // then add the fresh one
-            if (assoc != null)
-            {
+            if (assoc != null) {
                 var ud = assoc.CreateUserdata(is);
                 luaComputerInventoryUserdataObjectsBySlotId.put(i, new Tuple<>(assoc, ud));
             }

@@ -36,15 +36,10 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 
-public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity implements MenuProvider, AcBlockEntityComponent {
+public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity implements MenuProvider {
     public final ItemStackHandler itemHandler = new ItemStackHandler(2);
     private LazyOptional<IItemHandler> lazyItemhandler = LazyOptional.empty();
     private final LazyOptional<AcDevCableConnectableEntity> lazyCableConnectable;
-
-    @Override
-    public LuaUserDataComponent CreateUserdata() {
-        return new ScreenBlockUD(this);
-    }
 
     public void tick(Level pLevel, BlockPos pPos, BlockState pState) {
         // todo add logic
