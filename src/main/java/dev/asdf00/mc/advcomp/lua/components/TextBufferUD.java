@@ -1,11 +1,13 @@
 package dev.asdf00.mc.advcomp.lua.components;
 
 import dev.asdf00.jluavm.api.userdata.LuaCallable;
+import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
 import dev.asdf00.jluavm.api.userdata.LuaExposed;
 import dev.asdf00.jluavm.api.userdata.LuaUserData;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.runtime.utils.UDTranslators;
+import dev.asdf00.jluavm.utils.ByteArrayReader;
 
 import java.util.Arrays;
 import java.util.List;
@@ -109,5 +111,11 @@ public final class TextBufferUD implements LuaUserData {
         if (!condition) {
             throw new LuaJavaError(msg);
         }
+    }
+
+    @LuaDeserializer
+    public static TextBufferUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
+        // TODO actually provide serializaion
+        return null;
     }
 }

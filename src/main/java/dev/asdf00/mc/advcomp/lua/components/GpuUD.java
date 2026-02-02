@@ -1,8 +1,10 @@
 package dev.asdf00.mc.advcomp.lua.components;
 
 import dev.asdf00.jluavm.api.userdata.LuaCallable;
+import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
+import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.utils.SetBiMap;
@@ -55,4 +57,11 @@ public class GpuUD extends BaseAcComponent {
     public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs) {
         throw new UnsupportedOperationException("not implemented");
     }
+
+    @LuaDeserializer
+    public static GpuUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
+        // TODO actually provide serializaion
+        return null;
+    }
+
 }
