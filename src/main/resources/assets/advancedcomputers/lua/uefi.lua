@@ -1,15 +1,63 @@
 component = components
 local ok, rv = xpcall(function()
-	local oldPrint = print
-	print = function(...)
-		if oldPrint then oldPrint(...) end
-		component:getFirst("screen"):print(...)
+
+	local gpu = component:getFirst("gpu")
+	local textBuffer = nil
+	local cursorX, cursorY = 0, 0
+	local screenSizeX, screenSizeY = 128, 25
+	if gpu ~= nil then
+		textBuffer = gpu:newBuffer(screenSizeX, screenSizeY)
+		gpu:assignBuffer(textBuffer, 0)
 	end
-	local oldPrintInline = printInline
-	printInline = function(...)
-		if oldPrintInline then oldPrintInline(...) end
-		component:getFirst("screen"):printInline(...)
+	local function setUpPrinting(funcName)
+		local oldFunc = _ENV[funcName]
+		_ENV[funcName] = function(...)
+			if oldFunc ~= nil then -- try print via the original global
+				oldFunc(...)
+			end
+
+			local someScreen = component:getFirst("screen")
+			if someScreen ~= nil then -- try old printing api
+				someScreen[funcName](someScreen,...)
+			end
+
+			if textBuffer ~= nil then
+				local function doNewline()
+					textBuffer:rotrows(1)
+					textBuffer:clearrow(0)
+				end
+
+				local textToPrint = table.concat(table.pack(...), " ")
+				for i = 1, #textToPrint do
+					local currChar = textToPrint:sub(i,i)
+					textBuffer:set(cursorX,0, currChar, nil, nil)
+					cursorX = cursorX + 1
+					if currChar == "\n" then cursorX = screenSizeX end
+					if cursorX == screenSizeX then
+						cursorX = 0
+						cursorY = cursorY+1
+						if cursorY >= screenSizeY then
+							cursorY = screenSizeY-1
+							doNewline()
+						end
+					end
+				end
+				if funcName == "print" then
+					cursorY = cursorY + 1
+					cursorX = 0
+					if cursorY >= screenSizeY then
+						cursorY = screenSizeY-1
+						doNewline()
+					end
+				else -- printInline
+					assert(funcName == "printInline")
+				end
+			end
+		end
 	end
+
+	setUpPrinting("print")
+	setUpPrinting("printInline")
 	_G.components = {}
 	local computer = component:getFirst("computer") -- TODO rename component to components
 	local idx = 1

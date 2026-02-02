@@ -65,7 +65,7 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
     private void renderStdOut(GuiGraphics pGuiGraphics) {
         var lines = this.getScreenEntity().guiContent.replace("\t", "    ").lines().toArray(String[]::new); // TODO handle tabs properly
         int y = 50;
-        for (int i = Math.max(0, lines.length - 25); i < lines.length; i++) {
+        for (int i = 0; i < lines.length; i++) {
             var l = lines[i];
             pGuiGraphics.drawString(AdvancedComputers.getMonoFont(), l, 101, y, -1);
             y += 9;

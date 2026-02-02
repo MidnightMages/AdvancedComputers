@@ -18,7 +18,7 @@ public final class TextBufferUD implements LuaUserData {
     @LuaExposed(LuaExposed.Policy.READ)
     public final int width;
     @LuaExposed(LuaExposed.Policy.READ)
-    public final int heigth;
+    public final int height;
 
     private final GpuUD gpuUD;
 
@@ -28,9 +28,22 @@ public final class TextBufferUD implements LuaUserData {
     private final char[] text;
     private int lStart;
 
+    // TODO not threadsafe and not protected
+    public String getTextAsString() {
+        var guiTextSb = new StringBuilder();
+        for (int line = 0; line < height; line++) {
+            int actualLine = (lStart + line + 1) % height;
+            String lineText = String.valueOf(text, actualLine * width, width)
+                                      .replaceAll("[\0-\\x19]", " ")
+                                      .replace((char) -1, ' ').stripTrailing() + "\n";
+            guiTextSb.append(lineText);
+        }
+        return guiTextSb.toString();
+    }
+
     public TextBufferUD(int width, int height, GpuUD gpuUD) {
         this.width = width;
-        this.heigth = height;
+        this.height = height;
         this.gpuUD = gpuUD;
         this.foregroundColor = new byte[width * height];
         this.backgroundColor = new byte[width * height];
@@ -59,7 +72,7 @@ public final class TextBufferUD implements LuaUserData {
         char val = lval.isNil() ? (char) -1 : UDTranslators.lo2c(lval);
         byte fg = lfg.isNil() ? -1 : UDTranslators.lo2b(lfg);
         byte bg = lbg.isNil() ? -1 : UDTranslators.lo2b(lbg);
-        if (lval.isNil()) {
+        if (!lval.isNil()) {
             text[idx] = val;
         }
         if (lfg.isNil()) {
@@ -73,15 +86,17 @@ public final class TextBufferUD implements LuaUserData {
 
     @LuaCallable
     public void rotrows(int cnt) {
-        lStart = (lStart + cnt) % heigth;
+        luaGuarantee(cnt < height && cnt >= -height, "line out of bounds");
+        cnt = cnt < 0 ? height - cnt : cnt;
+        lStart = (lStart + cnt) % height;
         gpuUD.dirty(this);
     }
 
     @LuaCallable
     public void clearrow(int line) {
-        luaGuarantee(line < heigth && line >= -heigth, "line out of bounds");
-        line = line < 0 ? heigth - line : line;
-        int target = (lStart + line) % heigth;
+        luaGuarantee(line < height && line >= -height, "line out of bounds");
+        line = line < 0 ? height - line : line;
+        int target = ((lStart + line) % height) * width;
         Arrays.fill(text, target, target + (width - 1), '\0');
         Arrays.fill(foregroundColor, target, target + (width - 1), (byte) 0);
         Arrays.fill(backgroundColor, target, target + (width - 1), (byte) 0);
@@ -96,10 +111,10 @@ public final class TextBufferUD implements LuaUserData {
 
     private int calcIdx(int x, int y) {
         luaGuarantee(x < width && x >= -width, "x out of bounds");
-        luaGuarantee(y < heigth && y >= -heigth, "y out of bounds");
+        luaGuarantee(y < height && y >= -height, "y out of bounds");
         x = x < 0 ? width - x : x;
-        y = y < 0 ? heigth - y : y;
-        return ((lStart + y) % heigth) + x;
+        y = y < 0 ? height - y : y;
+        return ((lStart + y) % height) * width + x;
     }
 
     @Override

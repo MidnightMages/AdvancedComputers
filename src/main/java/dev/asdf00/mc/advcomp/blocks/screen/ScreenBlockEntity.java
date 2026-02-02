@@ -7,8 +7,6 @@ import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.exceptions.ACError;
-import dev.asdf00.mc.advcomp.lua.components.AcBlockEntityComponent;
-import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
 import dev.asdf00.mc.advcomp.types.AcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;
@@ -181,6 +179,9 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
                             break;
                         case "clearGuiText":
                             sbe.guiContent = "";
+                            break;
+                        case "setGuiText":
+                            sbe.guiContent = content;
                             break;
                         default:
                             AdvancedComputers.LOGGER.warn("Received invalid Screen event type2: '" + eventName + "'");

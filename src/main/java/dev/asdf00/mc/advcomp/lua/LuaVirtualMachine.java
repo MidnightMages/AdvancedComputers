@@ -4,6 +4,7 @@ import dev.asdf00.jluavm.LuaVM;
 import dev.asdf00.jluavm.api.functions.AtomicLuaFunction;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
@@ -11,13 +12,10 @@ import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockUD;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
 import dev.asdf00.mc.advcomp.lua.components.*;
 import dev.asdf00.mc.advcomp.utils.Tuple;
+import net.minecraftforge.network.PacketDistributor;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Objects;
 import java.util.*;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
@@ -46,9 +44,12 @@ public class LuaVirtualMachine {
     private volatile boolean killingLVM = false;
 
     public ComputerUD computerUD = null;
+    public GpuUD gpuUD = null;
 
     public final List<ScreenBlockEntity> screenBEs = new ArrayList<>();
 
+    private final Object screenBEsThatNeedUpdatingLock = new Object();
+    private final HashSet<ScreenBlockEntity> screenBEsThatNeedUpdating = new HashSet<>();
 
     public LuaVirtualMachine(ComputerBlockEntity computer, int instructionsPerSecond) {
         this.computer = computer;
@@ -191,7 +192,8 @@ public class LuaVirtualMachine {
         //componentReg.registerComponent(new InternetUD());
         //componentReg.registerComponent(new BiosUD());
         componentReg.addComponentAndNotify(new ComputerUD(this));
-        componentReg.addComponentAndNotify(new GpuUD(this));
+        gpuUD = new GpuUD(this);
+        componentReg.addComponentAndNotify(gpuUD);
         // --------------------------
         // DEFINE GLOBALS
         var greg = new ExtendedMixedStateFunctionRegistry("advancedcomputers");
@@ -403,5 +405,24 @@ public class LuaVirtualMachine {
     }
 
     static class LvmKillException extends RuntimeException {
+    }
+
+    public void markScreenForUpdate(ScreenBlockEntity toUpdate) {
+        synchronized (screenBEsThatNeedUpdatingLock) {
+            screenBEsThatNeedUpdating.add(toUpdate);
+        }
+    }
+
+    public void sendScreenUpdatesToClients() {
+        ScreenBlockEntity[] screensToUpdateNow;
+        synchronized (screenBEsThatNeedUpdatingLock) {
+            screensToUpdateNow = screenBEsThatNeedUpdating.toArray(ScreenBlockEntity[]::new);
+            screenBEsThatNeedUpdating.clear();
+        }
+        for (ScreenBlockEntity sbe : screensToUpdateNow) {
+            var textBuffer = this.gpuUD.getBufferForBlockEntity(sbe);
+            String text = textBuffer.getTextAsString();
+            NetCodeUtils.sendToClient(PacketDistributor.ALL.noArg(), new ScreenBlockEntity.ScreenContentToClientEvent(sbe, "setGuiText", text));
+        }
     }
 }

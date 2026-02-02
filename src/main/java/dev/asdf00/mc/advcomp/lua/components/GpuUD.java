@@ -46,6 +46,7 @@ public class GpuUD extends BaseAcComponent {
         // TODO check if this works
         for (ScreenBlockEntity sbe : biMap.getBack(buf)) {
             BlockPos pos = sbe.getBlockPos();
+            lvm.markScreenForUpdate(sbe);
             // TODO send msg to client to redraw screen
             // maybe pool stuff until next tick, keep a set of dirty screens and fire redraw messages
             // from ComputerBlockEntity#tick.
@@ -64,4 +65,8 @@ public class GpuUD extends BaseAcComponent {
         return null;
     }
 
+    // TODO NOT THREADSAFE AND UNPROTECTED
+    public TextBufferUD getBufferForBlockEntity(ScreenBlockEntity sbe) {
+        return biMap.get(sbe);
+    }
 }
