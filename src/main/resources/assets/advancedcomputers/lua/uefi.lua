@@ -3,12 +3,13 @@ local ok, rv = xpcall(function()
 
 	local gpu = component:getFirst("gpu")
 	local textBuffer = nil
-	local cursorX, cursorY = 0, 0
 	local screenSizeX, screenSizeY = 128, 25
+	local cursorX, cursorY = 0, 0
 	if gpu ~= nil then
 		textBuffer = gpu:newBuffer(screenSizeX, screenSizeY)
 		gpu:assignBuffer(textBuffer, 0)
 	end
+
 	local function setUpPrinting(funcName)
 		local oldFunc = _ENV[funcName]
 		_ENV[funcName] = function(...)
@@ -30,15 +31,20 @@ local ok, rv = xpcall(function()
 				local textToPrint = table.concat(table.pack(...), " ")
 				for i = 1, #textToPrint do
 					local currChar = textToPrint:sub(i,i)
-					textBuffer:set(cursorX,0, currChar, nil, nil)
-					cursorX = cursorX + 1
-					if currChar == "\n" then cursorX = screenSizeX end
-					if cursorX == screenSizeX then
-						cursorX = 0
-						cursorY = cursorY+1
-						if cursorY >= screenSizeY then
-							cursorY = screenSizeY-1
-							doNewline()
+					if currChar == "\b" then
+						cursorX = math.max(cursorX-1, 0)
+						textBuffer:set(cursorX, cursorY, ' ', nil, nil)
+					else
+						textBuffer:set(cursorX, cursorY, currChar, nil, nil)
+						cursorX = cursorX + 1
+						if currChar == "\n" then cursorX = screenSizeX end
+						if cursorX == screenSizeX then
+							cursorX = 0
+							cursorY = cursorY+1
+							if cursorY >= screenSizeY then
+								cursorY = screenSizeY-1
+								doNewline()
+							end
 						end
 					end
 				end
