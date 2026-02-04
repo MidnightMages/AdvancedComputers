@@ -174,6 +174,7 @@ public class LuaVirtualMachine {
             }
             if (be instanceof ScreenBlockEntity sbe) {
                 screenBEs.add(sbe);
+                NetCodeUtils.sendToClient(PacketDistributor.ALL.noArg(), new ScreenBlockEntity.ScreenContentToClientEvent(sbe, "clearGuiText", ""));
             }
         }
 
@@ -181,8 +182,6 @@ public class LuaVirtualMachine {
         for (var comp : componentsToInit) {
             componentReg.addComponentAndNotify(comp);
             comp.onVmInit(this);
-            if (comp instanceof ScreenBlockUD sbu)
-                sbu.clearGuiScreen();
         }
 
 
