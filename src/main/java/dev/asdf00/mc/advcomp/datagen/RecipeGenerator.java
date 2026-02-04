@@ -211,10 +211,10 @@ public class RecipeGenerator extends RecipeProvider {
                 .save(pWriter);
         shaped(AdvancedComputers.DEVICE_CABLE_BLOCK.blockItem().get(), 16)
                 .pattern("WWW")
-                .pattern("IRI")
+                .pattern("CRC")
                 .pattern("WWW")
                 .define('W', Items.BLUE_WOOL)
-                .define('I', Tags.Items.INGOTS_IRON)
+                .define('C', Tags.Items.INGOTS_COPPER)
                 .define('R', Tags.Items.DUSTS_REDSTONE)
                 .unlockedBy("item", has(Tags.Items.INGOTS_IRON))
                 .save(pWriter);
