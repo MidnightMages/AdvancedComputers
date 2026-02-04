@@ -32,7 +32,7 @@ public final class TextBufferUD implements LuaUserData {
     public String getTextAsString() {
         var guiTextSb = new StringBuilder();
         for (int line = 0; line < height; line++) {
-            int actualLine = (lStart + line + 1) % height;
+            int actualLine = (lStart + line) % height;
             String lineText = String.valueOf(text, actualLine * width, width)
                                       .replaceAll("[\0-\\x19]", " ")
                                       .replace((char) -1, ' ').stripTrailing() + "\n";
