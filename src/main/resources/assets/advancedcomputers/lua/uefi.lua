@@ -24,8 +24,8 @@ local ok, rv = xpcall(function()
 
 			if textBuffer ~= nil then
 				local function doNewline()
-					textBuffer:rotrows(1)
-					textBuffer:clearrow(0)
+					textBuffer:rotRows(1)
+					textBuffer:clearRow(0)
 				end
 
 				local textToPrint = table.concat(table.pack(...), " ")

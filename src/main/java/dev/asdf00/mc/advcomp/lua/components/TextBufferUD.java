@@ -52,17 +52,17 @@ public final class TextBufferUD implements LuaUserData {
     }
 
     @LuaCallable
-    public byte getfg(int x, int y) {
+    public byte getFg(int x, int y) {
         return foregroundColor[calcIdx(x, y)];
     }
 
     @LuaCallable
-    public byte getbg(int x, int y) {
+    public byte getBg(int x, int y) {
         return backgroundColor[calcIdx(x, y)];
     }
 
     @LuaCallable
-    public char gettext(int x, int y) {
+    public char getText(int x, int y) {
         return text[calcIdx(x, y)];
     }
 
@@ -85,7 +85,7 @@ public final class TextBufferUD implements LuaUserData {
     }
 
     @LuaCallable
-    public void rotrows(int cnt) {
+    public void rotRows(int cnt) {
         luaGuarantee(cnt < height && cnt >= -height, "line out of bounds");
         cnt = cnt < 0 ? height - cnt : cnt;
         lStart = (lStart + cnt) % height;
@@ -93,7 +93,7 @@ public final class TextBufferUD implements LuaUserData {
     }
 
     @LuaCallable
-    public void clearrow(int line) {
+    public void clearRow(int line) {
         luaGuarantee(line < height && line >= -height, "line out of bounds");
         line = line < 0 ? height - line : line;
         int target = ((lStart + line) % height) * width;
@@ -105,8 +105,8 @@ public final class TextBufferUD implements LuaUserData {
 
     @LuaCallable
     public void newline() {
-        rotrows(-1);
-        clearrow(-1);
+        rotRows(-1);
+        clearRow(-1);
     }
 
     private int calcIdx(int x, int y) {
