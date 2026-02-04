@@ -1,7 +1,6 @@
 package dev.asdf00.mc.advcomp.lua.components.fs;
 
 import java.io.IOException;
-import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -12,6 +11,9 @@ public class DirectoryNode {
     final boolean isPhysReadOnly;
 
     public DirectoryNode(String nameOrPath, DirectoryNode parentFolder, boolean isPhysReadOnly) {
+        if (nameOrPath.equals("..") || nameOrPath.contains("../"))
+            throw new AssertionError("Invalid file path during filesystem tree construction: '%s'".formatted(nameOrPath));
+
         this.nameOrPath = nameOrPath;
         this.parentFolder = parentFolder;
         this.isPhysReadOnly = isPhysReadOnly;
