@@ -21,6 +21,7 @@ public final class TextBufferUD implements LuaUserData {
     public final int height;
 
     private final GpuUD gpuUD;
+    volatile boolean wasFreedAlready = false;
 
     /** The bits in the foreground color are inverted for performance reasons. */
     private final byte[] foregroundColor;
@@ -49,6 +50,11 @@ public final class TextBufferUD implements LuaUserData {
         this.backgroundColor = new byte[width * height];
         this.text = new char[width * height];
         this.lStart = 0;
+    }
+
+    @LuaCallable
+    public void free() {
+        this.gpuUD.freeBuffer(this);
     }
 
     @LuaCallable
@@ -132,5 +138,19 @@ public final class TextBufferUD implements LuaUserData {
     public static TextBufferUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
         // TODO actually provide serializaion
         return null;
+    }
+
+    public void markAsFreed() {
+        wasFreedAlready = true;
+    }
+
+    @Override
+    public boolean luaFieldGuard(LuaObject key, LuaObject value) {
+        return !wasFreedAlready;
+    }
+
+    @Override
+    public boolean luaCallGuard(String name, LuaObject[] arguments) {
+        return !wasFreedAlready;
     }
 }

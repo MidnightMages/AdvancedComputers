@@ -2,6 +2,7 @@ package dev.asdf00.mc.advcomp.lua.components;
 
 import dev.asdf00.jluavm.api.userdata.LuaCallable;
 import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
+import dev.asdf00.jluavm.api.userdata.LuaExposed;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
@@ -17,6 +18,10 @@ public class GpuUD extends BaseAcComponent {
     private final LuaVirtualMachine lvm;
     private final SetBiMap<ScreenBlockEntity, TextBufferUD> biMap;
 
+    @LuaExposed(LuaExposed.Policy.READ)
+    public volatile int remainingVideoRam = 128 * 25 * 4; // TODO figure out a proper size
+    private final Object remainingVideoRamLockObj = new Object();
+
     public GpuUD(LuaVirtualMachine lvm) {
         super("gpu");
         this.lvm = lvm;
@@ -25,7 +30,31 @@ public class GpuUD extends BaseAcComponent {
 
     @LuaCallable
     public TextBufferUD newBuffer(int width, int height) {
-        return new TextBufferUD(width, height, this);
+        if (width <= 0 || height <= 0)
+            throw new LuaJavaError("Width and height must be > 0 but were %s and %s respectively.".formatted(width, height));
+
+        var vramNeeded = width * height;
+        boolean haveEnoughSpace;
+        synchronized (remainingVideoRamLockObj) {
+            haveEnoughSpace = remainingVideoRam >= vramNeeded;
+            if (haveEnoughSpace) {
+                remainingVideoRam -= vramNeeded;
+            }
+        }
+        if (haveEnoughSpace)
+            return new TextBufferUD(width, height, this);
+
+        throw new LuaJavaError("Not enough video ram remaining to allocate buffer of size (%s,%s)".formatted(width, height));
+    }
+
+    void freeBuffer(TextBufferUD bufferToFree) {
+        synchronized (remainingVideoRamLockObj) {
+            if (bufferToFree.wasFreedAlready)
+                throw new LuaJavaError("Buffer was freed already");
+
+            remainingVideoRam += bufferToFree.width * bufferToFree.height;
+            bufferToFree.markAsFreed();
+        }
     }
 
     @LuaCallable
