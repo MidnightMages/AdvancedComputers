@@ -17,7 +17,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.*;
 import java.util.concurrent.locks.LockSupport;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -398,6 +397,7 @@ public class LuaVirtualMachine {
             var oldTpl = luaComputerInventoryUserdataObjectsBySlotId.get(i);
             var old = oldTpl == null ? null : oldTpl.x();
             if (old != assoc) {
+                this.tryKill("items arent hotswappable yet", false);
                 // TODO invalidate the original user data object
             }
 
