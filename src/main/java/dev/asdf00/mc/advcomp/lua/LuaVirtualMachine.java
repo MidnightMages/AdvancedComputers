@@ -96,180 +96,182 @@ public class LuaVirtualMachine {
     }
 
     public void start() {
-        AdvancedComputers.LOGGER.info("Trying to start LVM");
-        synchronized (startStopLock) { // TODO cleanup
+        synchronized (startStopLock) {
             if (isRunning) {
                 throw new IllegalStateException("LVM is already running");
             }
             isRunning = true;
             stopCode = "";
             stopCode_isGraceful = false;
+
+            AdvancedComputers.LOGGER.info("Trying to start LVM");
+            stdOut = new LuaStdOut();
+            stdOut.clear();
+
+            eventQueue = new LuaEventQueue();
+            //        console.onKeyPressed = eventQueue::addKeyPressed;
+            //        console.onKeyReleased = eventQueue::addKeyReleased;
+            //        console.onKeyTyped = eventQueue::addKeyTyped;
+
+            // REGISTER USERDATA COMPONENTS
+            var componentReg = new ComponentRegistryUD(this);
+            // set up disk filesystems // TODO set up fs
+            //        for (int i = 1; i <= 3; i++) {
+            //            var dp = luaRootDir.resolve("disk" + i);
+            //            var fs = new SandboxedFs(dp, !cfg.allowPhysicalFilesystemWrites());
+            //            try {
+            //                if (!Files.isDirectory(dp))
+            //                    Files.createDirectory(dp);
+            //            } catch (IOException e) {
+            //                throw new RuntimeException(e);
+            //            }
+            //            fs.init(dp);
+            //
+            //            var ud = new DiskUD(i);
+            //            ud.init(fs);
+            //            componentReg.addComponentAndNotify(ud);
+            //        }
+
+            String uefiScript = null; // entry code; i.e. uefi
+            var componentsToInit = new ArrayList<LuaUserDataComponent>();
+            // set up inventory components
+            var inv = computer.itemHandler;
+            for (int i = 0; i < inv.getSlots(); i++) {
+                var is = inv.getStackInSlot(i);
+                var item = is.getItem();
+                if (item instanceof ItemCanBeInitialized icbi) {
+                    icbi.Initialize(is);
+                }
+
+                if (item instanceof AcItemComponent ud) {
+                    var comp = ud.CreateUserdata(is);
+                    componentsToInit.add(comp);
+                } else if (item instanceof MainboardItem mi) {
+                    uefiScript = mi.readUefiScript(is);
+                }
+            }
+
+            if (uefiScript == null) {
+                tryKill("No uefi installed", false);
+                return;
+            }
+
+            // set up peripheral components // TODO this needs to be reworked a little, e.g. a device thats directly attached to a computer does not yet show up here
+            var deviceComponentBlockEntities = computer.connectedNetworks.values().stream()
+                    .filter(x -> x.clusterType.getClusterName().equals("device"))
+                    .flatMap(x -> Arrays.stream(x.connectedEntities))
+                    .distinct()
+                    .collect(Collectors.toCollection(ArrayList::new));
+
+            var screenBlockPos = computer.getBlockPos().offset(0, 1, 0);
+            var screenBe = Objects.requireNonNull(computer.getLevel()).getBlockEntity(screenBlockPos, AdvancedComputers.SCREEN_BE.get());
+            screenBe.ifPresent(deviceComponentBlockEntities::add);
+
+            for (var be : deviceComponentBlockEntities.stream().distinct().toArray()) {
+                if (be instanceof AcBlockEntityComponent bec) {
+                    componentsToInit.add(bec.CreateUserdata());
+                }
+                if (be instanceof ScreenBlockEntity sbe) {
+                    screenBEs.add(sbe);
+                    NetCodeUtils.sendToClient(PacketDistributor.ALL.noArg(), new ScreenBlockEntity.ScreenContentToClientEvent(sbe, "clearGuiText", ""));
+                }
+            }
+
+            // TODO drop that
+            for (var comp : componentsToInit) {
+                componentReg.addComponentAndNotify(comp);
+                comp.onVmInit(this);
+            }
+
+
+            // TODO traverse peripheral network and instantiate and init the block userdata objects similarly
+            // TODO define how exactly the peripheral network should behave (and make it behave that way then)
+
+            componentReg.addComponentAndNotify(new InternetUD(this));
+            //componentReg.registerComponent(new BiosUD());
+            componentReg.addComponentAndNotify(new ComputerUD(this));
+            gpuUD = new GpuUD(this);
+            componentReg.addComponentAndNotify(gpuUD);
+            // --------------------------
+            // DEFINE GLOBALS
+            var greg = new ExtendedMixedStateFunctionRegistry("advancedcomputers");
+
+            var executionTimeTracker = new ExecutionTimeTracker(computer.getTier().threadExecutionSleepFactor);
+            greg.register("sleep", AtomicLuaFunction.forZeroResults(greg, (vm, time) -> {
+                try {
+                    long sleepBegunAt = System.nanoTime();
+                    Thread.sleep((int) (time.asDouble() * 1000));
+                    long sleptForNs = Math.max(0, System.nanoTime() - sleepBegunAt);
+                    executionTimeTracker.refundNanos(sleptForNs);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }));
+            greg.register("print",
+                    AtomicLuaFunction.vaForZeroResults(greg, (vm, args) -> printlnLUA(Arrays.stream(args).map(LuaObject::asString).collect(Collectors.joining("\t")))));
+            greg.register("printInline",
+                    AtomicLuaFunction.vaForZeroResults(greg, (vm, args) -> printInlineLUA(Arrays.stream(args).map(LuaObject::asString).collect(Collectors.joining("\t")))));
+
+            var br = new BufferedReader(new InputStreamReader(System.in));
+            //        greg.register("readline", AtomicLuaFunction.forOneResult(greg, (vm, msg) -> {
+            //            try {
+            //                if (!msg.isNil()) {
+            //                    printlnLUA(msg.asString());
+            //                }
+            //
+            //                return LuaObject.of(br.readLine());
+            //            } catch (IOException e) {
+            //                throw new RuntimeException(e);
+            //            }
+            //        }));
+            // --------------------------
+
+            // SET UP GLOBAL ENV
+            var _G = LuaObject.table();
+            greg.addFunctionsToTable(_G);
+
+            // ADD COMPONENT TO _G
+            _G.set("components", LuaObject.of(componentReg));
+
+            // TODO set stopCode and stopCode_isGraceful
+
+            //        setGlobalFunction("setStopCode", new LuaFunctionProxy(this, (Object[] args) -> {
+            //            var msg = Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" "));
+            //            System.out.println("setStopCode: " + msg);
+            //            stopCode = msg;
+            //            stopCode_isGraceful = false; // TODO expose this as an arg to the vm maybe?
+            //        }));
+
+
+            //        try {
+            //            vm.withRootFunc(luaEntryScript);
+            //            var rv = vm.run();
+            //            AdvancedComputers.LOGGER.info(String.format("LVM exited with code %s", rv));
+            //            lvmCleanExit = rv.state() == LuaVM.VmRunState.SUCCESS;
+            //        } catch (Exception e) {
+            //            AdvancedComputers.LOGGER.error(e.toString());
+            //            lvmException = true;
+            //        }
+
+
+            final String uefiScriptForLambda = uefiScript;
+            executorThread = new Thread(() -> {
+                try {
+                    vm = LuaVM.builder().withApiRegistry(greg).modifyEnv(t -> {
+                        var map = _G.asMap();
+                        for (var k : map.keys()) {
+                            t.set(k, map.getOrDefault(k, LuaObject.NIL));
+                        }
+                    }).rootFunc(uefiScriptForLambda).build();
+                    vm.eventCallback = executionTimeTracker::handleVmEvent;
+                    LuaVirtualMachine.this.runLua();
+                } catch (Exception e) {
+                    AdvancedComputers.LOGGER.error("Caught lua executor exception: %s".formatted(e.toString()));
+                }
+            });
+
+            executorThread.start();
         }
-        stdOut = new LuaStdOut();
-        stdOut.clear();
-
-        eventQueue = new LuaEventQueue();
-//        console.onKeyPressed = eventQueue::addKeyPressed;
-//        console.onKeyReleased = eventQueue::addKeyReleased;
-//        console.onKeyTyped = eventQueue::addKeyTyped;
-
-        // REGISTER USERDATA COMPONENTS
-        var componentReg = new ComponentRegistryUD(this);
-// set up disk filesystems // TODO set up fs
-//        for (int i = 1; i <= 3; i++) {
-//            var dp = luaRootDir.resolve("disk" + i);
-//            var fs = new SandboxedFs(dp, !cfg.allowPhysicalFilesystemWrites());
-//            try {
-//                if (!Files.isDirectory(dp))
-//                    Files.createDirectory(dp);
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//            fs.init(dp);
-//
-//            var ud = new DiskUD(i);
-//            ud.init(fs);
-//            componentReg.addComponentAndNotify(ud);
-//        }
-
-        String uefiScript = null; // entry code; i.e. uefi
-        var componentsToInit = new ArrayList<LuaUserDataComponent>();
-        // set up inventory components
-        var inv = computer.itemHandler;
-        for (int i = 0; i < inv.getSlots(); i++) {
-            var is = inv.getStackInSlot(i);
-            var item = is.getItem();
-            if (item instanceof ItemCanBeInitialized icbi) {
-                icbi.Initialize(is);
-            }
-
-            if (item instanceof AcItemComponent ud) {
-                var comp = ud.CreateUserdata(is);
-                componentsToInit.add(comp);
-            } else if (item instanceof MainboardItem mi) {
-                uefiScript = mi.readUefiScript(is);
-            }
-        }
-
-        if (uefiScript == null) {
-            tryKill("No uefi installed", false);
-            return;
-        }
-
-        // set up peripheral components // TODO this needs to be reworked a little, e.g. a device thats directly attached to a computer does not yet show up here
-        var deviceComponentBlockEntities = computer.connectedNetworks.values().stream()
-                .filter(x -> x.clusterType.getClusterName().equals("device"))
-                .flatMap(x -> Arrays.stream(x.connectedEntities))
-                .distinct()
-                .collect(Collectors.toCollection(ArrayList::new));
-
-        var screenBlockPos = computer.getBlockPos().offset(0, 1, 0);
-        var screenBe = Objects.requireNonNull(computer.getLevel()).getBlockEntity(screenBlockPos, AdvancedComputers.SCREEN_BE.get());
-        screenBe.ifPresent(deviceComponentBlockEntities::add);
-
-        for (var be : deviceComponentBlockEntities.stream().distinct().toArray()) {
-            if (be instanceof AcBlockEntityComponent bec) {
-                componentsToInit.add(bec.CreateUserdata());
-            }
-            if (be instanceof ScreenBlockEntity sbe) {
-                screenBEs.add(sbe);
-                NetCodeUtils.sendToClient(PacketDistributor.ALL.noArg(), new ScreenBlockEntity.ScreenContentToClientEvent(sbe, "clearGuiText", ""));
-            }
-        }
-
-        // TODO drop that
-        for (var comp : componentsToInit) {
-            componentReg.addComponentAndNotify(comp);
-            comp.onVmInit(this);
-        }
-
-
-        // TODO traverse peripheral network and instantiate and init the block userdata objects similarly
-        // TODO define how exactly the peripheral network should behave (and make it behave that way then)
-
-        componentReg.addComponentAndNotify(new InternetUD(this));
-        //componentReg.registerComponent(new BiosUD());
-        componentReg.addComponentAndNotify(new ComputerUD(this));
-        gpuUD = new GpuUD(this);
-        componentReg.addComponentAndNotify(gpuUD);
-        // --------------------------
-        // DEFINE GLOBALS
-        var greg = new ExtendedMixedStateFunctionRegistry("advancedcomputers");
-
-        var executionTimeTracker = new ExecutionTimeTracker(computer.getTier().threadExecutionSleepFactor);
-        greg.register("sleep", AtomicLuaFunction.forZeroResults(greg, (vm, time) -> {
-            try {
-                long sleepBegunAt = System.nanoTime();
-                Thread.sleep((int) (time.asDouble() * 1000));
-                long sleptForNs = Math.max(0, System.nanoTime() - sleepBegunAt);
-                executionTimeTracker.refundNanos(sleptForNs);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }));
-        greg.register("print",
-                AtomicLuaFunction.vaForZeroResults(greg, (vm, args) -> printlnLUA(Arrays.stream(args).map(LuaObject::asString).collect(Collectors.joining("\t")))));
-        greg.register("printInline",
-                AtomicLuaFunction.vaForZeroResults(greg, (vm, args) -> printInlineLUA(Arrays.stream(args).map(LuaObject::asString).collect(Collectors.joining("\t")))));
-
-        var br = new BufferedReader(new InputStreamReader(System.in));
-//        greg.register("readline", AtomicLuaFunction.forOneResult(greg, (vm, msg) -> {
-//            try {
-//                if (!msg.isNil()) {
-//                    printlnLUA(msg.asString());
-//                }
-//
-//                return LuaObject.of(br.readLine());
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }));
-        // --------------------------
-
-        // SET UP GLOBAL ENV
-        var _G = LuaObject.table();
-        greg.addFunctionsToTable(_G);
-
-        // ADD COMPONENT TO _G
-        _G.set("components", LuaObject.of(componentReg));
-
-// TODO set stopCode and stopCode_isGraceful
-
-//        setGlobalFunction("setStopCode", new LuaFunctionProxy(this, (Object[] args) -> {
-//            var msg = Arrays.stream(args).map(a -> (a == null ? "nil" : a.toString())).collect(Collectors.joining(" "));
-//            System.out.println("setStopCode: " + msg);
-//            stopCode = msg;
-//            stopCode_isGraceful = false; // TODO expose this as an arg to the vm maybe?
-//        }));
-
-
-//        try {
-//            vm.withRootFunc(luaEntryScript);
-//            var rv = vm.run();
-//            AdvancedComputers.LOGGER.info(String.format("LVM exited with code %s", rv));
-//            lvmCleanExit = rv.state() == LuaVM.VmRunState.SUCCESS;
-//        } catch (Exception e) {
-//            AdvancedComputers.LOGGER.error(e.toString());
-//            lvmException = true;
-//        }
-
-
-        final String uefiScriptForLambda = uefiScript;
-        executorThread = new Thread(() -> {
-            try {
-                vm = LuaVM.builder().withApiRegistry(greg).modifyEnv(t -> {
-                    var map = _G.asMap();
-                    for (var k : map.keys()) {
-                        t.set(k, map.getOrDefault(k, LuaObject.NIL));
-                    }
-                }).rootFunc(uefiScriptForLambda).build();
-                vm.eventCallback = executionTimeTracker::handleVmEvent;
-                LuaVirtualMachine.this.runLua();
-            } catch (Exception e) {
-                AdvancedComputers.LOGGER.error("Caught lua executor exception: %s".formatted(e.toString()));
-            }
-        });
-        executorThread.start();
     }
 
     public void suspend() {
