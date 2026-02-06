@@ -8,7 +8,6 @@ import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
-import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockUD;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
 import dev.asdf00.mc.advcomp.lua.components.*;
 import dev.asdf00.mc.advcomp.utils.Tuple;
@@ -18,6 +17,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.*;
 import java.util.concurrent.locks.LockSupport;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -259,7 +259,43 @@ public class LuaVirtualMachine {
                         t.set(k, map.getOrDefault(k, LuaObject.NIL));
                     }
                 }).rootFunc(uefiScriptForLambda).build();
-                runLua();
+                vm.eventCallback = new BiConsumer<>() {
+                    final double sleepFactor = computer.getTier().threadExecutionSleepFactor;
+                    long lastSafepointTimestamp = 0;
+                    long lastCompilationStartedTimestamp = 0;
+
+                    @Override
+                    public void accept(LuaVM vmObj, LuaVM.HookType eventType) {
+                        switch (eventType) {
+                            case COMPILATION_STARTED -> {
+                                lastCompilationStartedTimestamp = System.nanoTime();
+                            }
+                            case COMPILATION_FINISHED -> {
+                                // fake the last safepoint timestamp to effectively refund the compilation time
+                                long timeSpentCompiling = System.nanoTime() - lastCompilationStartedTimestamp;
+                                lastSafepointTimestamp += timeSpentCompiling;
+                            }
+                            case SAFEPOINT_REACHED -> {
+                                long now = System.nanoTime();
+                                long timeSpentNs = (now - lastSafepointTimestamp);
+                                long sleepTimeNs = (long) Math.ceil(timeSpentNs * sleepFactor);
+                                long sleepTimeMs = sleepTimeNs / 1_000_000;
+                                if (sleepTimeMs > 10) {
+                                    try {
+                                        Thread.sleep(sleepTimeMs, (int) (sleepTimeNs % 1_000_000));
+                                    } catch (InterruptedException ignore) {
+                                        Thread.currentThread().interrupt();
+                                    }
+                                    lastSafepointTimestamp = System.nanoTime();
+                                }
+                            }
+                            case VM_STARTED, VM_RESUMED -> {
+                                lastSafepointTimestamp = System.nanoTime();
+                            }
+                        }
+                    }
+                };
+                LuaVirtualMachine.this.runLua();
             } catch (Exception e) {
                 AdvancedComputers.LOGGER.error("Caught lua executor exception: %s".formatted(e.toString()));
             }
