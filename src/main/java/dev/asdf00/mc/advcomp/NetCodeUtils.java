@@ -27,12 +27,12 @@ public class NetCodeUtils {
     }
 
     public static <MSG> void sendToServer(MSG message) {
-        System.out.println("Sending packet to server: %s".formatted(message));
+        //System.out.println("Sending packet to server: %s".formatted(message));
         INSTANCE.sendToServer(message);
     }
 
     public static <MSG> void sendToClient(PacketDistributor.PacketTarget target, MSG message) {
-        System.out.println("Sending packet to client: %s".formatted(message));
+        //System.out.println("Sending packet to client: %s".formatted(message));
         INSTANCE.send(target, message);
     }
 
