@@ -170,7 +170,9 @@ tasks.named('jar').configure {
     jar.archiveClassifier.set('slim')
 
     var gitStatus = "git status -s".execute().text
-    boolean mainIsDirty = gitStatus.replace("\r\n","\n").replace("\r","\n").split("\n").any {!it.contains("submodules/JLuaVM")}
+    boolean mainIsDirty = gitStatus.replace("\r\n","\n").replace("\r","\n").split("\n").any {
+        !it.contains("submodules/JLuaVM") && (it.trim() != "")
+    }
     boolean jluavmIsDirty = gitStatus.contains("submodules/JLuaVM")
     var mainHash = "git rev-parse --verify HEAD".execute().text.trim() + (mainIsDirty ? "+Uncommited" : "")
     var jluaHash = "git submodule status".execute().text.trim().split(" ")[0] + (jluavmIsDirty ? "+Uncommited" : "")
