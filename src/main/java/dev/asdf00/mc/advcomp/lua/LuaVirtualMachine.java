@@ -196,9 +196,14 @@ public class LuaVirtualMachine {
         // --------------------------
         // DEFINE GLOBALS
         var greg = new ExtendedMixedStateFunctionRegistry("advancedcomputers");
+
+        var executionTimeTracker = new ExecutionTimeTracker(computer.getTier().threadExecutionSleepFactor);
         greg.register("sleep", AtomicLuaFunction.forZeroResults(greg, (vm, time) -> {
             try {
+                long sleepBegunAt = System.nanoTime();
                 Thread.sleep((int) (time.asDouble() * 1000));
+                long sleptForNs = Math.max(0, System.nanoTime() - sleepBegunAt);
+                executionTimeTracker.refundNanos(sleptForNs);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -259,42 +264,7 @@ public class LuaVirtualMachine {
                         t.set(k, map.getOrDefault(k, LuaObject.NIL));
                     }
                 }).rootFunc(uefiScriptForLambda).build();
-                vm.eventCallback = new BiConsumer<>() {
-                    final double sleepFactor = computer.getTier().threadExecutionSleepFactor;
-                    long lastSafepointTimestamp = 0;
-                    long lastCompilationStartedTimestamp = 0;
-
-                    @Override
-                    public void accept(LuaVM vmObj, LuaVM.HookType eventType) {
-                        switch (eventType) {
-                            case COMPILATION_STARTED -> {
-                                lastCompilationStartedTimestamp = System.nanoTime();
-                            }
-                            case COMPILATION_FINISHED -> {
-                                // fake the last safepoint timestamp to effectively refund the compilation time
-                                long timeSpentCompiling = System.nanoTime() - lastCompilationStartedTimestamp;
-                                lastSafepointTimestamp += timeSpentCompiling;
-                            }
-                            case SAFEPOINT_REACHED -> {
-                                long now = System.nanoTime();
-                                long timeSpentNs = (now - lastSafepointTimestamp);
-                                long sleepTimeNs = (long) Math.ceil(timeSpentNs * sleepFactor);
-                                long sleepTimeMs = sleepTimeNs / 1_000_000;
-                                if (sleepTimeMs > 10) {
-                                    try {
-                                        Thread.sleep(sleepTimeMs, (int) (sleepTimeNs % 1_000_000));
-                                    } catch (InterruptedException ignore) {
-                                        Thread.currentThread().interrupt();
-                                    }
-                                    lastSafepointTimestamp = System.nanoTime();
-                                }
-                            }
-                            case VM_STARTED, VM_RESUMED -> {
-                                lastSafepointTimestamp = System.nanoTime();
-                            }
-                        }
-                    }
-                };
+                vm.eventCallback = executionTimeTracker::handleVmEvent;
                 LuaVirtualMachine.this.runLua();
             } catch (Exception e) {
                 AdvancedComputers.LOGGER.error("Caught lua executor exception: %s".formatted(e.toString()));
@@ -458,6 +428,50 @@ public class LuaVirtualMachine {
             var textBuffer = this.gpuUD.getBufferForBlockEntity(sbe);
             String text = textBuffer.getTextAsString();
             NetCodeUtils.sendToClient(PacketDistributor.ALL.noArg(), new ScreenBlockEntity.ScreenContentToClientEvent(sbe, "setGuiText", text));
+        }
+    }
+
+    static class ExecutionTimeTracker {
+        long lastSafepointTimestamp = 0;
+        long lastCompilationStartedTimestamp = 0;
+        private final double sleepFactor;
+
+        ExecutionTimeTracker(double sleepFactor) {
+            this.sleepFactor = sleepFactor;
+        }
+
+        public void refundNanos(long nanos) {
+            lastCompilationStartedTimestamp += nanos;
+        }
+
+        public void handleVmEvent(LuaVM vmObj, LuaVM.HookType eventType) {
+            switch (eventType) {
+                case COMPILATION_STARTED -> {
+                    lastCompilationStartedTimestamp = System.nanoTime();
+                }
+                case COMPILATION_FINISHED -> {
+                    // fake the last safepoint timestamp to effectively refund the compilation time
+                    long timeSpentCompiling = System.nanoTime() - lastCompilationStartedTimestamp;
+                    refundNanos(timeSpentCompiling);
+                }
+                case SAFEPOINT_REACHED -> {
+                    long now = System.nanoTime();
+                    long timeSpentNs = (now - lastSafepointTimestamp);
+                    long sleepTimeNs = (long) Math.ceil(timeSpentNs * sleepFactor);
+                    long sleepTimeMs = sleepTimeNs / 1_000_000;
+                    if (sleepTimeMs > 10) {
+                        try {
+                            Thread.sleep(sleepTimeMs, (int) (sleepTimeNs % 1_000_000));
+                        } catch (InterruptedException ignore) {
+                            Thread.currentThread().interrupt();
+                        }
+                        lastSafepointTimestamp = System.nanoTime();
+                    }
+                }
+                case VM_STARTED, VM_RESUMED -> {
+                    lastSafepointTimestamp = System.nanoTime();
+                }
+            }
         }
     }
 }
