@@ -6,6 +6,7 @@ import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
+import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlock;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
@@ -297,23 +298,27 @@ public class LuaVirtualMachine {
     }
 
     public void tryKill(String reason, boolean isGracefulShutdown) {
-        synchronized (startStopLock) {
-            if (isRunning) {
-                synchronized (startStopLock) {
-                    killingLVM = true;
-                    stopCode = "[KILLED] " + reason;
-                    stopCode_isGraceful = isGracefulShutdown;
+        try {
+            synchronized (startStopLock) {
+                if (isRunning) {
+                    synchronized (startStopLock) {
+                        killingLVM = true;
+                        stopCode = "[KILLED] " + reason;
+                        stopCode_isGraceful = isGracefulShutdown;
 
-                    executorThread.interrupt();
-                    if (suspended) {
-                        resume();
+                        executorThread.interrupt();
+                        if (suspended) {
+                            resume();
+                        }
+                        // cleanup after kill
+                        isRunning = false;
+                        executorThread = null;
                     }
-
-                    // cleanup after kill
-                    isRunning = false;
-                    executorThread = null;
                 }
             }
+        } finally {
+            // TODO unify this in some other function probs
+            computer.SetRunState(isGracefulShutdown ? ComputerBlock.ComputerRunState.STOPPED : ComputerBlock.ComputerRunState.CRASHED);
         }
     }
 

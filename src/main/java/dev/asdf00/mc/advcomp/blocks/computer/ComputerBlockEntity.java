@@ -54,7 +54,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
 
     // set to STOPPED on first tick to reset block state to indicate stopped LVM
     private final AtomicReference<ComputerBlock.ComputerRunState> newRunState = new AtomicReference<>(ComputerBlock.ComputerRunState.STOPPED);
-    private void SetRunState(ComputerBlock.ComputerRunState rs){
+    public void SetRunState(ComputerBlock.ComputerRunState rs){
         newRunState.set(rs);
     }
 
