@@ -289,14 +289,6 @@ public class AdvancedComputers {
 
     private void commonSetup(final FMLCommonSetupEvent event) {
         // Some common setup code
-        LOGGER.info("HELLO FROM COMMON SETUP");
-
-        if (Config.logDirtBlock)
-            LOGGER.info("DIRT BLOCK >> {}", ForgeRegistries.BLOCKS.getKey(Blocks.DIRT));
-
-        LOGGER.info(Config.magicNumberIntroduction + Config.magicNumber);
-
-        Config.items.forEach((item) -> LOGGER.info("ITEM >> {}", item.toString()));
     }
 
     private void registerColorHandlers(final RegisterColorHandlersEvent.Item event) {
@@ -332,7 +324,6 @@ public class AdvancedComputers {
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
         // Do something when the server starts
-        //LOGGER.info("HELLO from server starting");
         serverReference = event.getServer();
         globalDataStorage = AcGlobalDataStorage.loadOrCreate(serverReference.overworld().getDataStorage());
     }
@@ -350,9 +341,6 @@ public class AdvancedComputers {
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
             // Some client setup code
-            LOGGER.info("HELLO FROM CLIENT SETUP");
-            LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
-
             event.enqueueWork(() -> {
                 MenuScreens.register(COMPUTER_MENU.get(), ComputerBlockScreen::new);
                 MenuScreens.register(MAINBOARD_PROGRAMMER_MENU.get(), MainboardProgrammerBlockScreen::new);
