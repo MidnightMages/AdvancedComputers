@@ -111,20 +111,20 @@ public class RecipeGenerator extends RecipeProvider {
         shaped(AdvancedComputers.COMPUTER_BLOCK_DIAMOND.blockItem().get())
                 .pattern("DDD")
                 .pattern("DID")
-                .pattern("DGD")
+                .pattern("DCD")
                 .define('D', Tags.Items.GEMS_DIAMOND)
                 .define('I', Tags.Items.STORAGE_BLOCKS_IRON)
-                .define('G', Tags.Items.STORAGE_BLOCKS_AMETHYST)
+                .define('C', getVanillaItem("crying_obsidian"))
                 .unlockedBy("item", has(Tags.Items.GEMS_DIAMOND))
                 .save(pWriter);
 
         shaped(AdvancedComputers.COMPUTER_BLOCK_NETHERITE.blockItem().get())
                 .pattern("NNN")
                 .pattern("NDN")
-                .pattern("NGN")
+                .pattern("NRN")
                 .define('N', Tags.Items.INGOTS_NETHERITE)
                 .define('D', Tags.Items.STORAGE_BLOCKS_DIAMOND)
-                .define('G', Tags.Items.STORAGE_BLOCKS_EMERALD)
+                .define('R', getVanillaItem("end_rod"))
                 .unlockedBy("item", has(Tags.Items.INGOTS_NETHERITE))
                 .save(pWriter);
 

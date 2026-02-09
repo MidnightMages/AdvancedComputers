@@ -2,11 +2,11 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
+    "C": {
+      "item": "minecraft:crying_obsidian"
+    },
     "D": {
       "tag": "forge:gems/diamond"
-    },
-    "G": {
-      "tag": "forge:storage_blocks/amethyst"
     },
     "I": {
       "tag": "forge:storage_blocks/iron"
@@ -15,7 +15,7 @@
   "pattern": [
     "DDD",
     "DID",
-    "DGD"
+    "DCD"
   ],
   "result": {
     "item": "advancedcomputers:computer_block_diamond"
