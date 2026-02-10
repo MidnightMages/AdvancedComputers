@@ -1,17 +1,16 @@
 package dev.asdf00.mc.advcomp.blocks.screen;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.lua.components.GraphicsBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix4f;
 
 public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(AdvancedComputers.MODID, "textures/gui/screen_gui.png");
@@ -44,53 +43,38 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
 
     @Override
     protected void renderBg(@NotNull GuiGraphics pGuiGraphics, float pPartialTick, int pMouseX, int pMouseY) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1, 1, 1, 1);
-        RenderSystem.setShaderTexture(0, TEXTURE);
-        int topLDrawPosX = (width - SCREENSIZEX) / 2;
-        int TopLDrawPosY = (height - SCREENSIZEY) / 2;
-        pGuiGraphics.blitWithBorder(TEXTURE, topLDrawPosX, TopLDrawPosY, 0, 0, SCREENSIZEX, SCREENSIZEY, 256, 256, CORNERSZ);
     }
 
     @Override
     public void render(@NotNull GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         renderBackground(pGuiGraphics);
-        // TODO: render image, not stdout
-        renderStdOut(pGuiGraphics);
+        float padding = 0.2f;
+        float totalScreenSize = 1 - 2 * padding;
+        int screenWantedWidth = (int) (pGuiGraphics.guiWidth() * totalScreenSize);
+        int screenWantedHeight = (int) (pGuiGraphics.guiHeight() * totalScreenSize);
+        int paddingSizeLeft = (pGuiGraphics.guiWidth() - screenWantedWidth) / 2;
+        int paddingSizeTop = (pGuiGraphics.guiHeight() - screenWantedHeight) / 2;
+
+        pGuiGraphics.blitWithBorder(TEXTURE, paddingSizeLeft, paddingSizeTop, 0, 0, screenWantedWidth, screenWantedHeight, 256, 256, CORNERSZ);
+        renderStdOut(pGuiGraphics, paddingSizeLeft + CORNERSZ + 1, paddingSizeTop + CORNERSZ + 1);
 
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         renderTooltip(pGuiGraphics, pMouseX, pMouseY);
     }
 
-    private void renderStdOut(GuiGraphics pGuiGraphics) {
+    private void renderStdOut(GuiGraphics pGuiGraphics, int startX, int startY) {
+        var pose = pGuiGraphics.pose();
+        pose.pushPose();
+        pose.translate(startX, startY, 0);
+        pose.mulPoseMatrix(new Matrix4f().scale(0.75f));
         var lines = this.getScreenEntity().guiContent.replace("\t", "    ").lines().toArray(String[]::new); // TODO handle tabs properly
-        int y = 50;
+        int y = 0;
         for (int i = 0; i < lines.length; i++) {
             var l = lines[i];
-            pGuiGraphics.drawString(AdvancedComputers.getMonoFont(), l, 101, y, -1);
+            pGuiGraphics.drawString(AdvancedComputers.getMonoFont(), l, 0, y, -1);
             y += 10;
         }
-
-        /*-
-        var out = getComputerEntity().getLvm().getStdOut();
-        int x = (width - imageWidth) / 2;
-        int y = (height - imageHeight) / 2;
-        if (out instanceof LuaStdOut stdOut) {
-            // display standard out
-            var txt = stdOut.getLastLines(LINE_CNT);
-            x += 6;
-            y += 6;
-            for (int i = 0; i < txt.length; i++) {
-                pGuiGraphics.drawString(font, txt[i], x, y, -1);
-                y += font.lineHeight;
-            }
-        } else if (out instanceof String errCode) {
-            // display stop code centered
-            x += imageWidth / 2;
-            y += (imageHeight - (font.lineHeight)) / 2;
-            pGuiGraphics.drawCenteredString(font, errCode, x, y, -1);
-        }
-         */
+        pose.popPose();
     }
 
     private ScreenBlockEntity getScreenEntity() {
