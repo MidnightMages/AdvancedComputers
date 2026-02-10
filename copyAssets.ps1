@@ -15,4 +15,4 @@ foreach ($inFolder in (Get-ChildItem -Path "./assetSources/bbmodels/").Name){
 	Copy-Item -Path "./assetSources/bbmodels/$inFolder/*" -Destination "./src/main/resources/assets/advancedcomputers/textures/block/" -Recurse -Filter '*.png' -Force
 	Copy-Item -Path "./assetSources/bbmodels/$inFolder/*" -Destination "./src/main/resources/assets/advancedcomputers/models/block/" -Recurse -Filter '*.json' -Force
 }
-Copy-Item -Path "./assetSources/font/" -Destination "./src/main/resources/assets/advancedcomputers/font/" -Recurse -Filter '*.*' -Force
+Copy-Item -Exclude "*.sfd" -Path "./assetSources/font/" -Destination "./src/main/resources/assets/advancedcomputers/font/" -Recurse -Filter '*.*' -Force
