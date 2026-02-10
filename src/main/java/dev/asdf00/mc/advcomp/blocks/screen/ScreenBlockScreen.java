@@ -68,7 +68,7 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
         for (int i = 0; i < lines.length; i++) {
             var l = lines[i];
             pGuiGraphics.drawString(AdvancedComputers.getMonoFont(), l, 101, y, -1);
-            y += 9;
+            y += 10;
         }
 
         /*-

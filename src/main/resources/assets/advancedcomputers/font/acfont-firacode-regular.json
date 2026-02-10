@@ -1,0 +1,11 @@
+{
+  "providers": [
+    {
+      "type": "ttf",
+      "file": "advancedcomputers:acfont-firacode-regular.ttf",
+      "shift": [0, 1],
+      "size": 10.0,
+      "oversample": 5.0
+    }
+  ]
+}

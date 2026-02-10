@@ -106,7 +106,7 @@ public class AdvancedComputers {
 
     public static Font getMonoFont() {
         if (monoFont == null || fontSet.providers.isEmpty()) {
-            fontSet = Minecraft.getInstance().fontManager.fontSets.get(new ResourceLocation(AdvancedComputers.MODID, "dejavusansmono"));
+            fontSet = Minecraft.getInstance().fontManager.fontSets.get(new ResourceLocation(AdvancedComputers.MODID, "acfont-firacode-regular"));
             monoFont = new Font((p_284586_) -> fontSet, false);
         }
         return monoFont;
