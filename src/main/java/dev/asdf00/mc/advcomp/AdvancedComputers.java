@@ -32,12 +32,12 @@ import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
 import dev.asdf00.mc.advcomp.utils.AcPaths;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.font.FontSet;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
@@ -50,7 +50,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
@@ -103,10 +102,11 @@ public class AdvancedComputers {
     public static final AcClusterType CLUSTER_TYPE_DEVICE = AdvancedComputers.AC_CLUSTER_TYPE_MANAGER.RegisterNewClusterType("device");
     public static final AcClusterType CLUSTER_TYPE_NETWORK = AdvancedComputers.AC_CLUSTER_TYPE_MANAGER.RegisterNewClusterType("network");
     private static Font monoFont = null;
+    private static FontSet fontSet = null;
 
     public static Font getMonoFont() {
-        if (monoFont == null) {
-            var fontSet = Minecraft.getInstance().fontManager.fontSets.get(new ResourceLocation(AdvancedComputers.MODID, "dejavusansmono"));
+        if (monoFont == null || fontSet.providers.isEmpty()) {
+            fontSet = Minecraft.getInstance().fontManager.fontSets.get(new ResourceLocation(AdvancedComputers.MODID, "dejavusansmono"));
             monoFont = new Font((p_284586_) -> fontSet, false);
         }
         return monoFont;
