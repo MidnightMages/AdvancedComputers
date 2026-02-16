@@ -153,7 +153,7 @@ public class LuaVirtualMachine {
             }
 
             if (uefiScript == null) {
-                tryKill("No uefi installed", false);
+                tryKill("No uefi installed", false, true);
                 return;
             }
 
@@ -298,7 +298,7 @@ public class LuaVirtualMachine {
         }
     }
 
-    public void tryKill(String reason, boolean isGracefulShutdown) {
+    public void tryKill(String reason, boolean isGracefulShutdown, boolean suppressBlockStateUpdate) {
         try {
             synchronized (startStopLock) {
                 if (isRunning) {
@@ -319,7 +319,8 @@ public class LuaVirtualMachine {
             }
         } finally {
             // TODO unify this in some other function probs
-            computer.SetRunState(isGracefulShutdown ? ComputerBlock.ComputerRunState.STOPPED : ComputerBlock.ComputerRunState.CRASHED);
+            if(!suppressBlockStateUpdate)
+                computer.SetRunState(isGracefulShutdown ? ComputerBlock.ComputerRunState.STOPPED : ComputerBlock.ComputerRunState.CRASHED);
         }
     }
 
@@ -330,7 +331,7 @@ public class LuaVirtualMachine {
                 onStart.run();
                 start();
             } else {
-                tryKill("ON/OFF button pushed", true);
+                tryKill("ON/OFF button pushed", true, true);
             }
         }
     }
@@ -405,7 +406,7 @@ public class LuaVirtualMachine {
             var oldTpl = luaComputerInventoryUserdataObjectsBySlotId.get(i);
             var old = oldTpl == null ? null : oldTpl.x();
             if (old != assoc) {
-                this.tryKill("items arent hotswappable yet", false);
+                this.tryKill("items arent hotswappable yet", false, true);
                 // TODO invalidate the original user data object
             }
 

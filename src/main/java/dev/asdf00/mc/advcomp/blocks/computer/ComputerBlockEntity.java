@@ -204,7 +204,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
         // crash LVM
         if (isServer()) {
             if (lvm != null) {
-                lvm.tryKill("Chunk unloaded", false);
+                lvm.tryKill("Chunk unloaded", false, true);
             }
         }
     }
@@ -243,7 +243,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
         var cc = net.getHostCount();
         if (cc > 1) {
             if (lvm != null)
-                lvm.tryKill("Too many computers connected to this network", false); // TODO make sure lvm checks how many computers are part of this net when lvm is started, as lvm is null on world load
+                lvm.tryKill("Too many computers connected to this network", false, true); // TODO make sure lvm checks how many computers are part of this net when lvm is started, as lvm is null on world load
 
             AdvancedComputers.LOGGER.info("invalid network for computer at bp %s. Computer count: %s"
                     .formatted(this.getBlockPos(), cc));
