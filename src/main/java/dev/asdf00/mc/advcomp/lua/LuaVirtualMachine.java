@@ -233,6 +233,7 @@ public class LuaVirtualMachine {
 
             // ADD COMPONENT TO _G
             _G.set("components", LuaObject.of(componentReg));
+            _G.set("_HOST", LuaObject.of("AdvancedComputers %s; Minecraft %s".formatted(AdvancedComputers.getModVersion(), AdvancedComputers.getMinecraftVersion())));
 
             // TODO set stopCode and stopCode_isGraceful
 
