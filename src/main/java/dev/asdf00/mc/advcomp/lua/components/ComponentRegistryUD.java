@@ -4,6 +4,7 @@ import dev.asdf00.jluavm.api.functions.AtomicLuaFunction;
 import dev.asdf00.jluavm.api.userdata.LuaCallable;
 import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
 import dev.asdf00.jluavm.api.userdata.LuaUserData;
+import dev.asdf00.jluavm.internals.LuaVM_RT;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
@@ -12,6 +13,10 @@ import org.apache.commons.lang3.NotImplementedException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class ComponentRegistryUD implements LuaUserData {
     private final ArrayList<LuaComponent> allComponents = new ArrayList<>();
@@ -56,6 +61,9 @@ public class ComponentRegistryUD implements LuaUserData {
     }
 
     public void addComponentAndNotify(String type, LuaUserData component) {
+        // trigger compilation of this UD binding ahead of time, so we dont have to wait for it later
+        triggerUserdataDescriptorCompilation(component.getClass());
+
         var comp = new LuaComponent(type, LuaObject.of(component));
         allComponents.add(comp);
         lvm.eventQueue.addComponentAdded(comp);
@@ -81,5 +89,22 @@ public class ComponentRegistryUD implements LuaUserData {
         public LuaObject[] asLuaObj() {
             return new LuaObject[]{LuaObject.of(type), comp};
         }
+    }
+
+    private static final ExecutorService UD_DESCRIPTOR_COMPILATION_POOL = new ThreadPoolExecutor(0, 1,
+            3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
+
+    private static void triggerUserdataDescriptorCompilation(Class<? extends LuaUserData> udType) {
+        if (LuaVM_RT.isDescriptorAvailable(udType)) // threadsafety: if this check is true, we _definitely_ already compiled this
+            return;
+
+        UD_DESCRIPTOR_COMPILATION_POOL.submit(() -> {
+                    try {
+                        LuaVM_RT.getDescriptor(udType);
+                    } catch (Exception ignored) {
+                        // error will be logged implicitly as we will trigger another compilation anyway if we actually use it
+                    }
+                }
+        );
     }
 }
