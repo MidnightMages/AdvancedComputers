@@ -3,6 +3,7 @@ package dev.asdf00.mc.advcomp.lua;
 import dev.asdf00.jluavm.LuaVM;
 import dev.asdf00.jluavm.api.functions.AtomicLuaFunction;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
+import dev.asdf00.jluavm.utils.Triple;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
@@ -13,6 +14,7 @@ import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
 import dev.asdf00.mc.advcomp.lua.components.*;
 import dev.asdf00.mc.advcomp.utils.Tuple;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.PacketDistributor;
 
 import java.io.BufferedReader;
@@ -49,6 +51,7 @@ public class LuaVirtualMachine {
 
     public ComputerUD computerUD = null;
     public GpuUD gpuUD = null;
+    public ComponentRegistryUD componentReg = null;
 
     private final Object screenBEsThatNeedUpdatingLock = new Object();
     private final HashSet<ScreenBlockEntity> screenBEsThatNeedUpdating = new HashSet<>();
@@ -98,6 +101,10 @@ public class LuaVirtualMachine {
         }
     }
 
+    private String getComponentIdentifier(ItemStack is, int slotId) {
+        return "computerInvItem" + is.getItem() + ";" + slotId;
+    }
+
     public void start() {
         synchronized (startStopLock) {
             if (isRunning) {
@@ -115,10 +122,10 @@ public class LuaVirtualMachine {
             eventQueue = new LuaEventQueue();
 
             // REGISTER USERDATA COMPONENTS
-            var componentReg = new ComponentRegistryUD(this);
+            componentReg = new ComponentRegistryUD(this);
 
             String uefiScript = null; // entry code; i.e. uefi
-            var componentsToInit = new ArrayList<LuaUserDataComponent>();
+            var componentsToInit = new ArrayList<Triple<LuaUserDataComponent, Integer, String>>();
             // set up inventory components
             var inv = cbe.itemHandler;
             for (int i = 0; i < inv.getSlots(); i++) {
@@ -130,7 +137,7 @@ public class LuaVirtualMachine {
 
                 if (item instanceof AcItemComponent ud) {
                     var comp = ud.CreateUserdata(is);
-                    componentsToInit.add(comp);
+                    componentsToInit.add(new Triple<>(comp, i, getComponentIdentifier(is, i)));
                 } else if (item instanceof MainboardItem mi) {
                     uefiScript = mi.readUefiScript(is);
                 }
@@ -150,7 +157,7 @@ public class LuaVirtualMachine {
 
             for (var be : deviceComponentBlockEntities.stream().distinct().toArray()) {
                 if (be instanceof AcBlockEntityComponent bec) {
-                    componentsToInit.add(bec.CreateUserdata());
+                    componentsToInit.add(new Triple<>(bec.CreateUserdata(), null,null)); // TODO support blocks
                 }
                 if (be instanceof ScreenBlockEntity sbe) {
                     NetCodeUtils.sendToClient(PacketDistributor.ALL.noArg(), new ScreenBlockEntity.ScreenContentToClientEvent(sbe, "clearGuiText", ""));
@@ -159,19 +166,19 @@ public class LuaVirtualMachine {
 
             // TODO drop that
             for (var comp : componentsToInit) {
-                componentReg.addComponentAndNotify(comp);
-                comp.onVmInit(this);
+                addComponentAndTrackIdentifier(comp.y(), comp.z(), comp.x());
+                comp.x().onVmInit(this);
             }
 
 
             // TODO traverse peripheral network and instantiate and init the block userdata objects similarly
             // TODO define how exactly the peripheral network should behave (and make it behave that way then)
 
-            componentReg.addComponentAndNotify(new InternetUD(this));
+            componentReg.addComponentAndNotify(new InternetUD(this), null);
             //componentReg.registerComponent(new BiosUD());
-            componentReg.addComponentAndNotify(new ComputerUD(this));
+            componentReg.addComponentAndNotify(new ComputerUD(this), null);
             gpuUD = new GpuUD(this);
-            componentReg.addComponentAndNotify(gpuUD);
+            componentReg.addComponentAndNotify(gpuUD, null);
             // --------------------------
             // DEFINE GLOBALS
             var greg = new ExtendedMixedStateFunctionRegistry("advancedcomputers");
@@ -375,27 +382,36 @@ public class LuaVirtualMachine {
         throw new LvmKillException();
     }
 
-    private final HashMap<Integer, Tuple<AcItemComponent, LuaUserDataComponent>> luaComputerInventoryUserdataObjectsBySlotId = new HashMap<>();
+    private final HashMap<Integer, String> luaComputerInventoryUserdataObjectsBySlotId = new HashMap<>();
+
+    private void addComponentAndTrackIdentifier(Integer slot, String identifier, LuaUserDataComponent ud) {
+        if (slot != null && identifier != null)
+            luaComputerInventoryUserdataObjectsBySlotId.put(slot, identifier);
+
+        componentReg.addComponentAndNotify(ud, identifier);
+    }
 
     public void rebuildUserdataFromInventory() {
         var slots = cbe.itemHandler.getSlots();
         for (int i = 0; i < slots; i++) {
             var is = cbe.itemHandler.getStackInSlot(i);
-            AcItemComponent assoc = null;
+            AcItemComponent newComponent = null;
             if (!is.isEmpty() && is.getItem() instanceof AcItemComponent a) {
-                assoc = a;
+                newComponent = a;
             }
-            var oldTpl = luaComputerInventoryUserdataObjectsBySlotId.get(i);
-            var old = oldTpl == null ? null : oldTpl.x();
-            if (old != assoc) {
-                this.tryKill("items arent hotswappable yet", false, true);
-                // TODO invalidate the original user data object
+            var oldIdentifier = luaComputerInventoryUserdataObjectsBySlotId.get(i);
+            if (oldIdentifier != null) { // if we already had an item in that slot but now it is different
+                componentReg.removeComponentAndNotify(oldIdentifier);
             }
 
             // then add the fresh one
-            if (assoc != null) {
-                var ud = assoc.CreateUserdata(is);
-                luaComputerInventoryUserdataObjectsBySlotId.put(i, new Tuple<>(assoc, ud));
+            if (newComponent != null) {
+                if(componentReg != null) {
+                    var ud = newComponent.CreateUserdata(is);
+                    ud.onVmInit(this);
+                    var identifier = getComponentIdentifier(is, i);
+                    addComponentAndTrackIdentifier(i, identifier, ud);
+                }
             }
         }
     }

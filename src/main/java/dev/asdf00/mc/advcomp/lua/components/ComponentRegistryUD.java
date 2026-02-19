@@ -8,9 +8,9 @@ import dev.asdf00.jluavm.internals.LuaVM_RT;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
-import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -21,6 +21,8 @@ import java.util.concurrent.TimeUnit;
 public class ComponentRegistryUD implements LuaUserData {
     private final ArrayList<LuaComponent> allComponents = new ArrayList<>();
     private final LuaVirtualMachine lvm;
+    private final Object componentModifyLockObj = new Object();
+    private final HashMap<String, LuaUserDataComponent> ItemstackAssociationMap = new HashMap<>();
 
     public ComponentRegistryUD(LuaVirtualMachine lvm) {
         this.lvm = lvm;
@@ -31,7 +33,11 @@ public class ComponentRegistryUD implements LuaUserData {
 
         // TODO sort allComponents by inventory-first, then euclidean distance, then by y x and z distances
         // or more generally, sort first by euclidean distance, then by y x z distances, then by slot index
-        var rets = allComponents.stream().map(LuaComponent::asLuaObj).toArray(LuaObject[][]::new);
+
+        LuaObject[][] rets;
+        synchronized (componentModifyLockObj) {
+            rets = allComponents.stream().map(LuaComponent::asLuaObj).toArray(LuaObject[][]::new);
+        }
         return new LuaObject[]{
                 AtomicLuaFunction.forManyResults(null, (vm, state) -> {
                     var oldIdx = state.get(LuaObject.of(0));
@@ -53,24 +59,38 @@ public class ComponentRegistryUD implements LuaUserData {
 
     @LuaCallable
     public LuaObject getFirst(String componentType) {
-        return allComponents.stream().filter(x -> x.type().equals(componentType)).map(LuaComponent::comp).findFirst().orElse(LuaObject.NIL);
+        synchronized (componentModifyLockObj) {
+            return allComponents.stream().filter(x -> x.type().equals(componentType)).map(LuaComponent::comp).findFirst().orElse(LuaObject.NIL);
+        }
     }
 
-    public void addComponentAndNotify(LuaUserDataComponent component) {
-        addComponentAndNotify(component.getComponentType(), component);
+    public void addComponentAndNotify(LuaUserDataComponent component, String identifier) {
+        addComponentAndNotify(component.getComponentType(), component, identifier);
     }
 
-    public void addComponentAndNotify(String type, LuaUserData component) {
+    public void addComponentAndNotify(String type, LuaUserDataComponent component, String identifier) {
         // trigger compilation of this UD binding ahead of time, so we dont have to wait for it later
         triggerUserdataDescriptorCompilation(component.getClass());
 
         var comp = new LuaComponent(type, LuaObject.of(component));
-        allComponents.add(comp);
+        synchronized (componentModifyLockObj) {
+            if (identifier != null) // built-in components dont have an item stack
+                ItemstackAssociationMap.put(identifier, component);
+
+            allComponents.add(comp);
+        }
         lvm.eventQueue.addComponentAdded(comp);
     }
 
-    public void removeComponentAndNotify(LuaUserData component) {
-        throw new NotImplementedException();
+    public void removeComponentAndNotify(String identifier) {
+        synchronized (componentModifyLockObj) {
+            var component = ItemstackAssociationMap.get(identifier);
+            if (component != null) {
+                component.makeObjectInaccessible();
+                allComponents.removeIf(x -> x.comp.refVal == component);
+                lvm.eventQueue.addComponentRemoved(component);
+            }
+        }
     }
 
     @Override

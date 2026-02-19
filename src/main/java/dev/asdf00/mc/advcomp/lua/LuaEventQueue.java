@@ -1,5 +1,6 @@
 package dev.asdf00.mc.advcomp.lua;
 
+import dev.asdf00.jluavm.api.userdata.LuaUserData;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.lua.components.ComponentRegistryUD;
 
@@ -37,5 +38,9 @@ public class LuaEventQueue {
 
     public void addComponentAdded(ComponentRegistryUD.LuaComponent comp) {
         addRaw("componentAdded", LuaObject.of(comp.type()), comp.comp());
+    }
+
+    public void addComponentRemoved(LuaUserData comp) {
+        addRaw("componentRemoved", LuaObject.of(comp));
     }
 }

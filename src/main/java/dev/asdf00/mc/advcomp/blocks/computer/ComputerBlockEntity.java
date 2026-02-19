@@ -61,9 +61,9 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
     void itemHandler_onSlotChanged(int slot) {
         if(!isServer()) return;
         if(lvm != null)
-            lvm.rebuildUserdataFromInventory();
+            lvm.rebuildUserdataFromInventory(); // TODO maybe dont rebuild the entire inv always?
 
-        for (int i = 0; i < itemHandler.getSlots(); i++) {
+        for (int i = 0; i < itemHandler.getSlots(); i++) { // TODO should probs move this into component reg ud
             var is = itemHandler.getStackInSlot(i);
             if (is.getItem() instanceof ItemCanBeInitialized cbi) {
                 cbi.Initialize(is);
