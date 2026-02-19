@@ -77,6 +77,9 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
             throw new LuaJavaError("Filename cannot end with a slash");
         }
 
+        if (fs.directoryExists(fileName))
+            throw new LuaJavaError("Path points to a directory");
+
         var fileExists = fs.fileExists(fileName);
         if (!fileExists) {
             if (!autoCreate) { // if no autocreate and doesnt exist, then we throw an error
@@ -113,6 +116,16 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
 
     @LuaCallable
     public void makeDirectory(String path) {
+        // traverse the chain and see if any parent folder name is already taken by a file, which would be illegal
+        var segments = path.split("/");
+        var currentFilePath = new StringBuilder(path.length());
+        currentFilePath.append(segments[0]);
+        for (int i = 1; i < segments.length; i++) {
+            currentFilePath.append('/').append(segments[i]);
+            if (fs.fileExists(currentFilePath.toString()))
+                throw new LuaJavaError("Unable to create directory or parents: a directory name is already in use by a file");
+        }
+
         fs.createDirectoryAndParents(path);
     }
 
@@ -129,6 +142,11 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
         if (!fs.fileExists(src)) {
             throw new LuaJavaError("File '%s' does not exist".formatted(src));
         }
+
+        if (fs.directoryExists(dest)) {
+            throw new LuaJavaError("Destination path is a directory");
+        }
+
         fs.getOrCreateFile(dest).writeAllText(fs.getFileOrNull(src).readAllText());
     }
 

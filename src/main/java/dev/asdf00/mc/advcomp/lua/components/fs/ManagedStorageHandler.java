@@ -107,6 +107,10 @@ public class ManagedStorageHandler implements StorageHandler {
         return getFileOrNull(path) != null;
     }
 
+    public boolean directoryExists(String path) {
+        return this.getDirectory(path) != null;
+    }
+
     public boolean tryDeleteFile(String s) {
         var f = root.getFileOrNull(trimPath(s));
         if (f != null) {
