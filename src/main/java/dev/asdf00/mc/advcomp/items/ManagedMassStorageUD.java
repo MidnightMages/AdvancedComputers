@@ -34,7 +34,7 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
     }
 
     public void initFilesystem() {
-        if(fs != null)
+        if (fs != null)
             throw new RuntimeException("Fs is already inited for disk id %d but was attempted to be initialized again.".formatted(diskStorageId));
 
         var tag = is.getOrCreateTag();
