@@ -119,8 +119,7 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
         // traverse the chain and see if any parent folder name is already taken by a file, which would be illegal
         var segments = path.split("/");
         var currentFilePath = new StringBuilder(path.length());
-        currentFilePath.append(segments[0]);
-        for (int i = 1; i < segments.length; i++) {
+        for (int i = 0; i < segments.length; i++) {
             currentFilePath.append('/').append(segments[i]);
             if (fs.fileExists(currentFilePath.toString()))
                 throw new LuaJavaError("Unable to create directory or parents: a directory name is already in use by a file");
