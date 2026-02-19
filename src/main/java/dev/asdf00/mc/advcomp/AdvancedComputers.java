@@ -232,19 +232,6 @@ public class AdvancedComputers {
         return ro;
     }
 
-    public static final RegistryObject<CreativeModeTab> creativeTab = CREATIVE_MODE_TABS.register("advanced_computers",
-            () -> CreativeModeTab.builder()
-                    .title(Component.translatable("item_group." + MODID + ".tab_name"))
-                    .icon(() -> new ItemStack(COMPUTER_BLOCK.blockItem().get()))
-                    .displayItems((parameters, output) -> {
-                        for (var item : ModItems.getRegisteredBlockItems())
-                            output.accept(item.get());
-                        for (var item : ModItems.getRegisteredItems())
-                            output.accept(item.get());
-                    })
-                    .build()
-    );
-
     public static final RegistryObject<Item> HDD_TIER_1_ITEM = RegisterItem("hdd_tier1_item", () -> new DiskItem(Constants.MiB));
     public static final RegistryObject<Item> HDD_TIER_2_ITEM = RegisterItem("hdd_tier2_item", () -> new DiskItem(5 * Constants.MiB));
     public static final RegistryObject<Item> HDD_TIER_3_ITEM = RegisterItem("hdd_tier3_item", () -> new DiskItem(10 * Constants.MiB));
@@ -258,6 +245,28 @@ public class AdvancedComputers {
     public static final RegistryObject<Item> MAINBOARD_TIER_1_ITEM = RegisterItem("mainboard_tier1_item", () -> new MainboardItem(MainboardItem.MainboardTier.T1));
     public static final RegistryObject<Item> MAINBOARD_TIER_2_ITEM = RegisterItem("mainboard_tier2_item", () -> new MainboardItem(MainboardItem.MainboardTier.T2));
     public static final RegistryObject<Item> MAINBOARD_TIER_3_ITEM = RegisterItem("mainboard_tier3_item", () -> new MainboardItem(MainboardItem.MainboardTier.T3));
+
+    public static final RegistryObject<CreativeModeTab> creativeTab = CREATIVE_MODE_TABS.register("advanced_computers",
+            () -> CreativeModeTab.builder()
+                    .title(Component.translatable("item_group." + MODID + ".tab_name"))
+                    .icon(() -> new ItemStack(COMPUTER_BLOCK.blockItem().get()))
+                    .displayItems((parameters, output) -> {
+                        for (var item : ModItems.getRegisteredBlockItems())
+                            output.accept(item.get());
+                        for (var item : ModItems.getRegisteredItems())
+                            output.accept(item.get());
+
+                        for (RecipeGenerator.PremadeFloppyInfo info : RecipeGenerator.getAllPremadeFloppies()) {
+                            var is = new ItemStack(FLOPPY_DISK_ITEM.get());
+                            var nbt = is.getOrCreateTag();
+                            nbt.putString("desiredDiskData", info.folderId());
+                            nbt.putInt("color", info.color());
+                            nbt.putString("label", info.resultFloppyLabel());
+                            output.accept(is);
+                        }
+                    })
+                    .build()
+    );
 
     private static MinecraftServer serverReference;
 

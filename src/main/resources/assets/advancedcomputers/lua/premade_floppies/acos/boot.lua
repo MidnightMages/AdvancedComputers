@@ -84,13 +84,8 @@ function string.normalizeLineEndings(str) return string.replace(string.replace(s
 
 
 local bootDrive = _G.bootDrive
-_G.components = {}
-
-for k,v in component:list() do
-    components[k] = v
-end
 if bootDrive == nil then
-    for t, a in pairs(components) do 
+    for t, a in components:list() do 
         if t == "massStorage" and a.fileExists("boot.lua") then bootDrive = a; break; end        
     end
 end
@@ -166,7 +161,7 @@ end
 local function readPrimitiveInput()
     local readInput = ""
     while true do
-        local nextEvent = table.pack(component:getFirst("computer"):getMachineEvent())
+        local nextEvent = table.pack(components:getFirst("computer"):getMachineEvent())
         if nextEvent[1] == nil then
             sleep(0.1)
         elseif nextEvent[1] == "keyTyped" then
@@ -208,7 +203,7 @@ if bootCfg.showLiveSystemMenu then
         local suffix = ""
         local nextId = 1
         local availableDisks = {}
-        for t, a in component:list() do
+        for t, a in components:list() do
             if a.componentType == "massStorage" then
                 local desc = a.storageFamilyName.."-"..a.storageApiType.."-"..tostring(a.diskId)
                 local hasOs = a:fileExists("boot.lua")

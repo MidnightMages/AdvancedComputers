@@ -239,7 +239,9 @@ public class RecipeGenerator extends RecipeProvider {
                     .save(pWriter);
         }
 
-        addPremadeFloppy(pWriter,"acos", "AdvancedOS", Items.BOOK, DyeColor.LIME.getFireworkColor());
+        for (PremadeFloppyInfo info : getAllPremadeFloppies()) {
+            addPremadeFloppy(pWriter, info);
+        }
 
         shaped(AdvancedComputers.REDSTONE_IO_BLOCK.blockItem().get())
                 .pattern("NCN")
@@ -253,18 +255,25 @@ public class RecipeGenerator extends RecipeProvider {
                 .save(pWriter);
     }
 
+    public record PremadeFloppyInfo(String folderId, String resultFloppyLabel, ItemLike otherIngredient, int color) {}
+    public static PremadeFloppyInfo[] getAllPremadeFloppies() {
+        return new PremadeFloppyInfo[] {
+            new PremadeFloppyInfo("acos", "AdvancedOS", Items.BOOK, DyeColor.LIME.getFireworkColor())
+        };
+    }
+
     @SuppressWarnings("SameParameterValue")
-    private void addPremadeFloppy(Consumer<FinishedRecipe> pWriter, String folderId, String resultFloppyLabel, ItemLike otherIngredient, int color) {
-        if(!FloppyDiskItem.IsValidPremadeFloppyName(folderId))
-            throw new RuntimeException("Improperly formatted premade floppy name: '%s'".formatted(folderId));
+    private void addPremadeFloppy(Consumer<FinishedRecipe> pWriter, PremadeFloppyInfo info) {
+        if(!FloppyDiskItem.IsValidPremadeFloppyName(info.folderId))
+            throw new RuntimeException("Improperly formatted premade floppy name: '%s'".formatted(info.folderId));
 
         var floppyDiskitem = AdvancedComputers.FLOPPY_DISK_ITEM.get();
         ShapelessNbtRecipeBuilder.shapeless(RecipeCategory.MISC, floppyDiskitem)
-                .addNbtToResult("desiredDiskData", folderId)
-                .addNbtToResult("color", color)
-                .addNbtToResult("label", resultFloppyLabel)
+                .addNbtToResult("desiredDiskData", info.folderId)
+                .addNbtToResult("color", info.color)
+                .addNbtToResult("label", info.resultFloppyLabel)
                 .requires(floppyDiskitem)
-                .requires(otherIngredient)
+                .requires(info.otherIngredient)
                 .unlockedBy("item",has(floppyDiskitem))
                 .save(pWriter,"advancedcomputers:floppy_disk_item_acos");
     }

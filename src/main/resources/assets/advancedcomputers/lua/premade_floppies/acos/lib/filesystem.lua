@@ -158,7 +158,7 @@ function fs:init(bootDrive)
                 local diskId,path = table.unpack(s)
                 local validDiskIds = ""
                 local found = false
-                for t2, a in pairs(components) do
+                for t2, a in pairs(components:list()) do
                     if t2 ~= "massStorage"  then goto continue end
                     local componentDiskId = "massStorage_"..a.diskId
                     print(t2, componentDiskId, diskId)

@@ -1,13 +1,12 @@
-component = components
 local ok, rv = xpcall(function()
 
-	local gpu = component:getFirst("gpu")
+	local gpu = components:getFirst("gpu")
 	local textBuffer = nil
 	local screenSizeX, screenSizeY = 128, 25
 	local cursorX, cursorY = 0, 0
 	if gpu ~= nil then
 		textBuffer = gpu:newBuffer(screenSizeX, screenSizeY)
-		for t,v in component:list() do
+		for t,v in components:list() do
 			if t == "screen" then
 				gpu:assignBuffer(textBuffer, v)
 			end
@@ -21,17 +20,12 @@ local ok, rv = xpcall(function()
 				oldFunc(...)
 			end
 
-			local someScreen = component:getFirst("screen")
+			local someScreen = components:getFirst("screen")
 			if someScreen ~= nil and someScreen[funcName] then -- try old printing api
 				someScreen[funcName](someScreen,...)
 			end
 
 			if textBuffer ~= nil then
-				local function doNewline()
-					textBuffer:rotRows(1)
-					textBuffer:clearRow(0)
-				end
-
 				local textToPrint = table.concat(table.pack(...), " ")
 				for i = 1, #textToPrint do
 					local currChar = textToPrint:sub(i,i)
@@ -47,7 +41,7 @@ local ok, rv = xpcall(function()
 							cursorY = cursorY+1
 							if cursorY >= screenSizeY then
 								cursorY = screenSizeY-1
-								doNewline()
+								textBuffer:newline()
 							end
 						end
 					end
@@ -57,7 +51,7 @@ local ok, rv = xpcall(function()
 					cursorX = 0
 					if cursorY >= screenSizeY then
 						cursorY = screenSizeY-1
-						doNewline()
+						textBuffer:newline()
 					end
 				else -- printInline
 					assert(funcName == "printInline")
@@ -68,16 +62,13 @@ local ok, rv = xpcall(function()
 
 	setUpPrinting("print")
 	setUpPrinting("printInline")
-	_G.components = {}
-	local computer = component:getFirst("computer") -- TODO rename component to components
+	local computer = components:getFirst("computer")
 	local idx = 1
-	for t, a in component:list() do
+	for t, a in components:list() do
 	   print(t, a.componentType)
 	   computer.nvram.test = 123
 	   print(computer.nvram.test)
 	   computer.nvram.test = "bla"
-	   --component:getFirst("bios"):setData("testbiosdata")
-	   --print("bios data:",component:getFirst("bios"):getData())
 	   print(computer.nvram.test)
 	   if t == "massStorage" then
 		  --print("has boot file? ", a.fileExists("boot.lua"))
