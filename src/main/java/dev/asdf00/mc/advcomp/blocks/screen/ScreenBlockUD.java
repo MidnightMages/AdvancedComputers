@@ -15,31 +15,11 @@ import java.util.stream.Collectors;
 
 public class ScreenBlockUD extends BaseAcComponent {
 
-    private final ScreenBlockEntity screenBlockEntity;
+    public final ScreenBlockEntity screenBlockEntity;
 
     public ScreenBlockUD(ScreenBlockEntity screenBlockEntity) {
         super("screen");
         this.screenBlockEntity = screenBlockEntity;
-    }
-
-    // TODO implement lua api
-    @LuaCallable
-    public void printInline(LuaObject[] args) {
-        printInternal(args, false);
-    }
-
-    @LuaCallable
-    public void print(LuaObject[] args) {
-        printInternal(args, true);
-    }
-
-    private void printInternal(LuaObject[] args, boolean doNewline) {
-        var str = Arrays.stream(args).map(LuaObject::asString).collect(Collectors.joining("\t")) + (doNewline ? "\n" : "");
-        NetCodeUtils.sendToClient(PacketDistributor.ALL.noArg(), new ScreenBlockEntity.ScreenContentToClientEvent(this.screenBlockEntity, "appendGuiText", str));
-    }
-
-    public void clearGuiScreen() {
-        NetCodeUtils.sendToClient(PacketDistributor.ALL.noArg(), new ScreenBlockEntity.ScreenContentToClientEvent(this.screenBlockEntity, "clearGuiText", ""));
     }
 
     @Override

@@ -6,9 +6,11 @@ import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
+import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlock;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockUD;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
 import dev.asdf00.mc.advcomp.lua.components.*;
 import dev.asdf00.mc.advcomp.utils.Tuple;
@@ -16,7 +18,10 @@ import net.minecraftforge.network.PacketDistributor;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -45,8 +50,6 @@ public class LuaVirtualMachine {
 
     public ComputerUD computerUD = null;
     public GpuUD gpuUD = null;
-
-    public final List<ScreenBlockEntity> screenBEs = new ArrayList<>();
 
     private final Object screenBEsThatNeedUpdatingLock = new Object();
     private final HashSet<ScreenBlockEntity> screenBEsThatNeedUpdating = new HashSet<>();
@@ -164,16 +167,11 @@ public class LuaVirtualMachine {
                     .distinct()
                     .collect(Collectors.toCollection(ArrayList::new));
 
-            var screenBlockPos = computer.getBlockPos().offset(0, 1, 0);
-            var screenBe = Objects.requireNonNull(computer.getLevel()).getBlockEntity(screenBlockPos, AdvancedComputers.SCREEN_BE.get());
-            screenBe.ifPresent(deviceComponentBlockEntities::add);
-
             for (var be : deviceComponentBlockEntities.stream().distinct().toArray()) {
                 if (be instanceof AcBlockEntityComponent bec) {
                     componentsToInit.add(bec.CreateUserdata());
                 }
                 if (be instanceof ScreenBlockEntity sbe) {
-                    screenBEs.add(sbe);
                     NetCodeUtils.sendToClient(PacketDistributor.ALL.noArg(), new ScreenBlockEntity.ScreenContentToClientEvent(sbe, "clearGuiText", ""));
                 }
             }

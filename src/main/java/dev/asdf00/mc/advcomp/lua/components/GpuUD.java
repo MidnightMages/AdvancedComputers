@@ -7,6 +7,7 @@ import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockUD;
 import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.utils.SetBiMap;
 import net.minecraft.core.BlockPos;
@@ -58,14 +59,13 @@ public class GpuUD extends BaseAcComponent {
     }
 
     @LuaCallable
-    public void assignBuffer(TextBufferUD buf, int screenID) {
-        try {
-            ScreenBlockEntity sbe = lvm.screenBEs.get(screenID);
-            biMap.put(sbe, buf);
-            // TODO send to client
-        } catch (IndexOutOfBoundsException e) {
-            throw new LuaJavaError("Screen %d not found".formatted(screenID));
-        }
+    public void assignBuffer(TextBufferUD buf, ScreenBlockUD screenUD) {
+        ScreenBlockEntity sbe = screenUD.screenBlockEntity;
+        if (sbe == null)
+            throw new IllegalStateException("internal error trying to find screen");
+
+        biMap.put(sbe, buf);
+        // TODO send to client
     }
 
     /**

@@ -7,7 +7,11 @@ local ok, rv = xpcall(function()
 	local cursorX, cursorY = 0, 0
 	if gpu ~= nil then
 		textBuffer = gpu:newBuffer(screenSizeX, screenSizeY)
-		gpu:assignBuffer(textBuffer, 0)
+		for t,v in component:list() do
+			if t == "screen" then
+				gpu:assignBuffer(textBuffer, v)
+			end
+		end
 	end
 
 	local function setUpPrinting(funcName)
@@ -18,7 +22,7 @@ local ok, rv = xpcall(function()
 			end
 
 			local someScreen = component:getFirst("screen")
-			if someScreen ~= nil then -- try old printing api
+			if someScreen ~= nil and someScreen[funcName] then -- try old printing api
 				someScreen[funcName](someScreen,...)
 			end
 

@@ -7,6 +7,8 @@ import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.exceptions.ACError;
+import dev.asdf00.mc.advcomp.lua.components.AcBlockEntityComponent;
+import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
 import dev.asdf00.mc.advcomp.types.AcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;
@@ -34,7 +36,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 
-public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity implements MenuProvider {
+public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity implements MenuProvider, AcBlockEntityComponent {
     public final ItemStackHandler itemHandler = new ItemStackHandler(2);
     private LazyOptional<IItemHandler> lazyItemhandler = LazyOptional.empty();
     private final LazyOptional<AcDevCableConnectableEntity> lazyCableConnectable;
@@ -80,6 +82,11 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
     @Override
     public AbstractContainerMenu createMenu(int pContainerId, @NotNull Inventory pPlayerInventory, @NotNull Player pPlayer) {
         return new ScreenMenu(pContainerId, pPlayerInventory, this);
+    }
+
+    @Override
+    public LuaUserDataComponent CreateUserdata() {
+        return new ScreenBlockUD(this);
     }
 
     protected ComputerBlockEntity getComputerBlockEntity() {
