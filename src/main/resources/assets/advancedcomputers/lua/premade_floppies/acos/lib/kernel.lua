@@ -1,6 +1,6 @@
 local kernel = {}
 
-local computer = component:getFirst("computer")
+local computer = components:getFirst("computer")
 ---@class scheduledThread
 ---@field coroutine thread
 ---@field resumeAfter number
