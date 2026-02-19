@@ -264,6 +264,9 @@ public class LuaVirtualMachine {
                         for (var k : map.keys()) {
                             t.set(k, map.getOrDefault(k, LuaObject.NIL));
                         }
+
+                        var vmTable = t.get("vm");
+                        vmTable.set("pause", LuaObject.NIL);
                     }).rootFunc(uefiScriptForLambda).build();
                     vm.eventCallback = executionTimeTracker::handleVmEvent;
                     LuaVirtualMachine.this.runLua();
