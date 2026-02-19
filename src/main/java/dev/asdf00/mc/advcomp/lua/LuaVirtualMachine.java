@@ -111,6 +111,7 @@ public class LuaVirtualMachine {
             AdvancedComputers.LOGGER.info("Trying to start LVM");
             stdOut = new LuaStdOut();
             stdOut.clear();
+            CableCluster.onBlockPosChangedInternal(computer.getLevel(), computer.getBlockPos(), AdvancedComputers.CLUSTER_TYPE_DEVICE);
 
             eventQueue = new LuaEventQueue();
             //        console.onKeyPressed = eventQueue::addKeyPressed;
