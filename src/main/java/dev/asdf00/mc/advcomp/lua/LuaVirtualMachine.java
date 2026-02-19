@@ -10,7 +10,6 @@ import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlock;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
-import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockUD;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
 import dev.asdf00.mc.advcomp.lua.components.*;
 import dev.asdf00.mc.advcomp.utils.Tuple;
@@ -30,7 +29,7 @@ public class LuaVirtualMachine {
     private static final int TPS = 20;
     public LuaEventQueue eventQueue;
 
-    private final ComputerBlockEntity computer;
+    private final ComputerBlockEntity cbe;
 
     private LuaVM vm;
     private final int ipt; // instructions per tick
@@ -54,8 +53,8 @@ public class LuaVirtualMachine {
     private final Object screenBEsThatNeedUpdatingLock = new Object();
     private final HashSet<ScreenBlockEntity> screenBEsThatNeedUpdating = new HashSet<>();
 
-    public LuaVirtualMachine(ComputerBlockEntity computer, int instructionsPerSecond) {
-        this.computer = computer;
+    public LuaVirtualMachine(ComputerBlockEntity cbe, int instructionsPerSecond) {
+        this.cbe = cbe;
         ipt = Math.max(instructionsPerSecond / 20, 1);
         stdOut = null;
     }
@@ -111,36 +110,17 @@ public class LuaVirtualMachine {
             AdvancedComputers.LOGGER.info("Trying to start LVM");
             stdOut = new LuaStdOut();
             stdOut.clear();
-            CableCluster.onBlockPosChangedInternal(computer.getLevel(), computer.getBlockPos(), AdvancedComputers.CLUSTER_TYPE_DEVICE);
+            CableCluster.onBlockPosChangedInternal(cbe.getLevel(), cbe.getBlockPos(), AdvancedComputers.CLUSTER_TYPE_DEVICE);
 
             eventQueue = new LuaEventQueue();
-            //        console.onKeyPressed = eventQueue::addKeyPressed;
-            //        console.onKeyReleased = eventQueue::addKeyReleased;
-            //        console.onKeyTyped = eventQueue::addKeyTyped;
 
             // REGISTER USERDATA COMPONENTS
             var componentReg = new ComponentRegistryUD(this);
-            // set up disk filesystems // TODO set up fs
-            //        for (int i = 1; i <= 3; i++) {
-            //            var dp = luaRootDir.resolve("disk" + i);
-            //            var fs = new SandboxedFs(dp, !cfg.allowPhysicalFilesystemWrites());
-            //            try {
-            //                if (!Files.isDirectory(dp))
-            //                    Files.createDirectory(dp);
-            //            } catch (IOException e) {
-            //                throw new RuntimeException(e);
-            //            }
-            //            fs.init(dp);
-            //
-            //            var ud = new DiskUD(i);
-            //            ud.init(fs);
-            //            componentReg.addComponentAndNotify(ud);
-            //        }
 
             String uefiScript = null; // entry code; i.e. uefi
             var componentsToInit = new ArrayList<LuaUserDataComponent>();
             // set up inventory components
-            var inv = computer.itemHandler;
+            var inv = cbe.itemHandler;
             for (int i = 0; i < inv.getSlots(); i++) {
                 var is = inv.getStackInSlot(i);
                 var item = is.getItem();
@@ -162,7 +142,7 @@ public class LuaVirtualMachine {
             }
 
             // set up peripheral components // TODO this needs to be reworked a little, e.g. a device thats directly attached to a computer does not yet show up here
-            var deviceComponentBlockEntities = computer.connectedNetworks.values().stream()
+            var deviceComponentBlockEntities = cbe.connectedNetworks.values().stream()
                     .filter(x -> x.clusterType.getClusterName().equals("device"))
                     .flatMap(x -> Arrays.stream(x.connectedEntities))
                     .distinct()
@@ -196,7 +176,7 @@ public class LuaVirtualMachine {
             // DEFINE GLOBALS
             var greg = new ExtendedMixedStateFunctionRegistry("advancedcomputers");
 
-            var executionTimeTracker = new ExecutionTimeTracker(computer.getTier().threadExecutionSleepFactor);
+            var executionTimeTracker = new ExecutionTimeTracker(cbe.getTier().threadExecutionSleepFactor);
             greg.register("sleep", AtomicLuaFunction.forZeroResults(greg, (vm, time) -> {
                 try {
                     long sleepBegunAt = System.nanoTime();
@@ -322,7 +302,7 @@ public class LuaVirtualMachine {
         } finally {
             // TODO unify this in some other function probs
             if(!suppressBlockStateUpdate)
-                computer.SetRunState(isGracefulShutdown ? ComputerBlock.ComputerRunState.STOPPED : ComputerBlock.ComputerRunState.CRASHED);
+                cbe.SetRunState(isGracefulShutdown ? ComputerBlock.ComputerRunState.STOPPED : ComputerBlock.ComputerRunState.CRASHED);
         }
     }
 
@@ -398,9 +378,9 @@ public class LuaVirtualMachine {
     private final HashMap<Integer, Tuple<AcItemComponent, LuaUserDataComponent>> luaComputerInventoryUserdataObjectsBySlotId = new HashMap<>();
 
     public void rebuildUserdataFromInventory() {
-        var slots = computer.itemHandler.getSlots();
+        var slots = cbe.itemHandler.getSlots();
         for (int i = 0; i < slots; i++) {
-            var is = computer.itemHandler.getStackInSlot(i);
+            var is = cbe.itemHandler.getStackInSlot(i);
             AcItemComponent assoc = null;
             if (!is.isEmpty() && is.getItem() instanceof AcItemComponent a) {
                 assoc = a;
