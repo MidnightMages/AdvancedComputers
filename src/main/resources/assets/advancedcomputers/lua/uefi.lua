@@ -27,11 +27,6 @@ local ok, rv = xpcall(function()
 			end
 
 			if textBuffer ~= nil then
-				local function doNewline()
-					textBuffer:rotRows(1)
-					textBuffer:clearRow(0)
-				end
-
 				local textToPrint = table.concat(table.pack(...), " ")
 				for i = 1, #textToPrint do
 					local currChar = textToPrint:sub(i,i)
@@ -47,7 +42,7 @@ local ok, rv = xpcall(function()
 							cursorY = cursorY+1
 							if cursorY >= screenSizeY then
 								cursorY = screenSizeY-1
-								doNewline()
+								textBuffer:newline()
 							end
 						end
 					end
@@ -57,7 +52,7 @@ local ok, rv = xpcall(function()
 					cursorX = 0
 					if cursorY >= screenSizeY then
 						cursorY = screenSizeY-1
-						doNewline()
+						textBuffer:newline()
 					end
 				else -- printInline
 					assert(funcName == "printInline")
