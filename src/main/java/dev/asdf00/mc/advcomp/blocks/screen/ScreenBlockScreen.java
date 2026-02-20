@@ -56,7 +56,7 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
         int paddingSizeTop = (pGuiGraphics.guiHeight() - screenWantedHeight) / 2;
 
         pGuiGraphics.blitWithBorder(TEXTURE, paddingSizeLeft, paddingSizeTop, 0, 0, screenWantedWidth, screenWantedHeight, 256, 256, CORNERSZ);
-        renderStdOut(pGuiGraphics, paddingSizeLeft + CORNERSZ + 1, paddingSizeTop + CORNERSZ + 1);
+        renderStdOut(pGuiGraphics, paddingSizeLeft + CORNERSZ + 1, paddingSizeTop + CORNERSZ + 3);
 
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         renderTooltip(pGuiGraphics, pMouseX, pMouseY);
@@ -71,7 +71,7 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
         int y = 0;
         for (int i = 0; i < lines.length; i++) {
             var l = lines[i];
-            pGuiGraphics.drawString(AdvancedComputers.getMonoFont(), l, 0, y, -1);
+            pGuiGraphics.drawString(AdvancedComputers.getMonoFont(), l, 0, y, -1, false);
             y += 10;
         }
         pose.popPose();
