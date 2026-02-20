@@ -1,6 +1,7 @@
 package dev.asdf00.mc.advcomp.lua.components.fs;
 
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
+import dev.asdf00.mc.advcomp.items.ManagedMassStorageUD;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,7 +17,7 @@ public class VirtualFile {
     }
 
     private Path getRealDiskPath() {
-        var path = parentFolder.getRealDiskPath().resolve(this.fileName);
+        var path = parentFolder.getRealDiskPath().resolve(DirectoryNode.encodeFilename(this.fileName));
         var rootDir = parentFolder.getFsRootPath();
         if (!path.toAbsolutePath().startsWith(rootDir.toAbsolutePath()))
             throw new RuntimeException("Why are we trying to write outside of our root path?");

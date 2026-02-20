@@ -1,9 +1,12 @@
 package dev.asdf00.mc.advcomp.lua.components.fs;
 
+import dev.asdf00.mc.advcomp.types.RuntimeAssert;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 public class DirectoryNode {
     final String nameOrPath;
@@ -81,13 +84,33 @@ public class DirectoryNode {
         return splitted.length == 1 ? childDir : childDir.createDirectoryAndParents(splitted[1]);
     }
 
+    /**
+     * Returns the real filesystem path to this element
+     */
     public Path getRealDiskPath() {
         if (parentFolder == null)
             return Path.of(this.nameOrPath);
 
-        return parentFolder.getRealDiskPath().resolve(this.nameOrPath);
+        return parentFolder.getRealDiskPath().resolve(encodeFilename(this.nameOrPath));
     }
 
+    /**
+     * Turn A in filenames to =a, and = into ==
+     */
+    static String encodeFilename(String filename) {
+        return ManagedStorageHandler.encodeFilename(filename);
+    }
+
+    static String decodeFilename(String filename) {
+        var decodedFilename = ManagedStorageHandler.decodeFilenameOrNull(filename);
+        RuntimeAssert.RuntimeAssert(decodedFilename != null, "filename decoding failed, restart the lua computer to fix invalid filenames, or encode them properly!");
+        return decodedFilename;
+    }
+
+
+    /**
+     * Returns the path to the top-level folder of the filesystem
+     */
     public Path getFsRootPath() {
         return parentFolder == null ? Path.of(this.nameOrPath) : parentFolder.getFsRootPath();
     }
