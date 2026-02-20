@@ -13,16 +13,10 @@ import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
 import dev.asdf00.mc.advcomp.lua.components.*;
-import dev.asdf00.mc.advcomp.utils.Tuple;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.PacketDistributor;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -53,8 +47,7 @@ public class LuaVirtualMachine {
     public GpuUD gpuUD = null;
     public ComponentRegistryUD componentReg = null;
 
-    private final Object screenBEsThatNeedUpdatingLock = new Object();
-    private final HashSet<ScreenBlockEntity> screenBEsThatNeedUpdating = new HashSet<>();
+    private final LinkedHashSet<TextBufferUD> dirtyBuffers = new LinkedHashSet<>();
 
     public LuaVirtualMachine(ComputerBlockEntity cbe, int instructionsPerSecond) {
         this.cbe = cbe;
@@ -160,7 +153,9 @@ public class LuaVirtualMachine {
                     componentsToInit.add(new Triple<>(bec.CreateUserdata(), null,null)); // TODO support blocks
                 }
                 if (be instanceof ScreenBlockEntity sbe) {
-                    NetCodeUtils.sendToClient(PacketDistributor.ALL.noArg(), new ScreenBlockEntity.ScreenContentToClientEvent(sbe, "clearGuiText", ""));
+                    NetCodeUtils.sendToClient(
+                            PacketDistributor.ALL.noArg(),
+                            new ScreenBlockEntity.ScreenContentToClientEvent(new ScreenBlockEntity[]{sbe}, "clearGuiText", ""));
                 }
             }
 
@@ -177,14 +172,14 @@ public class LuaVirtualMachine {
             componentReg.addComponentAndNotify(new InternetUD(this), null);
             //componentReg.registerComponent(new BiosUD());
             componentReg.addComponentAndNotify(new ComputerUD(this), null);
-            gpuUD = new GpuUD(this);
+            gpuUD = new GpuUD();
             componentReg.addComponentAndNotify(gpuUD, null);
             // --------------------------
             // DEFINE GLOBALS
-            var greg = new ExtendedMixedStateFunctionRegistry("advancedcomputers");
+            var acFunReg = new ExtendedMixedStateFunctionRegistry("advancedcomputers");
 
-            var executionTimeTracker = new ExecutionTimeTracker(cbe.getTier().threadExecutionSleepFactor);
-            greg.register("sleep", AtomicLuaFunction.forZeroResults(greg, (vm, time) -> {
+            var executionTimeTracker = new LuaTimeTracker(cbe.getTier().threadExecutionSleepFactor);
+            acFunReg.register("sleep", AtomicLuaFunction.forZeroResults(acFunReg, (vm, time) -> {
                 try {
                     long sleepBegunAt = System.nanoTime();
                     Thread.sleep((int) (time.asDouble() * 1000));
@@ -194,28 +189,14 @@ public class LuaVirtualMachine {
                     throw new RuntimeException(e);
                 }
             }));
-            greg.register("print",
-                    AtomicLuaFunction.vaForZeroResults(greg, (vm, args) -> printlnLUA(Arrays.stream(args).map(LuaObject::asString).collect(Collectors.joining("\t")))));
-            greg.register("printInline",
-                    AtomicLuaFunction.vaForZeroResults(greg, (vm, args) -> printInlineLUA(Arrays.stream(args).map(LuaObject::asString).collect(Collectors.joining("\t")))));
-
-            var br = new BufferedReader(new InputStreamReader(System.in));
-            //        greg.register("readline", AtomicLuaFunction.forOneResult(greg, (vm, msg) -> {
-            //            try {
-            //                if (!msg.isNil()) {
-            //                    printlnLUA(msg.asString());
-            //                }
-            //
-            //                return LuaObject.of(br.readLine());
-            //            } catch (IOException e) {
-            //                throw new RuntimeException(e);
-            //            }
-            //        }));
-            // --------------------------
+            acFunReg.register("print",
+                    AtomicLuaFunction.vaForZeroResults(acFunReg, (vm, args) -> printlnLUA(Arrays.stream(args).map(LuaObject::asString).collect(Collectors.joining("\t")))));
+            acFunReg.register("printInline",
+                    AtomicLuaFunction.vaForZeroResults(acFunReg, (vm, args) -> printInlineLUA(Arrays.stream(args).map(LuaObject::asString).collect(Collectors.joining("\t")))));
 
             // SET UP GLOBAL ENV
             var _G = LuaObject.table();
-            greg.addFunctionsToTable(_G);
+            acFunReg.addFunctionsToTable(_G);
 
             // ADD COMPONENT TO _G
             _G.set("components", LuaObject.of(componentReg));
@@ -245,7 +226,7 @@ public class LuaVirtualMachine {
             final String uefiScriptForLambda = uefiScript;
             executorThread = new Thread(() -> {
                 try {
-                    vm = LuaVM.builder().withApiRegistry(greg).modifyEnv(t -> {
+                    vm = LuaVM.builder().withApiRegistry(acFunReg).modifyEnv(t -> {
                         var map = _G.asMap();
                         for (var k : map.keys()) {
                             t.set(k, map.getOrDefault(k, LuaObject.NIL));
@@ -419,31 +400,41 @@ public class LuaVirtualMachine {
     static class LvmKillException extends RuntimeException {
     }
 
-    public void markScreenForUpdate(ScreenBlockEntity toUpdate) {
-        synchronized (screenBEsThatNeedUpdatingLock) {
-            screenBEsThatNeedUpdating.add(toUpdate);
+    public void dirtyBuffer(TextBufferUD buf) {
+        dirtyBuffers.add(buf);
+    }
+
+    private void sendBufferUpdates() {
+        for (TextBufferUD buf : dirtyBuffers) {
+            // this is still the LUA thread, so thread-safety is not a concern here
+            // here we send the stuff
+            Set<ScreenBlockEntity> screens = buf.getAssociatedScreens();
+            if (screens.isEmpty()) {
+                // no screen to sent to
+                continue;
+            }
+            if (buf.isFreed) {
+                NetCodeUtils.sendToClient(
+                        PacketDistributor.ALL.noArg(),
+                        new ScreenBlockEntity.ScreenContentToClientEvent(screens.toArray(ScreenBlockEntity[]::new), "clearGuiText", ""));
+            }
+            String text = buf.getTextAsString();
+            NetCodeUtils.sendToClient(
+                    PacketDistributor.ALL.noArg(),
+                    new ScreenBlockEntity.ScreenContentToClientEvent(screens.toArray(ScreenBlockEntity[]::new), "setGuiText", text));
         }
     }
 
-    public void sendScreenUpdatesToClients() {
-        ScreenBlockEntity[] screensToUpdateNow;
-        synchronized (screenBEsThatNeedUpdatingLock) {
-            screensToUpdateNow = screenBEsThatNeedUpdating.toArray(ScreenBlockEntity[]::new);
-            screenBEsThatNeedUpdating.clear();
-        }
-        for (ScreenBlockEntity sbe : screensToUpdateNow) {
-            var textBuffer = this.gpuUD.getBufferForBlockEntity(sbe);
-            String text = textBuffer.getTextAsString();
-            NetCodeUtils.sendToClient(PacketDistributor.ALL.noArg(), new ScreenBlockEntity.ScreenContentToClientEvent(sbe, "setGuiText", text));
-        }
-    }
+    private class LuaTimeTracker {
+        private static final long SECOND = 1_000_000_000;
+        private static final int BUF_SEND_PER_SEC = 60;
 
-    static class ExecutionTimeTracker {
         long lastSafepointTimestamp = 0;
         long lastCompilationStartedTimestamp = 0;
+        long lastBufferSend = 0;
         private final double sleepFactor;
 
-        ExecutionTimeTracker(double sleepFactor) {
+        LuaTimeTracker(double sleepFactor) {
             this.sleepFactor = sleepFactor;
         }
 
@@ -462,7 +453,13 @@ public class LuaVirtualMachine {
                     refundNanos(timeSpentCompiling);
                 }
                 case SAFEPOINT_REACHED -> {
+                    // capture time spent in lua calcuation
                     long now = System.nanoTime();
+                    // maybe send text buffers
+                    if (now - lastBufferSend > SECOND / BUF_SEND_PER_SEC) {
+                        sendBufferUpdates();
+                    }
+                    // do the timeout calculation
                     long timeSpentNs = (now - lastSafepointTimestamp);
                     long sleepTimeNs = (long) Math.ceil(timeSpentNs * sleepFactor);
                     long sleepTimeMs = sleepTimeNs / 1_000_000;

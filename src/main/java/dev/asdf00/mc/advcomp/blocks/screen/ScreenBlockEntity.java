@@ -128,33 +128,45 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
 
     public String guiContent = "";
 
+    // TODO missing dim ID
     public static class ScreenContentToClientEvent implements NetCodeUtils.NetworkMessage {
-        private final BlockPos sbePos;
+        private final BlockPos[] screens;
         private final String eventName;
         private final String content;
 
-        public ScreenContentToClientEvent(ScreenBlockEntity sbe, String eventName, String content) {
-            sbePos = sbe.getBlockPos();
+        public ScreenContentToClientEvent(ScreenBlockEntity[] screenBEs, String eventName, String content) {
+            this.screens = new BlockPos[screenBEs.length];
+            for (int i = 0; i < screenBEs.length; i++) {
+                this.screens[i] = screenBEs[i].getBlockPos();
+            }
+            // TODO missing dim ID
             this.eventName = eventName;
             this.content = content;
         }
 
-        private ScreenContentToClientEvent(BlockPos sbePos, String eventName, String content) {
-            this.sbePos = sbePos;
+        private ScreenContentToClientEvent(BlockPos[] screens, String eventName, String content) {
+            // TODO missing dim ID
+            this.screens = screens;
             this.eventName = eventName;
             this.content = content;
         }
 
         public static ScreenContentToClientEvent decode(FriendlyByteBuf buffer) {
-            var pos = buffer.readBlockPos();
+            BlockPos[] positions = new BlockPos[buffer.readInt()];
+            for (int i = 0; i < positions.length; i++) {
+                positions[i] = buffer.readBlockPos();
+            }
             var name = NetCodeUtils.readStringFromBuf(buffer);
             var cont = NetCodeUtils.readStringFromBuf(buffer);
-            return new ScreenContentToClientEvent(pos, name, cont);
+            return new ScreenContentToClientEvent(positions, name, cont);
         }
 
         @Override
         public void encode(FriendlyByteBuf buffer) {
-            buffer.writeBlockPos(sbePos);
+            buffer.writeInt(screens.length);
+            for (int i = 0; i < (screens.length); i++) {
+                buffer.writeBlockPos(screens[i]);
+            }
             NetCodeUtils.writeStringToBuf(buffer, eventName);
             NetCodeUtils.writeStringToBuf(buffer, content);
         }
@@ -162,40 +174,42 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
         @Override
         public void handle(NetworkEvent.Context ctx) {
             ctx.enqueueWork(() -> {
-                var obj = Minecraft.getInstance().level.getBlockEntity(sbePos); // TODO maybe blockpos isnt ideal for this // TODO SEND THE DIM ID!!!!
-                if (obj instanceof ScreenBlockEntity sbe) {
-                    ACError.Assert(sbe.getLevel().isClientSide(), "Handling this screen event must be done client-side");
-                    if (eventName == null || content == null) {
-                        AdvancedComputers.LOGGER.warn("Received invalid Screen event containing null values2");
-                        return;
-                    }
-                    switch (eventName) {
-                        case "appendGuiText":
-                            sbe.guiContent += content;
-                            while (true) {
-                                var startLen = sbe.guiContent.length();
-                                // TODO clean this up and optimize it
-                                sbe.guiContent = Pattern.compile("[^\b]\b", Pattern.DOTALL).matcher(sbe.guiContent).replaceAll("");
-                                if (!sbe.guiContent.isEmpty() && sbe.guiContent.charAt(0) == '\b')
-                                    sbe.guiContent = sbe.guiContent.substring(1);
+                for (BlockPos screenPos : screens) {
+                    var obj = Minecraft.getInstance().level.getBlockEntity(screenPos); // TODO SEND THE DIM ID!!!!
+                    if (obj instanceof ScreenBlockEntity sbe) {
+                        ACError.Assert(sbe.getLevel().isClientSide(), "Handling this screen event must be done client-side");
+                        if (eventName == null || content == null) {
+                            AdvancedComputers.LOGGER.warn("Received invalid Screen event containing null values2");
+                            return;
+                        }
+                        switch (eventName) {
+                            case "appendGuiText":
+                                sbe.guiContent += content;
+                                while (true) {
+                                    var startLen = sbe.guiContent.length();
+                                    // TODO clean this up and optimize it
+                                    sbe.guiContent = Pattern.compile("[^\b]\b", Pattern.DOTALL).matcher(sbe.guiContent).replaceAll("");
+                                    if (!sbe.guiContent.isEmpty() && sbe.guiContent.charAt(0) == '\b')
+                                        sbe.guiContent = sbe.guiContent.substring(1);
 
-                                var afterLen = sbe.guiContent.length();
-                                if (startLen == afterLen)
-                                    break;
-                            }
-                            break;
-                        case "clearGuiText":
-                            sbe.guiContent = "";
-                            break;
-                        case "setGuiText":
-                            sbe.guiContent = content;
-                            break;
-                        default:
-                            AdvancedComputers.LOGGER.warn("Received invalid Screen event type2: '" + eventName + "'");
-                            break;
+                                    var afterLen = sbe.guiContent.length();
+                                    if (startLen == afterLen)
+                                        break;
+                                }
+                                break;
+                            case "clearGuiText":
+                                sbe.guiContent = "";
+                                break;
+                            case "setGuiText":
+                                sbe.guiContent = content;
+                                break;
+                            default:
+                                AdvancedComputers.LOGGER.warn("Received invalid Screen event type2: '" + eventName + "'");
+                                break;
+                        }
+                    } else {
+                        AdvancedComputers.LOGGER.warn("Received invalid packet for Screen event2");
                     }
-                } else {
-                    AdvancedComputers.LOGGER.warn("Received invalid packet for Screen event2");
                 }
             });
             ctx.setPacketHandled(true);
@@ -204,7 +218,7 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
         @Override
         public String toString() {
             return "ScreenContentToClientEvent{" +
-                   "sbePos=" + sbePos +
+                   "sbePos=" + screens +
                    ", eventName='" + eventName + '\'' +
                    ", content='" + content + '\'' +
                    '}';
