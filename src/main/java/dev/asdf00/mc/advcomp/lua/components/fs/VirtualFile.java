@@ -17,7 +17,7 @@ public class VirtualFile {
     }
 
     private Path getRealDiskPath() {
-        var path = parentFolder.getRealDiskPath().resolve(DirectoryNode.encodeFilename(this.fileName));
+        var path = parentFolder.getRealDiskPath().resolve(ManagedStorageHandler.encodeFilename(this.fileName));
         var rootDir = parentFolder.getFsRootPath();
         if (!path.toAbsolutePath().startsWith(rootDir.toAbsolutePath()))
             throw new RuntimeException("Why are we trying to write outside of our root path?");

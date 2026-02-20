@@ -91,22 +91,8 @@ public class DirectoryNode {
         if (parentFolder == null)
             return Path.of(this.nameOrPath);
 
-        return parentFolder.getRealDiskPath().resolve(encodeFilename(this.nameOrPath));
+        return parentFolder.getRealDiskPath().resolve(ManagedStorageHandler.encodeFilename(this.nameOrPath));
     }
-
-    /**
-     * Turn A in filenames to =a, and = into ==
-     */
-    static String encodeFilename(String filename) {
-        return ManagedStorageHandler.encodeFilename(filename);
-    }
-
-    static String decodeFilename(String filename) {
-        var decodedFilename = ManagedStorageHandler.decodeFilenameOrNull(filename);
-        RuntimeAssert.RuntimeAssert(decodedFilename != null, "filename decoding failed, restart the lua computer to fix invalid filenames, or encode them properly!");
-        return decodedFilename;
-    }
-
 
     /**
      * Returns the path to the top-level folder of the filesystem
