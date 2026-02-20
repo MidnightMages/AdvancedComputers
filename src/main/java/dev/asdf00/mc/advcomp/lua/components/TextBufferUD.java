@@ -111,8 +111,8 @@ public final class TextBufferUD implements LuaUserData {
 
     @LuaCallable
     public void newline() {
-        rotRows(-1);
-        clearRow(-1);
+        clearRow(0);
+        rotRows(1);
     }
 
     private int calcIdx(int x, int y) {
