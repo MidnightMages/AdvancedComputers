@@ -14,6 +14,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 public class RedstoneIoBlock extends BaseEntityBlock {
 
     public RedstoneIoBlock(Properties pProperties) {
@@ -39,6 +41,6 @@ public class RedstoneIoBlock extends BaseEntityBlock {
 
     @Override
     public int getSignal(@NotNull BlockState pState, @NotNull BlockGetter pLevel, @NotNull BlockPos pPos, @NotNull Direction pDirection) {
-        return ((RedstoneIoBlockEntity) pLevel.getBlockEntity(pPos)).getSignal(pDirection);
+        return ((RedstoneIoBlockEntity) Objects.requireNonNull(pLevel.getBlockEntity(pPos))).getSignal(pDirection);
     }
 }

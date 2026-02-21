@@ -36,7 +36,8 @@ public class RedstoneIoBlockUD extends BaseAcComponent {
 
     @LuaCallable
     public int getInput(int side) {
-        return redstoneIoBlockEntity.getLevel().getSignal(redstoneIoBlockEntity.getBlockPos(), Direction.from3DDataValue(side).getOpposite());
+        var direction = Direction.from3DDataValue(side);
+        return redstoneIoBlockEntity.getLevel().getSignal(redstoneIoBlockEntity.getBlockPos().relative(direction), direction);
     }
 
     @LuaDeserializer
