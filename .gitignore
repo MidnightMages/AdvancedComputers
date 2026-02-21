@@ -27,3 +27,5 @@ forge*changelog.txt
 /src/main/resources/assets/advancedcomputers/lua/ac_lua_workspace.code-workspace
 /run-data/
 /src/generated/resources/.cache/
+
+!/src/main/resources/assets/advancedcomputers/lua/**
