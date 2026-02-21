@@ -93,9 +93,6 @@ internal class Program {
         await StartProcessAndGetStdOutAsync("git add -A");
         Console.WriteLine("Committing...");
         await StartProcessAndGetStdOutAsync("git commit -m \"bump version\"");
-        Console.WriteLine("Creating tag...");
-        var newTagName = $"{newVersion.Suffix}/{newVersion.Major}.{newVersion.Minor}.{newVersion.Patch}";
-        await StartProcessAndGetStdOutAsync($"git tag {newTagName}");
         Console.WriteLine("Starting new build...");
         using var proc = new Process() {
             StartInfo = new ProcessStartInfo("cmd.exe", $"/c \"{Path.Combine(acRepoSourcePath, "createReleaseBuild.bat")}\"") {
@@ -133,7 +130,11 @@ internal class Program {
         await proc.WaitForExitAsync();
         Assert(proc.ExitCode == 0, "Nonzero exit code on build");
         Assert(buildSuccessCount == 2, "A build seems to have failed");
-        Console.WriteLine("Build complete. Pushing git branch...");
+
+        Console.WriteLine("Build complete. Creating tag...");
+        var newTagName = $"{newVersion.Suffix}/{newVersion.Major}.{newVersion.Minor}.{newVersion.Patch}";
+        await StartProcessAndGetStdOutAsync($"git tag {newTagName}");
+        Console.WriteLine("Pushing git branch...");
         await StartProcessAndGetStdOutAsync("git push origin");
         Console.WriteLine("Pushing git tag...");
         await StartProcessAndGetStdOutAsync($"git push origin tag {newTagName}");
