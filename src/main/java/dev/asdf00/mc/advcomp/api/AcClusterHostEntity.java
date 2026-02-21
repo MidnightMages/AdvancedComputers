@@ -8,7 +8,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 public interface AcClusterHostEntity extends AcBaseCableConnectableBlockEntity {
     boolean isNetworkValid(Direction dir);
 
-    boolean isHostForNetwork(Direction dir, AcClusterType type);
+    boolean isHostForNetwork(AcClusterType type);
 
     Direction getWorldOrientation();
 

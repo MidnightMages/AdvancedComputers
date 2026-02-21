@@ -233,7 +233,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
     }
 
     @Override
-    public boolean isHostForNetwork(Direction dir, AcClusterType type) {
+    public boolean isHostForNetwork(AcClusterType type) {
         return type.equals(AdvancedComputers.CLUSTER_TYPE_DEVICE);
     }
 
