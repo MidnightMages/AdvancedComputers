@@ -133,26 +133,15 @@ public final class TextBufferUD implements LuaUserData {
 
     @LuaCallable
     public LuaObject[] pasteText(int x, int y, String uText) {
-        return pasteText(x, y, "STOP", uText);
+        return pasteText(x, y, PasteMode.STOP, uText);
     }
 
     @LuaCallable
-    public LuaObject[] pasteText(int x, int y, String pstMode, String uText) {
-        // TODO accept ENUM and add UDTranslator
-
-        // TODO address weirdness with clipping/spilling and '\r'
-
+    public LuaObject[] pasteText(int x, int y, PasteMode mode, String uText) {
         luaGuarantee(x < width && x >= -width, "x out of bounds");
         luaGuarantee(y < height && y >= -height, "y out of bounds");
         x = x < 0 ? width - x : x;
         y = y < 0 ? height - y : y;
-
-        PasteMode mode;
-        try {
-            mode = PasteMode.valueOf(pstMode);
-        } catch (IllegalArgumentException e) {
-            throw new LuaJavaError("paste mode \"%s\" is not supported".formatted(pstMode));
-        }
 
         int printed = 0;
         while (printed < uText.length()) {
