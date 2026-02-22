@@ -14,8 +14,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
 
 public final class TextBufferUD implements LuaUserData {
     @LuaExposed(LuaExposed.Policy.READ)
@@ -128,17 +126,17 @@ public final class TextBufferUD implements LuaUserData {
     }
 
     @LuaCallable
-    public void pasteText(String uText) {
-        pasteText(0, 0, uText);
+    public LuaObject[] pasteText(String uText) {
+        return pasteText(0, 0, uText);
     }
 
     @LuaCallable
-    public void pasteText(int x, int y, String uText) {
-        pasteText(x, y, "STOP", uText);
+    public LuaObject[] pasteText(int x, int y, String uText) {
+        return pasteText(x, y, "STOP", uText);
     }
 
     @LuaCallable
-    public void pasteText(int x, int y, String pstMode, String uText) {
+    public LuaObject[] pasteText(int x, int y, String pstMode, String uText) {
         // TODO accept ENUM and add UDTranslator
 
         // TODO address weirdness with clipping/spilling and '\r'
@@ -157,85 +155,99 @@ public final class TextBufferUD implements LuaUserData {
 
         int printed = 0;
         while (printed < uText.length()) {
-            printed = pasteLine(x, y, uText, printed, mode.clearRestOnNewLine);
+
+            // paste as much text into the current line as there is space in the buffer
+            boolean endedOnNewLine = false;
+            lineLoop:
+            while (printed < uText.length() && x < width) {
+                char toPrint = uText.charAt(printed++);
+                switch (toPrint) {
+                    case '\n' -> {
+                        if (mode.clearRestOnNewLine) {
+                            // we erase the rest of the line
+                            while (x < width) {
+                                text[rawCalcIdx(x++, y)] = '\0';
+                            }
+                        }
+                        endedOnNewLine = true;
+                        break lineLoop;
+                    }
+                    case '\r' -> {
+                        // carriage return jumps back to the start of the line
+                        x = 0;
+                    }
+                    case '\t' -> {
+                        text[rawCalcIdx(x++, y)] = ' ';
+                        while (x % 4 != 0 && x < width) {
+                            text[rawCalcIdx(x++, y)] = ' ';
+                        }
+                    }
+                    case '\b' -> {
+                        if (x > 0) {
+                            text[rawCalcIdx(--x, y)] = '\0';
+                        }
+                    }
+                    default -> {
+                        text[rawCalcIdx(x++, y)] = toPrint;
+                    }
+                }
+            }
+
+            // handle transition to next line
+
             if (mode.lineMode == PasteMode.LineMode.SINGLE) {
                 // we do not care about other lines, we are done here
                 break;
             }
-            x = 0;
-            y = (y + 1) % height;
-            if (printed > 0 && uText.charAt(printed - 1) == '\n') {
-                // we ended on a newline
-                if (mode.lineMode == PasteMode.LineMode.SCROLL) {
-                    // scroll the buffer for the newline
-                    newline();
-                }
+
+            if (endedOnNewLine) {
+                y = moveCursorToNewLine(mode.lineMode, y);
+                x = 0;
             } else if (printed < uText.length()) {
+                // not ended on \n but there is still stuff to print
                 if (uText.charAt(printed) == '\n') {
                     // this is a perfect line ending
                     printed++;
+                    y = moveCursorToNewLine(mode.lineMode, y);
+                    x = 0;
                 } else {
                     // there is still stuff left in the given line, possibly clip
-                    if (!mode.spillOnBufferLineEnd && printed > 0 && uText.charAt(printed - 1) != '\n') {
+                    if (!mode.spillOnBufferLineEnd) {
                         // we need to clip the rest of the line until we run into a '\n'
-                        while (printed < uText.length() && uText.charAt(printed++) != '\n');
+                        while (printed < uText.length() && uText.charAt(printed++) != '\n') ;
                         // here we either just passed a '\n' or we are at the end of the text
+                        if (printed != uText.length()) {
+                            // if we encountered a \n we need to update x and y
+                            y = moveCursorToNewLine(mode.lineMode, y);
+                            x = 0;
+                        }
                     } else {
                         // stuff is spilling into the next line
-                        if (mode.lineMode == PasteMode.LineMode.SCROLL) {
-                            // scroll the buffer for the newline
-                            newline();
-                        }
+                        y = moveCursorToNewLine(mode.lineMode, y);
+                        x = 0;
                     }
                 }
             }
+
             if (mode.lineMode == PasteMode.LineMode.MULTI) {
                 // we might now be at the bottom end of the buffer
-                // if so, we just increased y to cross into lStart
-                if (y == lStart) {
+                if (y == height) {
                     break;
                 }
             }
         }
-
         gpuUD.acVm.dirtyBuffer(this);
+        return new LuaObject[]{LuaObject.of(x), LuaObject.of(y)};
     }
 
-    private int pasteLine(int x, int y, String uText, int printed, boolean clearOnNewLine) {
-        lineLoop:
-        while (printed < uText.length() && x < width) {
-            char toPrint = uText.charAt(printed++);
-            switch (toPrint) {
-                case '\n' -> {
-                    if (clearOnNewLine) {
-                        // we erase the rest of the line
-                        while (x < width) {
-                            text[rawCalcIdx(x++, y)] = '\0';
-                        }
-                    }
-                    break lineLoop;
-                }
-                case '\r' -> {
-                    // carriage return jumps back to the start of the line
-                    x = 0;
-                }
-                case '\t' -> {
-                    text[rawCalcIdx(x++, y)] = ' ';
-                    while (x % 4 != 0 && x < width) {
-                        text[rawCalcIdx(x++, y)] = ' ';
-                    }
-                }
-                case '\b' -> {
-                    if (x > 0) {
-                        text[rawCalcIdx(--x, y)] = '\0';
-                    }
-                }
-                default -> {
-                    text[rawCalcIdx(x++, y)] = toPrint;
-                }
-            }
+    private int moveCursorToNewLine(PasteMode.LineMode lineMode, int y) {
+        if (lineMode == PasteMode.LineMode.SCROLL && y == height - 1) {
+            // if we are in the bottom line of the buffer, scroll the buffer for the newline
+            newline();
+            return y;
+        } else {
+            return y + 1;
         }
-        return printed;
     }
 
     private int calcIdx(int x, int y) {
@@ -313,5 +325,8 @@ public final class TextBufferUD implements LuaUserData {
         public enum LineMode {
             SINGLE, MULTI, SCROLL
         }
+    }
+
+    private record LPrintInfo(int printed, int xAfter) {
     }
 }

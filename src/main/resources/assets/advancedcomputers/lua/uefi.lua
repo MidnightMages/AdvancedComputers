@@ -27,7 +27,7 @@ local ok, rv = xpcall(function()
 
 			if textBuffer ~= nil then
 				local textToPrint = table.concat(table.pack(...), " ")
-				textBuffer:pasteText(cursorX, cursorY, "SCROLL_SPILL_CLEAR", textToPrint)
+				cursorX, cursorY = textBuffer:pasteText(cursorX, cursorY, "SCROLL_SPILL_CLEAR", textToPrint)
 				if funcName == "print" then
 					cursorY = cursorY + 1
 					cursorX = 0
