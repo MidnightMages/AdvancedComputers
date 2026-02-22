@@ -30,7 +30,6 @@ public final class TextBufferUD implements LuaUserData {
     private char[] text;
     private int lStart;
 
-    // TODO not threadsafe and not protected
     public String getTextAsString() {
         var guiTextSb = new StringBuilder();
         for (int line = 0; line < height; line++) {
@@ -136,6 +135,7 @@ public final class TextBufferUD implements LuaUserData {
 
     @LuaCallable
     public void pasteText(int x, int y, boolean lineClipping, String uText) {
+        // TODO: paste modes (lineClip, lineSpill, lineScroll)
         luaGuarantee(x < width && x >= -width, "x out of bounds");
         luaGuarantee(y < height && y >= -height, "y out of bounds");
         x = x < 0 ? width - x : x;

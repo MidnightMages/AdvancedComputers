@@ -71,6 +71,7 @@ public class ComponentRegistryUD implements LuaUserData {
     public void addComponentAndNotify(String type, LuaUserDataComponent component, String identifier) {
         // trigger compilation of this UD binding ahead of time, so we dont have to wait for it later
         triggerUserdataDescriptorCompilation(component.getClass());
+        component.onVmInit(lvm);
 
         var comp = new LuaComponent(type, LuaObject.of(component));
         synchronized (componentModifyLockObj) {

@@ -150,7 +150,7 @@ public class LuaVirtualMachine {
 
             for (var be : deviceComponentBlockEntities.stream().distinct().toArray()) {
                 if (be instanceof AcBlockEntityComponent bec) {
-                    componentsToInit.add(new Triple<>(bec.CreateUserdata(), null,null)); // TODO support blocks
+                    componentsToInit.add(new Triple<>(bec.CreateUserdata(), null, null)); // TODO support blocks
                 }
                 if (be instanceof ScreenBlockEntity sbe) {
                     NetCodeUtils.sendToClient(
@@ -289,7 +289,7 @@ public class LuaVirtualMachine {
             }
         } finally {
             // TODO unify this in some other function probs
-            if(!suppressBlockStateUpdate)
+            if (!suppressBlockStateUpdate)
                 cbe.SetRunState(isGracefulShutdown ? ComputerBlock.ComputerRunState.STOPPED : ComputerBlock.ComputerRunState.CRASHED);
         }
     }
@@ -387,7 +387,7 @@ public class LuaVirtualMachine {
 
             // then add the fresh one
             if (newComponent != null) {
-                if(componentReg != null) {
+                if (componentReg != null) {
                     var ud = newComponent.CreateUserdata(is);
                     ud.onVmInit(this);
                     var identifier = getComponentIdentifier(is, i);
@@ -404,7 +404,17 @@ public class LuaVirtualMachine {
         dirtyBuffers.add(buf);
     }
 
-    private void sendBufferUpdates() {
+    /**
+     * Sends all pending {@link TextBufferUD} updates for the given LVM. Call this method before any
+     * long-running Lua library function to avoid screen-lag due to the LVM not hitting a safepoint
+     * in the upcoming time.
+     *
+     * @return if updates were sent.
+     */
+    public boolean sendTextBufferUpdates() {
+        if (dirtyBuffers.isEmpty()) {
+            return false;
+        }
         for (TextBufferUD buf : dirtyBuffers) {
             // this is still the LUA thread, so thread-safety is not a concern here
             // here we send the stuff
@@ -423,11 +433,13 @@ public class LuaVirtualMachine {
                     PacketDistributor.ALL.noArg(),
                     new ScreenBlockEntity.ScreenContentToClientEvent(screens.toArray(ScreenBlockEntity[]::new), "setGuiText", text));
         }
+        dirtyBuffers.clear();
+        return true;
     }
 
     private class LuaTimeTracker {
         private static final long SECOND = 1_000_000_000;
-        private static final int BUF_SEND_PER_SEC = 60;
+        private static final int BUF_SEND_PER_SEC = 30; // TODO make this a config option
 
         long lastSafepointTimestamp = 0;
         long lastCompilationStartedTimestamp = 0;
@@ -446,6 +458,7 @@ public class LuaVirtualMachine {
             switch (eventType) {
                 case COMPILATION_STARTED -> {
                     lastCompilationStartedTimestamp = System.nanoTime();
+                    sendTextBufferUpdates();
                 }
                 case COMPILATION_FINISHED -> {
                     // fake the last safepoint timestamp to effectively refund the compilation time
@@ -457,7 +470,9 @@ public class LuaVirtualMachine {
                     long now = System.nanoTime();
                     // maybe send text buffers
                     if (now - lastBufferSend > SECOND / BUF_SEND_PER_SEC) {
-                        sendBufferUpdates();
+                        if (sendTextBufferUpdates()) {
+                            lastBufferSend = now;
+                        }
                     }
                     // do the timeout calculation
                     long timeSpentNs = (now - lastSafepointTimestamp);

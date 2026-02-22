@@ -61,7 +61,6 @@ public class GpuUD extends BaseAcComponent {
 
         screenBufferMap.put(sbe, buf);
         acVm.dirtyBuffer(buf);
-        // TODO send to client
     }
 
     @Override
