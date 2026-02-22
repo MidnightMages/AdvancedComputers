@@ -1,6 +1,7 @@
 package dev.asdf00.mc.advcomp;
 
 import com.mojang.logging.LogUtils;
+import dev.asdf00.jluavm.internals.javac.PersistentJavaCompilationCache;
 import dev.asdf00.mc.advcomp.api.AcClusterTypeManager;
 import dev.asdf00.mc.advcomp.blocks.cables.CableModelLoader;
 import dev.asdf00.mc.advcomp.blocks.cables.device.DeviceCableBlock;
@@ -349,12 +350,19 @@ public class AdvancedComputers {
         // Do something when the server starts
         serverReference = event.getServer();
         globalDataStorage = AcGlobalDataStorage.loadOrCreate(serverReference.overworld().getDataStorage());
+
+        AcPaths.createPathsIfNecessary();
+
+        // get rid of the previous cache instance, e.g. if we switch worlds in singleplayer
+        if (PersistentJavaCompilationCache.isCacheActive())
+            PersistentJavaCompilationCache.deactivateCache();
+
+        PersistentJavaCompilationCache.enableCache(AcPaths.getCompilationCacheFolder());
     }
 
     @SubscribeEvent
     public void onServerStarted(ServerStartedEvent event) {
         AC_CLUSTER_TYPE_MANAGER.closeRegistration();
-        AcPaths.createPathsIfNecessary();
     }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
