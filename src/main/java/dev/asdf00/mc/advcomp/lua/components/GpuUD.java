@@ -8,7 +8,6 @@ import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockUD;
-import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.utils.SetBiMap;
 import net.minecraft.core.BlockPos;
 
@@ -16,17 +15,15 @@ import java.util.List;
 import java.util.Map;
 
 public class GpuUD extends BaseAcComponent {
-    private final LuaVirtualMachine lvm;
-    private final SetBiMap<ScreenBlockEntity, TextBufferUD> biMap;
+    public final SetBiMap<ScreenBlockEntity, TextBufferUD> screenBufferMap;
 
     @LuaExposed(LuaExposed.Policy.READ)
     public volatile int remainingVideoRam = 128 * 25 * 4; // TODO figure out a proper size
     private final Object remainingVideoRamLockObj = new Object();
 
-    public GpuUD(LuaVirtualMachine lvm) {
+    public GpuUD() {
         super("gpu");
-        this.lvm = lvm;
-        biMap = new SetBiMap<>();
+        screenBufferMap = new SetBiMap<>();
     }
 
     @LuaCallable
@@ -50,11 +47,9 @@ public class GpuUD extends BaseAcComponent {
 
     void freeBuffer(TextBufferUD bufferToFree) {
         synchronized (remainingVideoRamLockObj) {
-            if (bufferToFree.wasFreedAlready)
+            if (bufferToFree.isFreed)
                 throw new LuaJavaError("Buffer was freed already");
-
             remainingVideoRam += bufferToFree.width * bufferToFree.height;
-            bufferToFree.markAsFreed();
         }
     }
 
@@ -64,23 +59,8 @@ public class GpuUD extends BaseAcComponent {
         if (sbe == null)
             throw new IllegalStateException("internal error trying to find screen");
 
-        biMap.put(sbe, buf);
-        // TODO send to client
-    }
-
-    /**
-     * Should only be called by {@link TextBufferUD}.
-     */
-    public void dirty(TextBufferUD buf) {
-        // TODO check if this works
-        for (ScreenBlockEntity sbe : biMap.getBack(buf)) {
-            BlockPos pos = sbe.getBlockPos();
-            lvm.markScreenForUpdate(sbe);
-            // TODO send msg to client to redraw screen
-            // maybe pool stuff until next tick, keep a set of dirty screens and fire redraw messages
-            // from ComputerBlockEntity#tick.
-            // Network.sendToClient("redraw", pos, buf);
-        }
+        screenBufferMap.put(sbe, buf);
+        acVm.dirtyBuffer(buf);
     }
 
     @Override
@@ -92,10 +72,5 @@ public class GpuUD extends BaseAcComponent {
     public static GpuUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
         // TODO actually provide serializaion
         return null;
-    }
-
-    // TODO NOT THREADSAFE AND UNPROTECTED
-    public TextBufferUD getBufferForBlockEntity(ScreenBlockEntity sbe) {
-        return biMap.get(sbe);
     }
 }

@@ -81,9 +81,6 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
                 var bs = pState.setValue(ComputerBlock.RUN_STATE, newRstate); // TODO distinguish between crash and graceful shutdown
                 pLevel.setBlock(pPos, bs, 2);
             }
-
-            if (lvm != null)
-                lvm.sendScreenUpdatesToClients();
         }
     }
 
