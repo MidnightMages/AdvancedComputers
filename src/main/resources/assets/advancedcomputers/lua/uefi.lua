@@ -27,25 +27,7 @@ local ok, rv = xpcall(function()
 
 			if textBuffer ~= nil then
 				local textToPrint = table.concat(table.pack(...), " ")
-				for i = 1, #textToPrint do
-					local currChar = textToPrint:sub(i,i)
-					if currChar == "\b" then
-						cursorX = math.max(cursorX-1, 0)
-						textBuffer:set(cursorX, cursorY, ' ', nil, nil)
-					else
-						textBuffer:set(cursorX, cursorY, currChar, nil, nil)
-						cursorX = cursorX + 1
-						if currChar == "\n" then cursorX = screenSizeX end
-						if cursorX == screenSizeX then
-							cursorX = 0
-							cursorY = cursorY+1
-							if cursorY >= screenSizeY then
-								cursorY = screenSizeY-1
-								textBuffer:newline()
-							end
-						end
-					end
-				end
+				textBuffer:pasteText(cursorX, cursorY, "SCROLL_SPILL_CLEAR", textToPrint)
 				if funcName == "print" then
 					cursorY = cursorY + 1
 					cursorX = 0

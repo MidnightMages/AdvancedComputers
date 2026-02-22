@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 public final class TextBufferUD implements LuaUserData {
     @LuaExposed(LuaExposed.Policy.READ)
@@ -24,7 +26,9 @@ public final class TextBufferUD implements LuaUserData {
     private final GpuUD gpuUD;
     public boolean isFreed = false;
 
-    /** The bits in the foreground color are inverted for performance reasons. */
+    /**
+     * The bits in the foreground color are inverted for performance reasons.
+     */
     private byte[] foregroundColor;
     private byte[] backgroundColor;
     private char[] text;
@@ -35,8 +39,8 @@ public final class TextBufferUD implements LuaUserData {
         for (int line = 0; line < height; line++) {
             int actualLine = (lStart + line) % height;
             String lineText = String.valueOf(text, actualLine * width, width)
-                                      .replaceAll("[\0-\\x19]", " ")
-                                      .replace((char) -1, ' ').stripTrailing() + "\n";
+                    .replaceAll("[\0-\\x19]", " ")
+                    .replace((char) -1, ' ').stripTrailing() + "\n";
             guiTextSb.append(lineText);
         }
         return guiTextSb.toString();
@@ -130,33 +134,108 @@ public final class TextBufferUD implements LuaUserData {
 
     @LuaCallable
     public void pasteText(int x, int y, String uText) {
-        pasteText(x, y, true, uText);
+        pasteText(x, y, "STOP", uText);
     }
 
     @LuaCallable
-    public void pasteText(int x, int y, boolean lineClipping, String uText) {
-        // TODO: paste modes (lineClip, lineSpill, lineScroll)
+    public void pasteText(int x, int y, String pstMode, String uText) {
+        // TODO accept ENUM and add UDTranslator
+
+        // TODO address weirdness with clipping/spilling and '\r'
+
         luaGuarantee(x < width && x >= -width, "x out of bounds");
         luaGuarantee(y < height && y >= -height, "y out of bounds");
         x = x < 0 ? width - x : x;
         y = y < 0 ? height - y : y;
+
+        PasteMode mode;
+        try {
+            mode = PasteMode.valueOf(pstMode);
+        } catch (IllegalArgumentException e) {
+            throw new LuaJavaError("paste mode \"%s\" is not supported".formatted(pstMode));
+        }
+
         int printed = 0;
-        if (lineClipping) {
-            while (printed < uText.length() && x < width) {
-                text[rawCalcIdx(x++, y)] = uText.charAt(printed++);
+        while (printed < uText.length()) {
+            printed = pasteLine(x, y, uText, printed, mode.clearRestOnNewLine);
+            if (mode.lineMode == PasteMode.LineMode.SINGLE) {
+                // we do not care about other lines, we are done here
+                break;
             }
-        } else {
-            do {
-                while (printed < uText.length() && x < width) {
-                    text[rawCalcIdx(x++, y)] = uText.charAt(printed++);
+            x = 0;
+            y = (y + 1) % height;
+            if (printed > 0 && uText.charAt(printed - 1) == '\n') {
+                // we ended on a newline
+                if (mode.lineMode == PasteMode.LineMode.SCROLL) {
+                    // scroll the buffer for the newline
+                    newline();
                 }
-                x = 0;
-                y = (y + 1) % height;
-            } while (printed < uText.length() && y != lStart);
+            } else if (printed < uText.length()) {
+                if (uText.charAt(printed) == '\n') {
+                    // this is a perfect line ending
+                    printed++;
+                } else {
+                    // there is still stuff left in the given line, possibly clip
+                    if (!mode.spillOnBufferLineEnd && printed > 0 && uText.charAt(printed - 1) != '\n') {
+                        // we need to clip the rest of the line until we run into a '\n'
+                        while (printed < uText.length() && uText.charAt(printed++) != '\n');
+                        // here we either just passed a '\n' or we are at the end of the text
+                    } else {
+                        // stuff is spilling into the next line
+                        if (mode.lineMode == PasteMode.LineMode.SCROLL) {
+                            // scroll the buffer for the newline
+                            newline();
+                        }
+                    }
+                }
+            }
+            if (mode.lineMode == PasteMode.LineMode.MULTI) {
+                // we might now be at the bottom end of the buffer
+                // if so, we just increased y to cross into lStart
+                if (y == lStart) {
+                    break;
+                }
+            }
         }
-        if (printed > 0) {
-            gpuUD.acVm.dirtyBuffer(this);
+
+        gpuUD.acVm.dirtyBuffer(this);
+    }
+
+    private int pasteLine(int x, int y, String uText, int printed, boolean clearOnNewLine) {
+        lineLoop:
+        while (printed < uText.length() && x < width) {
+            char toPrint = uText.charAt(printed++);
+            switch (toPrint) {
+                case '\n' -> {
+                    if (clearOnNewLine) {
+                        // we erase the rest of the line
+                        while (x < width) {
+                            text[rawCalcIdx(x++, y)] = '\0';
+                        }
+                    }
+                    break lineLoop;
+                }
+                case '\r' -> {
+                    // carriage return jumps back to the start of the line
+                    x = 0;
+                }
+                case '\t' -> {
+                    text[rawCalcIdx(x++, y)] = ' ';
+                    while (x % 4 != 0 && x < width) {
+                        text[rawCalcIdx(x++, y)] = ' ';
+                    }
+                }
+                case '\b' -> {
+                    if (x > 0) {
+                        text[rawCalcIdx(--x, y)] = '\0';
+                    }
+                }
+                default -> {
+                    text[rawCalcIdx(x++, y)] = toPrint;
+                }
+            }
         }
+        return printed;
     }
 
     private int calcIdx(int x, int y) {
@@ -205,5 +284,34 @@ public final class TextBufferUD implements LuaUserData {
     public Set<ScreenBlockEntity> getAssociatedScreens() {
         Set<ScreenBlockEntity> screens = gpuUD.screenBufferMap.getBack(this);
         return screens == null ? Set.of() : screens;
+    }
+
+    public enum PasteMode {
+        STOP(LineMode.SINGLE, false, false),
+        STOP_CLEAR(LineMode.SINGLE, true, false),
+        FILL_CLIP(LineMode.MULTI, false, false),
+        FILL_CLIP_CLEAR(LineMode.MULTI, true, false),
+        FILL_SPILL(LineMode.MULTI, false, true),
+        FILL_SPILL_CLEAR(LineMode.MULTI, true, true),
+        SCROLL_CLIP(LineMode.SCROLL, false, false),
+        SCROLL_CLIP_CLEAR(LineMode.SCROLL, true, false),
+        SCROLL_SPILL(LineMode.SCROLL, false, true),
+        SCROLL_SPILL_CLEAR(LineMode.SCROLL, true, true),
+
+        ;
+
+        public final LineMode lineMode;
+        public final boolean clearRestOnNewLine;
+        public final boolean spillOnBufferLineEnd;
+
+        PasteMode(LineMode lineMode, boolean clearRestOnNewLine, boolean spillOnBufferLineEnd) {
+            this.lineMode = lineMode;
+            this.clearRestOnNewLine = clearRestOnNewLine;
+            this.spillOnBufferLineEnd = spillOnBufferLineEnd;
+        }
+
+        public enum LineMode {
+            SINGLE, MULTI, SCROLL
+        }
     }
 }
