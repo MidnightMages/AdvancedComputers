@@ -26,12 +26,31 @@ public class Config {
             .worldRestart()
             .define("lua.filesystem.escapeUppercaseCharactersOnHost", false);
 
+
+    private static final ForgeConfigSpec.BooleanValue LUA_VM_CACHE2_ENABLED = BUILDER
+            .comment("""
+                    Whether to enable the second compilation cache. This cache is persistent across server restarts.
+                    """)
+            .worldRestart()
+            .define("lua.vm.cache2_enabled", true);
+
+    private static final ForgeConfigSpec.IntValue LUA_VM_CACHE2_MAX_FILES = BUILDER
+            .comment("""
+                    How many files to store in the second compilation cache in memory and also on disk in '<saveFolder>/advancedComputers/compilationCache/'.
+                    """)
+            .worldRestart()
+            .defineInRange("lua.vm.cache2_max_files", 1000, 5, Integer.MAX_VALUE);
+
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
     public static boolean escapeUppercaseCharactersOnHost;
+    public static boolean luaVmCache2Enabled;
+    public static int luaVmCache2MaxFiles;
 
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
         escapeUppercaseCharactersOnHost = LUA_FS_ESCAPE_UPPERCASE_CHARS_IN_HOST_FS.get();
+        luaVmCache2Enabled = LUA_VM_CACHE2_ENABLED.get();
+        luaVmCache2MaxFiles = LUA_VM_CACHE2_MAX_FILES.get();
     }
 }
