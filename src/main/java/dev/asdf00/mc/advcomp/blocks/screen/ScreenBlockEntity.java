@@ -15,8 +15,10 @@ import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -131,34 +133,41 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
     // TODO missing dim ID
     public static class ScreenContentToClientEvent implements NetCodeUtils.NetworkMessage {
         private final BlockPos[] screens;
+        private final ResourceKey<Level>[] screenDimensions;
         private final String eventName;
         private final String content;
 
+        @SuppressWarnings("unchecked")
         public ScreenContentToClientEvent(ScreenBlockEntity[] screenBEs, String eventName, String content) {
             this.screens = new BlockPos[screenBEs.length];
+
+            this.screenDimensions = (ResourceKey<Level>[]) (new ResourceKey<?>[screenBEs.length]);
             for (int i = 0; i < screenBEs.length; i++) {
                 this.screens[i] = screenBEs[i].getBlockPos();
+                this.screenDimensions[i] = screenBEs[i].level.dimension();
             }
-            // TODO missing dim ID
             this.eventName = eventName;
             this.content = content;
         }
 
-        private ScreenContentToClientEvent(BlockPos[] screens, String eventName, String content) {
-            // TODO missing dim ID
+        private ScreenContentToClientEvent(BlockPos[] screens, ResourceKey<Level>[] screenDimensions, String eventName, String content) {
             this.screens = screens;
+            this.screenDimensions = screenDimensions;
             this.eventName = eventName;
             this.content = content;
         }
 
+        @SuppressWarnings("unchecked")
         public static ScreenContentToClientEvent decode(FriendlyByteBuf buffer) {
             BlockPos[] positions = new BlockPos[buffer.readInt()];
+            ResourceKey<Level>[] screensDimensions = (ResourceKey<Level>[]) (new ResourceKey<?>[positions.length]);
             for (int i = 0; i < positions.length; i++) {
                 positions[i] = buffer.readBlockPos();
+                screensDimensions[i] = buffer.readResourceKey(Registries.DIMENSION); //buffer.readResourceKey() NetCodeUtils.readStringFromBuf(buffer);
             }
             var name = NetCodeUtils.readStringFromBuf(buffer);
             var cont = NetCodeUtils.readStringFromBuf(buffer);
-            return new ScreenContentToClientEvent(positions, name, cont);
+            return new ScreenContentToClientEvent(positions, screensDimensions, name, cont);
         }
 
         @Override
@@ -166,6 +175,7 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
             buffer.writeInt(screens.length);
             for (int i = 0; i < (screens.length); i++) {
                 buffer.writeBlockPos(screens[i]);
+                buffer.writeResourceKey(screenDimensions[i]);
             }
             NetCodeUtils.writeStringToBuf(buffer, eventName);
             NetCodeUtils.writeStringToBuf(buffer, content);
@@ -174,8 +184,13 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
         @Override
         public void handle(NetworkEvent.Context ctx) {
             ctx.enqueueWork(() -> {
-                for (BlockPos screenPos : screens) {
-                    var obj = Minecraft.getInstance().level.getBlockEntity(screenPos); // TODO SEND THE DIM ID!!!!
+                for (int i = 0; i < screens.length; i++) {
+                    BlockPos screenPos = screens[i];
+                    ResourceKey<Level> screenDimension = screenDimensions[i];
+                    if (!Minecraft.getInstance().level.dimension().equals(screenDimension))
+                        continue;
+
+                    var obj = Minecraft.getInstance().level.getBlockEntity(screenPos);
                     if (obj instanceof ScreenBlockEntity sbe) {
                         ACError.Assert(sbe.getLevel().isClientSide(), "Handling this screen event must be done client-side");
                         if (eventName == null || content == null) {
