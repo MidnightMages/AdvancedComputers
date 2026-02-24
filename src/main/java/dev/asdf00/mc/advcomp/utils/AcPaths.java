@@ -23,12 +23,16 @@ public class AcPaths {
         return getAcWorldSaveSubFolderPath().resolve("uefi/%s.lua".formatted(uefiId));
     }
 
-    public static Path getCompilationCacheFolder() {
+    public static Path getCompilationCachePath() {
         return getAcWorldSaveSubFolderPath().resolve("compilationCache");
     }
 
+    public static Path getVmStatesPath(String lvmId) {
+        return getAcWorldSaveSubFolderPath().resolve(Path.of("vmStates", lvmId));
+    }
+
     public static void createPathsIfNecessary() {
-        var dirsToCreate = "managed;unmanaged;uefi;compilationCache";
+        var dirsToCreate = "managed;unmanaged;uefi;compilationCache;vmStates";
         var base = getAcWorldSaveSubFolderPath();
         for (var d : dirsToCreate.split(";")) {
             try {

@@ -358,7 +358,7 @@ public class AdvancedComputers {
             PersistentJavaCompilationCache.deactivateCache();
 
         if(Config.luaVmCache2Enabled)
-            PersistentJavaCompilationCache.enableCache(AcPaths.getCompilationCacheFolder(), Config.luaVmCache2MaxFiles);
+            PersistentJavaCompilationCache.enableCache(AcPaths.getCompilationCachePath(), Config.luaVmCache2MaxFiles);
     }
 
     @SubscribeEvent
