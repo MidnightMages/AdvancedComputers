@@ -186,7 +186,8 @@ public class LuaVirtualMachine {
                     long sleptForNs = Math.max(0, System.nanoTime() - sleepBegunAt);
                     executionTimeTracker.refundNanos(sleptForNs);
                 } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                    Thread.currentThread().interrupt();
+                    throw new LvmKillException();
                 }
             }));
             acFunReg.register("print",

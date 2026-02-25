@@ -8,6 +8,7 @@ import dev.asdf00.jluavm.utils.ByteArrayReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 public class NvramUD extends BaseAcComponent {
     public NvramUD() {
@@ -39,13 +40,13 @@ public class NvramUD extends BaseAcComponent {
     }
 
     @Override
-    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs) {
+    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
         // TODO actually provide serializaion
         return null;
     }
 
     @LuaDeserializer
-    public static NvramUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
+    public static NvramUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
         // TODO actually provide serializaion
         return null;
     }

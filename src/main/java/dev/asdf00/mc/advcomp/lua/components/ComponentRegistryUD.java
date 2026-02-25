@@ -9,10 +9,7 @@ import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -95,13 +92,13 @@ public class ComponentRegistryUD implements LuaUserData {
     }
 
     @Override
-    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs) {
+    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
         // TODO actually provide serializaion
         return null;
     }
 
     @LuaDeserializer
-    public static ComponentRegistryUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
+    public static ComponentRegistryUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
         // TODO actually provide serializaion
         return null;
     }

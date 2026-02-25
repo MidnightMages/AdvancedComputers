@@ -9,10 +9,10 @@ import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockUD;
 import dev.asdf00.mc.advcomp.utils.SetBiMap;
-import net.minecraft.core.BlockPos;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 public class GpuUD extends BaseAcComponent {
     public final SetBiMap<ScreenBlockEntity, TextBufferUD> screenBufferMap;
@@ -64,12 +64,12 @@ public class GpuUD extends BaseAcComponent {
     }
 
     @Override
-    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs) {
+    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
         throw new UnsupportedOperationException("not implemented");
     }
 
     @LuaDeserializer
-    public static GpuUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
+    public static GpuUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
         // TODO actually provide serializaion
         return null;
     }

@@ -10,10 +10,7 @@ import dev.asdf00.jluavm.runtime.utils.UDTranslators;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public final class TextBufferUD implements LuaUserData {
 
@@ -256,19 +253,19 @@ public final class TextBufferUD implements LuaUserData {
         return ((lStart + y) % height) * width + x;
     }
 
-    @Override
-    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs) {
-        throw new UnsupportedOperationException("serialization not implemented");
-    }
-
     private static void luaGuarantee(boolean condition, String msg) {
         if (!condition) {
             throw new LuaJavaError(msg);
         }
     }
 
+    @Override
+    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
+        throw new UnsupportedOperationException("serialization not implemented");
+    }
+
     @LuaDeserializer
-    public static TextBufferUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
+    public static TextBufferUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
         // TODO actually provide serializaion
         return null;
     }

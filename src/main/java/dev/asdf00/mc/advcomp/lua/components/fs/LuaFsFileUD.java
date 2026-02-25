@@ -8,6 +8,7 @@ import dev.asdf00.jluavm.utils.ByteArrayReader;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 public class LuaFsFileUD implements LuaUserData {
     final VirtualFile f;
@@ -32,13 +33,13 @@ public class LuaFsFileUD implements LuaUserData {
     }
 
     @Override
-    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs) {
+    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
         // TODO actually provide serializaion
         return null;
     }
 
     @LuaDeserializer
-    public static LuaFsFileUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
+    public static LuaFsFileUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
         // TODO actually provide serializaion
         return null;
     }

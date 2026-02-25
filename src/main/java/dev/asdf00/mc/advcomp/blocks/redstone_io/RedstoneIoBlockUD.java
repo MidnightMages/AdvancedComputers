@@ -10,6 +10,7 @@ import net.minecraft.core.Direction;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 public class RedstoneIoBlockUD extends BaseAcComponent {
     private final RedstoneIoBlockEntity redstoneIoBlockEntity;
@@ -31,7 +32,7 @@ public class RedstoneIoBlockUD extends BaseAcComponent {
         if (level < 0 || level > 15)
             throw new LuaJavaError("level argument (#2) is out of range: %s. Expected integer in range [0, 15]".formatted(level));
 
-        redstoneIoBlockEntity.setSignal(side, (int)level);
+        redstoneIoBlockEntity.setSignal(side, (int) level);
     }
 
     @LuaCallable
@@ -41,13 +42,13 @@ public class RedstoneIoBlockUD extends BaseAcComponent {
     }
 
     @LuaDeserializer
-    public static RedstoneIoBlockUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
+    public static RedstoneIoBlockUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
         // TODO actually provide serializaion
         return null;
     }
 
     @Override
-    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs) {
+    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
         return new byte[0];
     }
 }

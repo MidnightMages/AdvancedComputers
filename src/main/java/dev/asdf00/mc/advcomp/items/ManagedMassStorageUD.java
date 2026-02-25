@@ -12,6 +12,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.stream.Stream;
 
 public class ManagedMassStorageUD extends BaseMassStorageUD {
@@ -167,13 +168,13 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
 
 
     @Override
-    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs) {
+    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
         // TODO actually provide serializaion
         return null;
     }
 
     @LuaDeserializer
-    public static ManagedMassStorageUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
+    public static ManagedMassStorageUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
         // TODO actually provide serializaion
         return null;
     }

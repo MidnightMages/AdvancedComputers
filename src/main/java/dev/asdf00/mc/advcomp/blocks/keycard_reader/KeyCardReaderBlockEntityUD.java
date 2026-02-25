@@ -8,9 +8,11 @@ import dev.asdf00.mc.advcomp.lua.components.BaseAcComponent;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 public class KeyCardReaderBlockEntityUD extends BaseAcComponent {
     private final KeyCardReaderBlockEntity keyCardReaderBlockEntity;
+
     public KeyCardReaderBlockEntityUD(KeyCardReaderBlockEntity keyCardReaderBlockEntity) {
         super("keycardReader");
         this.keyCardReaderBlockEntity = keyCardReaderBlockEntity;
@@ -22,13 +24,13 @@ public class KeyCardReaderBlockEntityUD extends BaseAcComponent {
     }
 
     @Override
-    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs) {
+    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
         // TODO actually provide serializaion
         return null;
     }
 
     @LuaDeserializer
-    public static KeyCardReaderBlockEntityUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
+    public static KeyCardReaderBlockEntityUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
         // TODO actually provide serializaion
         return null;
     }
