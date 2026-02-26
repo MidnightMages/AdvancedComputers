@@ -1,8 +1,6 @@
 package dev.asdf00.mc.advcomp.blocks.screen;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
-import dev.asdf00.mc.advcomp.lua.components.GraphicsBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -21,16 +19,10 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
 
     private static final int CORNERSZ = 5;
 
-
-    private final GraphicsBuffer gb;
-    private ComputerBlockEntity computerEntity;
-
     public ScreenBlockScreen(ScreenMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
-        computerEntity = null;
         this.imageHeight = SCREENSIZEY;
         this.imageWidth = SCREENSIZEX;
-        this.gb = new GraphicsBuffer(50, 15);
 //        MONOFONT = AdvancedComputers.GetFont();
     }
 
