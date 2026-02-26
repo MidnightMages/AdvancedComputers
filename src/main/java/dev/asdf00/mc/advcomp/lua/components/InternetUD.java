@@ -17,12 +17,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-public class InternetUD extends BaseAcComponent {
-    private final LuaVirtualMachine lvm;
-
-    public InternetUD(LuaVirtualMachine lvm) {
+public final class InternetUD extends BaseAcComponent {
+    public InternetUD() {
         super("internet");
-        this.lvm = lvm;
+    }
+
+    private InternetUD(LuaVirtualMachine acVm) {
+        // an internet component, if present, is always available
+        super("internet", acVm, true);
     }
 
     @LuaCallable
@@ -81,13 +83,12 @@ public class InternetUD extends BaseAcComponent {
 
     @Override
     public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
-        // TODO actually provide serializaion
-        return null;
+        // no internal state to serialize
+        return new byte[0];
     }
 
     @LuaDeserializer
-    public static InternetUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
-        // TODO actually provide serializaion
-        return null;
+    public static InternetUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
+        return new InternetUD((LuaVirtualMachine) additionalData);
     }
 }

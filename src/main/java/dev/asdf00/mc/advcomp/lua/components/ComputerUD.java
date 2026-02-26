@@ -3,8 +3,10 @@ package dev.asdf00.mc.advcomp.lua.components;
 import dev.asdf00.jluavm.api.userdata.LuaCallable;
 import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
 import dev.asdf00.jluavm.api.userdata.LuaExposed;
+import dev.asdf00.jluavm.exceptions.InternalLuaSerializationError;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
+import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
 
@@ -12,16 +14,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-public class ComputerUD extends BaseAcComponent {
-    private final LuaVirtualMachine lvm;
+public final class ComputerUD extends BaseAcComponent {
+    @LuaExposed(LuaExposed.Policy.READ)
+    public LuaObject nvram;
 
-    public ComputerUD(LuaVirtualMachine lvm) {
+    public ComputerUD() {
         super("computer");
-        this.lvm = lvm;
+        nvram = LuaObject.of(new NvramUD());
     }
 
-    @LuaExposed(LuaExposed.Policy.READ)
-    public LuaObject nvram = LuaObject.of(new NvramUD());
+    private ComputerUD(LuaVirtualMachine acVm, LuaObject nvram) {
+        // a computer component is always available
+        super("computer", acVm, true);
+        this.nvram = nvram;
+    }
 
     @LuaCallable
     public void beep(double freq, double duration) {
@@ -37,19 +43,25 @@ public class ComputerUD extends BaseAcComponent {
 
     @LuaCallable
     public LuaObject[] getMachineEvent() {
-        var e = lvm.eventQueue.getQueuedEventOrNull();
+        var e = acVm.eventQueue.getQueuedEventOrNull();
         return e == null ? new LuaObject[]{LuaObject.NIL} : e;
     }
 
     @Override
     public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
-        // TODO actually provide serializaion
-        return null;
+        int nvrId = nvram.serialize(serialData, mappedObjs, additionalData);
+        return new ByteArrayBuilder(Integer.BYTES).append(nvrId).toArray();
     }
 
     @LuaDeserializer
-    public static ComputerUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
-        // TODO actually provide serializaion
-        return null;
+    public static ComputerUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
+        int nvrIdx = reader.readInt();
+        var nu = new ComputerUD((LuaVirtualMachine) additionalData, objs[nvrIdx]);
+        postActions.add(() -> {
+            if (!(nu.nvram.refVal instanceof NvramUD)) {
+                throw new IllegalStateException(nu + " has no NvramUD after deserialization");
+            }
+        });
+        return nu;
     }
 }

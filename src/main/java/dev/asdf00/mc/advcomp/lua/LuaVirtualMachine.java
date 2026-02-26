@@ -169,9 +169,9 @@ public class LuaVirtualMachine {
             // TODO traverse peripheral network and instantiate and init the block userdata objects similarly
             // TODO define how exactly the peripheral network should behave (and make it behave that way then)
 
-            componentReg.addComponentAndNotify(new InternetUD(this), null);
+            componentReg.addComponentAndNotify(new InternetUD(), null);
             //componentReg.registerComponent(new BiosUD());
-            componentReg.addComponentAndNotify(new ComputerUD(this), null);
+            componentReg.addComponentAndNotify(new ComputerUD(), null);
             gpuUD = new GpuUD();
             componentReg.addComponentAndNotify(gpuUD, null);
             // --------------------------

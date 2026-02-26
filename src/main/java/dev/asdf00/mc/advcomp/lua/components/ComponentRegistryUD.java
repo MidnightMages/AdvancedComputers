@@ -6,6 +6,7 @@ import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
 import dev.asdf00.jluavm.api.userdata.LuaUserData;
 import dev.asdf00.jluavm.internals.LuaVM_RT;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
+import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
 
@@ -16,10 +17,12 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class ComponentRegistryUD implements LuaUserData {
+    private LuaObject luaIdentity;
+
     private final ArrayList<LuaComponent> allComponents = new ArrayList<>();
     private final LuaVirtualMachine lvm;
     private final Object componentModifyLockObj = new Object();
-    private final HashMap<String, LuaUserDataComponent> ItemstackAssociationMap = new HashMap<>();
+    private final HashMap<String, LuaUserDataComponent> itemstackAssociationMap = new HashMap<>();
 
     public ComponentRegistryUD(LuaVirtualMachine lvm) {
         this.lvm = lvm;
@@ -73,7 +76,7 @@ public class ComponentRegistryUD implements LuaUserData {
         var comp = new LuaComponent(type, LuaObject.of(component));
         synchronized (componentModifyLockObj) {
             if (identifier != null) // built-in components dont have an item stack
-                ItemstackAssociationMap.put(identifier, component);
+                itemstackAssociationMap.put(identifier, component);
 
             allComponents.add(comp);
         }
@@ -82,7 +85,7 @@ public class ComponentRegistryUD implements LuaUserData {
 
     public void removeComponentAndNotify(String identifier) {
         synchronized (componentModifyLockObj) {
-            var component = ItemstackAssociationMap.get(identifier);
+            var component = itemstackAssociationMap.get(identifier);
             if (component != null) {
                 component.makeObjectInaccessible();
                 allComponents.removeIf(x -> x.comp.refVal == component);
@@ -93,14 +96,44 @@ public class ComponentRegistryUD implements LuaUserData {
 
     @Override
     public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
-        // TODO actually provide serializaion
-        return null;
+        var builder = new ByteArrayBuilder();
+        var entries = itemstackAssociationMap.entrySet();
+        builder.append(entries.size());
+        for (var e : entries) {
+            builder.append(e.getKey());
+            builder.append(LuaObject.of(e.getValue()).serialize(serialData, mappedObjs, additionalData));
+        }
+        return builder.toArray();
     }
 
     @LuaDeserializer
-    public static ComponentRegistryUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
-        // TODO actually provide serializaion
-        return null;
+    public static ComponentRegistryUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
+        final var nu = new ComponentRegistryUD((LuaVirtualMachine) additionalData);
+        final int compMapLen = reader.readInt();
+        final String[] keys = new String[compMapLen];
+        final LuaObject[] wrappers = new LuaObject[compMapLen];
+        for (int i = 0; i < compMapLen; i++) {
+            keys[i] = reader.readString();
+            wrappers[i] = objs[reader.readInt()];
+        }
+        postActions.add(() -> {
+            // this happens AFTER all UD objects have been initialized, now we may unwrap our components
+            // TODO do list handling here instead of delegating to addAndNotify
+            for (int i = 0; i < compMapLen; i++) {
+                nu.addComponentAndNotify((LuaUserDataComponent) wrappers[i].refVal, keys[i]);
+            }
+        });
+        return nu;
+    }
+
+    @Override
+    public final LuaObject getSelfAsLuaObject() {
+        return luaIdentity;
+    }
+
+    @Override
+    public final void setSelfAsLuaObject(LuaObject self) {
+        luaIdentity = self;
     }
 
     public record LuaComponent(String type, LuaObject comp) {

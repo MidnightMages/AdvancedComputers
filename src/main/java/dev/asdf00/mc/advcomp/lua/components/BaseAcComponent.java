@@ -3,19 +3,29 @@ package dev.asdf00.mc.advcomp.lua.components;
 import dev.asdf00.jluavm.api.userdata.LuaExposed;
 import dev.asdf00.jluavm.api.userdata.LuaProperty;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
+import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
 
+import java.util.List;
+import java.util.Map;
+
 public abstract class BaseAcComponent implements LuaUserDataComponent {
-    private final String componentTypeString;
+    private LuaObject luaIdentity;
+
     protected LuaVirtualMachine acVm;
-    private boolean isAccessible = true;
+    protected volatile boolean isAccessible = true;
 
     @LuaExposed(LuaExposed.Policy.READ)
-    public final LuaProperty componentType;
+    public final String componentType;
 
     public BaseAcComponent(String componentType) {
-        this.componentTypeString = componentType;
-        this.componentType = LuaProperty.ofString(() -> componentType, null);
+        this(componentType, null, true);
+    }
+
+    protected BaseAcComponent(String componentType, LuaVirtualMachine acVm, boolean isAccessible) {
+        this.componentType = componentType;
+        this.acVm = acVm;
+        this.isAccessible = isAccessible;
     }
 
     @Override
@@ -29,8 +39,18 @@ public abstract class BaseAcComponent implements LuaUserDataComponent {
     }
 
     @Override
+    public final LuaObject getSelfAsLuaObject() {
+        return luaIdentity;
+    }
+
+    @Override
+    public final void setSelfAsLuaObject(LuaObject self) {
+        luaIdentity = self;
+    }
+
+    @Override
     public String getComponentType() {
-        return componentTypeString;
+        return componentType;
     }
 
     @Override
