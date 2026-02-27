@@ -175,24 +175,28 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
     public void load(@NotNull CompoundTag pTag) {
         super.load(pTag);
         itemHandler.loadContents(pTag);
+
+        // TODO maybe trigger network loading from within here so we get the inventory data and very consistent network data, even on load?
+
+
+        assert level != null;
+        if (!level.isClientSide()) { // OLD INFO: on level load, associated blocks appear to be air instead -- maybe this is totally fine now?
+            var b = level.getBlockState(this.getBlockPos()).getBlock();
+            if (b instanceof ComputerBlock c) {
+                this.block = c;
+                this.tier = this.block.TIER;
+                this.lvm = LuaVirtualMachine.deserializeOrNull(this);
+            } else {
+                AdvancedComputers.LOGGER.error("Associated block was not a computer blocK, but instead was somehow %s???".formatted(b.getName()));
+            }
+            AdvancedComputers.LOGGER.info("ON LOAD COMPUTER Tier: %s".formatted(tier.name()));
+        }
+        lazyItemHandler = LazyOptional.of(() -> itemHandler);
     }
 
     @Override
     public void onLoad() {
         super.onLoad();
-        assert level != null;
-        if (!level.isClientSide()) { // on level load, associated blocks appear to be air instead
-            var b = level.getBlockState(this.getBlockPos()).getBlock();
-            if (b instanceof ComputerBlock c) {
-                this.block = c;
-                this.tier = this.block.TIER;
-            } else {
-                AdvancedComputers.LOGGER.error("Associated block was not a computer blocK, but instead was somehow %s???".formatted(b.getName()));
-            }
-            System.out.println("ON LOAD COMPUTER Tier: %s".formatted(tier.name()));
-        }
-
-        lazyItemHandler = LazyOptional.of(() -> itemHandler);
     }
 
     @Override
@@ -201,7 +205,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
         // crash LVM
         if (isServer()) {
             if (lvm != null) {
-                lvm.tryKill("Chunk unloaded", false, true);
+                lvm.serialize();
             }
         }
     }

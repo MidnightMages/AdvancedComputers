@@ -398,6 +398,15 @@ public class LuaVirtualMachine {
         }
     }
 
+
+    public static LuaVirtualMachine deserializeOrNull(ComputerBlockEntity computerBlockEntity) {
+        return null;
+    }
+
+    public void serialize() {
+        tryKill("Chunk unloaded", false, true);
+    }
+
     static class LvmKillException extends RuntimeException {
     }
 
