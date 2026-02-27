@@ -10,7 +10,10 @@ import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -19,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 public class ComponentRegistryUD implements LuaUserData {
     private LuaObject luaIdentity;
 
-    private final ArrayList<LuaComponent> allComponents = new ArrayList<>();
     private final LuaVirtualMachine lvm;
     private final Object componentModifyLockObj = new Object();
     private final HashMap<String, LuaUserDataComponent> itemstackAssociationMap = new HashMap<>();
@@ -36,7 +38,9 @@ public class ComponentRegistryUD implements LuaUserData {
 
         LuaObject[][] rets;
         synchronized (componentModifyLockObj) {
-            rets = allComponents.stream().map(LuaComponent::asLuaObj).toArray(LuaObject[][]::new);
+            rets = itemstackAssociationMap.values().stream().map(x ->
+                    new LuaObject[]{LuaObject.of(x.getComponentType()), LuaObject.of(x)}
+            ).toArray(LuaObject[][]::new);
         }
         return new LuaObject[]{
                 AtomicLuaFunction.forManyResults(null, (vm, state) -> {
@@ -60,27 +64,22 @@ public class ComponentRegistryUD implements LuaUserData {
     @LuaCallable
     public LuaObject getFirst(String componentType) {
         synchronized (componentModifyLockObj) {
-            return allComponents.stream().filter(x -> x.type().equals(componentType)).map(LuaComponent::comp).findFirst().orElse(LuaObject.NIL);
+            return itemstackAssociationMap.values().stream()
+                    .filter(x -> x.getComponentType().equals(componentType))
+                    .map(LuaObject::of).findFirst().orElse(LuaObject.NIL);
         }
     }
 
     public void addComponentAndNotify(LuaUserDataComponent component, String identifier) {
-        addComponentAndNotify(component.getComponentType(), component, identifier);
-    }
-
-    public void addComponentAndNotify(String type, LuaUserDataComponent component, String identifier) {
         // trigger compilation of this UD binding ahead of time, so we dont have to wait for it later
         triggerUserdataDescriptorCompilation(component.getClass());
         component.onVmInit(lvm);
 
-        var comp = new LuaComponent(type, LuaObject.of(component));
         synchronized (componentModifyLockObj) {
             if (identifier != null) // built-in components dont have an item stack
                 itemstackAssociationMap.put(identifier, component);
-
-            allComponents.add(comp);
         }
-        lvm.eventQueue.addComponentAdded(comp);
+        lvm.eventQueue.addComponentAdded(component);
     }
 
     public void removeComponentAndNotify(String identifier) {
@@ -88,7 +87,6 @@ public class ComponentRegistryUD implements LuaUserData {
             var component = itemstackAssociationMap.get(identifier);
             if (component != null) {
                 component.makeObjectInaccessible();
-                allComponents.removeIf(x -> x.comp.refVal == component);
                 lvm.eventQueue.addComponentRemoved(component);
             }
         }
@@ -118,9 +116,10 @@ public class ComponentRegistryUD implements LuaUserData {
         }
         postActions.add(() -> {
             // this happens AFTER all UD objects have been initialized, now we may unwrap our components
-            // TODO do list handling here instead of delegating to addAndNotify
-            for (int i = 0; i < compMapLen; i++) {
-                nu.addComponentAndNotify((LuaUserDataComponent) wrappers[i].refVal, keys[i]);
+            synchronized (nu.componentModifyLockObj) {
+                for (int i = 0; i < compMapLen; i++) {
+                    nu.itemstackAssociationMap.put(keys[i], (LuaUserDataComponent) wrappers[i].refVal);
+                }
             }
         });
         return nu;
@@ -134,12 +133,6 @@ public class ComponentRegistryUD implements LuaUserData {
     @Override
     public final void setSelfAsLuaObject(LuaObject self) {
         luaIdentity = self;
-    }
-
-    public record LuaComponent(String type, LuaObject comp) {
-        public LuaObject[] asLuaObj() {
-            return new LuaObject[]{LuaObject.of(type), comp};
-        }
     }
 
     private static final ExecutorService UD_DESCRIPTOR_COMPILATION_POOL = new ThreadPoolExecutor(0, 1,

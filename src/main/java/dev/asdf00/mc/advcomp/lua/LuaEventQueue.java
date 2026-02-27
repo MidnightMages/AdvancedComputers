@@ -3,6 +3,7 @@ package dev.asdf00.mc.advcomp.lua;
 import dev.asdf00.jluavm.api.userdata.LuaUserData;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.lua.components.ComponentRegistryUD;
+import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
@@ -36,8 +37,8 @@ public class LuaEventQueue {
         addRaw("shutdown");
     }
 
-    public void addComponentAdded(ComponentRegistryUD.LuaComponent comp) {
-        addRaw("componentAdded", LuaObject.of(comp.type()), comp.comp());
+    public void addComponentAdded(LuaUserDataComponent comp) {
+        addRaw("componentAdded", LuaObject.of(comp.getComponentType()), LuaObject.of(comp));
     }
 
     public void addComponentRemoved(LuaUserData comp) {
