@@ -9,8 +9,11 @@ import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.types.RuntimeAssert;
+import dev.asdf00.mc.advcomp.utils.Tuple;
+import dev.asdf00.mc.advcomp.utils.TupleArrayListMap;
 
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -24,7 +27,7 @@ public class ComponentRegistryUD implements LuaUserData {
 
     private final LuaVirtualMachine lvm;
     private final Object componentModifyLockObj = new Object();
-    private final HashMap<String, LuaUserDataComponent> itemstackAssociationMap = new HashMap<>();
+    private final TupleArrayListMap<String, LuaUserDataComponent> itemstackAssociationMap = new TupleArrayListMap<>();
 
     public ComponentRegistryUD(LuaVirtualMachine lvm) {
         this.lvm = lvm;
@@ -38,9 +41,12 @@ public class ComponentRegistryUD implements LuaUserData {
 
         LuaObject[][] rets;
         synchronized (componentModifyLockObj) {
-            rets = itemstackAssociationMap.values().stream().map(x ->
-                    new LuaObject[]{LuaObject.of(x.getComponentType()), LuaObject.of(x)}
-            ).toArray(LuaObject[][]::new);
+            rets = Arrays.stream(itemstackAssociationMap.entries())
+                    .map(Tuple::y)
+                    .map(x ->
+                            new LuaObject[]{LuaObject.of(x.getComponentType()), LuaObject.of(x)}
+                    )
+                    .toArray(LuaObject[][]::new);
         }
         return new LuaObject[]{
                 AtomicLuaFunction.forManyResults(null, (vm, state) -> {
@@ -64,9 +70,12 @@ public class ComponentRegistryUD implements LuaUserData {
     @LuaCallable
     public LuaObject getFirst(String componentType) {
         synchronized (componentModifyLockObj) {
-            return itemstackAssociationMap.values().stream()
+            return Arrays.stream(itemstackAssociationMap.entries())
+                    .map(Tuple::y)
                     .filter(x -> x.getComponentType().equals(componentType))
-                    .map(LuaObject::of).findFirst().orElse(LuaObject.NIL);
+                    .map(LuaObject::of)
+                    .findFirst()
+                    .orElse(LuaObject.NIL);
         }
     }
 
@@ -76,7 +85,6 @@ public class ComponentRegistryUD implements LuaUserData {
         component.onVmInit(lvm);
 
         synchronized (componentModifyLockObj) {
-            if (identifier != null) // built-in components dont have an item stack
                 itemstackAssociationMap.put(identifier, component);
         }
         lvm.eventQueue.addComponentAdded(component);
@@ -95,11 +103,15 @@ public class ComponentRegistryUD implements LuaUserData {
     @Override
     public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
         var builder = new ByteArrayBuilder();
-        var entries = itemstackAssociationMap.entrySet();
-        builder.append(entries.size());
-        for (var e : entries) {
-            builder.append(e.getKey());
-            builder.append(LuaObject.of(e.getValue()).serialize(serialData, mappedObjs, additionalData));
+        var lists = itemstackAssociationMap.getDataToSerialize();
+        builder.append(lists.a().size());
+        for (int i = 0; i < lists.a().size(); i++) {
+            var key = lists.a().get(i);
+            RuntimeAssert.RuntimeAssert(!"".equals(key), "key was an empty string. Use null instead!");
+            if (key == null)
+                key = "";
+            builder.append(key);
+            builder.append(LuaObject.of(lists.b().get(i)).serialize(serialData, mappedObjs, additionalData));
         }
         return builder.toArray();
     }
@@ -111,7 +123,8 @@ public class ComponentRegistryUD implements LuaUserData {
         final String[] keys = new String[compMapLen];
         final LuaObject[] wrappers = new LuaObject[compMapLen];
         for (int i = 0; i < compMapLen; i++) {
-            keys[i] = reader.readString();
+            var s = reader.readString();
+            keys[i] = s.isEmpty() ? null : s;
             wrappers[i] = objs[reader.readInt()];
         }
         postActions.add(() -> {
