@@ -49,6 +49,10 @@ public class TupleArrayListMap<K, V> {
         return (Tuple<K, V>[]) rvArray;
     }
 
+    public V remove(K key) {
+        return kvMapping.remove(key);
+    }
+
     // -- serialization -- i.e. turn the map and set into two array lists and vice versa
     public record SerializeData<K, V>(ArrayList<K> a, ArrayList<V> b) {
     }

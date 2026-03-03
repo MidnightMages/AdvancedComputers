@@ -2,6 +2,7 @@ package dev.asdf00.mc.advcomp.lua.components;
 
 import dev.asdf00.jluavm.api.userdata.LuaUserData;
 import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
+import net.minecraft.world.item.ItemStack;
 
 public interface LuaUserDataComponent extends LuaUserData {
     String getComponentType();
@@ -11,7 +12,7 @@ public interface LuaUserDataComponent extends LuaUserData {
      * You may provide an empty body for this method if you do not require the provided objects.
      * @param acVm A reference to the parent {@link LuaVirtualMachine} object.
      */
-    void onVmInit(LuaVirtualMachine acVm);
+    void onVmInit(LuaVirtualMachine acVm, ItemStack itemStack);
 
     /**
      * If this is called, the lua object shall no longer be accessible in any way. This is generally called when the

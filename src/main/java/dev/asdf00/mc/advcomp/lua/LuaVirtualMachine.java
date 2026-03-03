@@ -3,7 +3,6 @@ package dev.asdf00.mc.advcomp.lua;
 import dev.asdf00.jluavm.LuaVM;
 import dev.asdf00.jluavm.api.functions.AtomicLuaFunction;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
-import dev.asdf00.jluavm.utils.Triple;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
@@ -14,9 +13,13 @@ import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
 import dev.asdf00.mc.advcomp.lua.components.*;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.network.PacketDistributor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -112,26 +115,18 @@ public class LuaVirtualMachine {
             stdOut.clear();
             CableCluster.onBlockPosChangedInternal(cbe.getLevel(), cbe.getBlockPos(), AdvancedComputers.CLUSTER_TYPE_DEVICE);
 
-            eventQueue = new LuaEventQueue();
+            eventQueue = new LuaEventQueue(); // TODO serialize this
 
             // REGISTER USERDATA COMPONENTS
             componentReg = new ComponentRegistryUD(this);
 
+            boolean isFreshInit = true; // TODO for deserialize, set to 'false' instead
             String uefiScript = null; // entry code; i.e. uefi
-            var componentsToInit = new ArrayList<Triple<LuaUserDataComponent, Integer, String>>();
             // set up inventory components
             var inv = cbe.itemHandler;
             for (int i = 0; i < inv.getSlots(); i++) {
-                var is = inv.getStackInSlot(i);
-                var item = is.getItem();
-                if (item instanceof ItemCanBeInitialized icbi) {
-                    icbi.Initialize(is);
-                }
-
-                if (item instanceof AcItemComponent ud) {
-                    var comp = ud.CreateUserdata(is);
-                    componentsToInit.add(new Triple<>(comp, i, getComponentIdentifier(is, i)));
-                } else if (item instanceof MainboardItem mi) {
+                var is = onInventorySlotChanged(i, isFreshInit);
+                if (is.getItem() instanceof MainboardItem mi) {
                     uefiScript = mi.readUefiScript(is);
                 }
             }
@@ -150,30 +145,22 @@ public class LuaVirtualMachine {
 
             for (var be : deviceComponentBlockEntities.stream().distinct().toArray()) {
                 if (be instanceof AcBlockEntityComponent bec) {
-                    componentsToInit.add(new Triple<>(bec.CreateUserdata(), null, null)); // TODO support blocks
+                    componentReg.addComponentInitAndNotify(bec.CreateUserdata(), AcComponentSlotInfo.ofBlockComponent((BlockEntity)be), isFreshInit);
                 }
                 if (be instanceof ScreenBlockEntity sbe) {
-                    NetCodeUtils.sendToClient(
-                            PacketDistributor.ALL.noArg(),
-                            new ScreenBlockEntity.ScreenContentToClientEvent(new ScreenBlockEntity[]{sbe}, "clearGuiText", ""));
+                    NetCodeUtils.sendToClient(PacketDistributor.ALL.noArg(), new ScreenBlockEntity.ScreenContentToClientEvent(
+                            new ScreenBlockEntity[]{sbe}, "clearGuiText", ""));
                 }
             }
 
-            // TODO drop that
-            for (var comp : componentsToInit) {
-                addComponentAndTrackIdentifier(comp.y(), comp.z(), comp.x());
-                comp.x().onVmInit(this);
-            }
-
+            gpuUD = new GpuUD();
+            componentReg.addComponentInitAndNotify(new InternetUD(), AcComponentSlotInfo.ofBlockComponent(cbe), isFreshInit);
+            componentReg.addComponentInitAndNotify(new ComputerUD(), AcComponentSlotInfo.ofBlockComponent(cbe), isFreshInit);
+            componentReg.addComponentInitAndNotify(gpuUD, AcComponentSlotInfo.ofBlockComponent(cbe), isFreshInit);
 
             // TODO traverse peripheral network and instantiate and init the block userdata objects similarly
             // TODO define how exactly the peripheral network should behave (and make it behave that way then)
 
-            componentReg.addComponentAndNotify(new InternetUD(), null);
-            //componentReg.registerComponent(new BiosUD());
-            componentReg.addComponentAndNotify(new ComputerUD(), null);
-            gpuUD = new GpuUD();
-            componentReg.addComponentAndNotify(gpuUD, null);
             // --------------------------
             // DEFINE GLOBALS
             var acFunReg = new ExtendedMixedStateFunctionRegistry("advancedcomputers");
@@ -279,7 +266,8 @@ public class LuaVirtualMachine {
                         stopCode_isGraceful = isGracefulShutdown;
 
                         AdvancedComputers.LOGGER.info("Lvm was killed for reason: %s".formatted(stopCode));
-                        executorThread.interrupt();
+                        if(executorThread != null)
+                            executorThread.interrupt();
                         if (suspended) {
                             resume();
                         }
@@ -365,47 +353,31 @@ public class LuaVirtualMachine {
         throw new LvmKillException();
     }
 
-    private final HashMap<Integer, String> luaComputerInventoryUserdataObjectsBySlotId = new HashMap<>();
-
-    private void addComponentAndTrackIdentifier(Integer slot, String identifier, LuaUserDataComponent ud) {
-        if (slot != null && identifier != null)
-            luaComputerInventoryUserdataObjectsBySlotId.put(slot, identifier);
-
-        componentReg.addComponentAndNotify(ud, identifier);
-    }
-
-    public void rebuildUserdataFromInventory() {
-        var slots = cbe.itemHandler.getSlots();
-        for (int i = 0; i < slots; i++) {
-            var is = cbe.itemHandler.getStackInSlot(i);
-            AcItemComponent newComponent = null;
-            if (!is.isEmpty() && is.getItem() instanceof AcItemComponent a) {
-                newComponent = a;
-            }
-            var oldIdentifier = luaComputerInventoryUserdataObjectsBySlotId.get(i);
-            if (oldIdentifier != null) { // if we already had an item in that slot but now it is different
-                componentReg.removeComponentAndNotify(oldIdentifier);
-            }
-
-            // then add the fresh one
-            if (newComponent != null) {
-                if (componentReg != null) {
-                    var ud = newComponent.CreateUserdata(is);
-                    ud.onVmInit(this);
-                    var identifier = getComponentIdentifier(is, i);
-                    addComponentAndTrackIdentifier(i, identifier, ud);
-                }
-            }
-        }
-    }
-
-
     public static LuaVirtualMachine deserializeOrNull(ComputerBlockEntity computerBlockEntity) {
         return null;
     }
 
     public void serialize() {
         tryKill("Chunk unloaded", false, true);
+    }
+
+    public ItemStack onInventorySlotChanged(int slot, boolean isFreshInit) {
+        // when we get a new slot item here, remove all existing components that occupy the slot and then add this new one and init it
+        componentReg.removeAllComponentsInSlot(x -> x != null && x.getSlotIndex() == slot && x.getInventoryOwnerPos().equals(cbe.getBlockPos()));
+        // TODO should probs move this into component reg ud somehow to make it convenient to use for block components, but we'll see
+
+        var newItemStack = cbe.itemHandler.getStackInSlot(slot);
+        var item = newItemStack.getItem();
+        if (item instanceof ItemCanBeInitialized icbi) {
+            icbi.Initialize(newItemStack);
+        }
+
+        if (item instanceof AcItemComponent ud) {
+            var srcInfo = AcComponentSlotInfo.ofItemComponent(cbe.getBlockPos(), slot);
+            componentReg.addComponentInitAndNotify(ud.CreateUserdata(srcInfo), srcInfo, isFreshInit);
+        }
+
+        return newItemStack;
     }
 
     static class LvmKillException extends RuntimeException {

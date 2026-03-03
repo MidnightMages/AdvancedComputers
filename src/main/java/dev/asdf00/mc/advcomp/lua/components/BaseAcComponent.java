@@ -5,6 +5,7 @@ import dev.asdf00.jluavm.api.userdata.LuaProperty;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,7 @@ public abstract class BaseAcComponent implements LuaUserDataComponent {
 
     @LuaExposed(LuaExposed.Policy.READ)
     public final String componentType;
+    private ItemStack itemStack; // TODO put this into a seperate class derived from this one, and do the same for block components, giving them a blockentity?
 
     public BaseAcComponent(String componentType) {
         this(componentType, null, true);
@@ -54,8 +56,9 @@ public abstract class BaseAcComponent implements LuaUserDataComponent {
     }
 
     @Override
-    public void onVmInit(LuaVirtualMachine acVm) {
+    public void onVmInit(LuaVirtualMachine acVm, ItemStack is) {
         this.acVm = acVm;
+        this.itemStack = is;
     }
 
     @Override

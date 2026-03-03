@@ -6,6 +6,8 @@ import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.lua.components.AcComponentSlotInfo;
 import dev.asdf00.mc.advcomp.lua.components.fs.LuaFsFileUD;
 import dev.asdf00.mc.advcomp.lua.components.fs.ManagedStorageHandler;
 import net.minecraft.world.item.ItemStack;
@@ -16,37 +18,45 @@ import java.util.Queue;
 import java.util.stream.Stream;
 
 public class ManagedMassStorageUD extends BaseMassStorageUD {
-    private final ItemStack is;
     private final int totalCapacityBytes;
     private int diskStorageId = -1;
     private ManagedStorageHandler fs = null;
 
 
-    public static ManagedMassStorageUD initFromItemStack(String storageFamilyName, ItemStack stack, int totalCapacityBytes) {
-        var rv = new ManagedMassStorageUD(storageFamilyName, stack, totalCapacityBytes);
-        rv.initFilesystem();
-        return rv;
+    public static ManagedMassStorageUD initFromItemStack(String storageFamilyName, int totalCapacityBytes) {
+        return new ManagedMassStorageUD(storageFamilyName,  totalCapacityBytes);
     }
 
-    protected ManagedMassStorageUD(String storageFamilyName, ItemStack stack, int totalCapacityBytes) {
+    protected ManagedMassStorageUD(String storageFamilyName, int totalCapacityBytes) {
         super(storageFamilyName, "managed");
-        this.is = stack;
         this.totalCapacityBytes = totalCapacityBytes;
     }
 
-    public void initFilesystem() {
+    @Override
+    public void onVmInit(LuaVirtualMachine acVm, ItemStack is) {
+        super.onVmInit(acVm, is);
+        initItemStackDiskIdIfNeeded(is);
+        initFilesystem(is);
+    }
+
+    public void initFilesystem(ItemStack is) {
         if (fs != null)
             throw new RuntimeException("Fs is already inited for disk id %d but was attempted to be initialized again.".formatted(diskStorageId));
 
-        var tag = is.getOrCreateTag();
+        initItemStackDiskIdIfNeeded(is);
 
+
+        assert is.getTag() != null;
+        diskStorageId = is.getTag().getInt("mDiskId");
+        fs = new ManagedStorageHandler(diskStorageId);
+    }
+
+    public static void initItemStackDiskIdIfNeeded(ItemStack is) {
+        var tag = is.getOrCreateTag();
         if (!tag.contains("mDiskId")) { // no folder associated yet with this disk
             int newDiskId = AdvancedComputers.globalDataStorage.getNextFreeUniqueStorageId();
             tag.putInt("mDiskId", newDiskId);
         }
-
-        diskStorageId = tag.getInt("mDiskId");
-        fs = new ManagedStorageHandler(diskStorageId);
     }
 
     @LuaCallable

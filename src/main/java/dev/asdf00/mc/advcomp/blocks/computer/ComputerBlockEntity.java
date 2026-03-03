@@ -60,15 +60,8 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
 
     void itemHandler_onSlotChanged(int slot) {
         if(!isServer()) return;
-        if(lvm != null)
-            lvm.rebuildUserdataFromInventory(); // TODO maybe dont rebuild the entire inv always?
-
-        for (int i = 0; i < itemHandler.getSlots(); i++) { // TODO should probs move this into component reg ud
-            var is = itemHandler.getStackInSlot(i);
-            if (is.getItem() instanceof ItemCanBeInitialized cbi) {
-                cbi.Initialize(is);
-            }
-        }
+        if(lvm != null) // TODO maybe not make this check true if the computer is shut down currently
+            lvm.onInventorySlotChanged(slot, true);
     }
 
     public void tick(Level pLevel, BlockPos pPos, BlockState pState) {
@@ -271,7 +264,6 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
             synchronized (lockLVM) {
                 if (lvm == null) {
                     lvm = new LuaVirtualMachine(this, Integer.MAX_VALUE);
-                    lvm.rebuildUserdataFromInventory();
                 }
                 return lvm;
             }

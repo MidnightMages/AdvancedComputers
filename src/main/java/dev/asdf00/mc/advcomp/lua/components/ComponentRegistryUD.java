@@ -21,13 +21,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 public class ComponentRegistryUD implements LuaUserData {
     private LuaObject luaIdentity;
 
     private final LuaVirtualMachine lvm;
     private final Object componentModifyLockObj = new Object();
-    private final TupleArrayListMap<String, LuaUserDataComponent> itemstackAssociationMap = new TupleArrayListMap<>();
+    private final TupleArrayListMap<AcComponentSlotInfo, LuaUserDataComponent> itemstackAssociationMap = new TupleArrayListMap<>();
 
     public ComponentRegistryUD(LuaVirtualMachine lvm) {
         this.lvm = lvm;
@@ -79,20 +80,30 @@ public class ComponentRegistryUD implements LuaUserData {
         }
     }
 
-    public void addComponentAndNotify(LuaUserDataComponent component, String identifier) {
+    /**
+     * @param component
+     * @param sourceInfo
+     * @param isFreshInit whether we are creating a fresh {@link LuaVirtualMachine} instance.
+     */
+    public void addComponentInitAndNotify(LuaUserDataComponent component, AcComponentSlotInfo sourceInfo, boolean isFreshInit) {
         // trigger compilation of this UD binding ahead of time, so we dont have to wait for it later
         triggerUserdataDescriptorCompilation(component.getClass());
-        component.onVmInit(lvm);
+        var slotId = sourceInfo.getSlotIndex();
+        var isComputer = lvm.cbe.getBlockPos().equals(sourceInfo.getInventoryOwnerPos());
+        RuntimeAssert.RuntimeAssert(isComputer || slotId == -1, "Only computer supported right now as blocks that contain an inventory of components");
+        component.onVmInit(lvm, (isComputer && slotId != -1) ? lvm.cbe.itemHandler.getStackInSlot(slotId) : null);
 
         synchronized (componentModifyLockObj) {
-                itemstackAssociationMap.put(identifier, component);
+            // builtin components are represented using identifier=null
+            itemstackAssociationMap.put(isComputer ? null : sourceInfo, component);
         }
-        lvm.eventQueue.addComponentAdded(component);
+        if (isFreshInit)
+            lvm.eventQueue.addComponentAdded(component);
     }
 
-    public void removeComponentAndNotify(String identifier) {
+    public void removeComponentAndNotify(AcComponentSlotInfo slotInfo) {
         synchronized (componentModifyLockObj) {
-            var component = itemstackAssociationMap.get(identifier);
+            var component = itemstackAssociationMap.get(slotInfo);
             if (component != null) {
                 component.makeObjectInaccessible();
                 lvm.eventQueue.addComponentRemoved(component);
@@ -107,10 +118,7 @@ public class ComponentRegistryUD implements LuaUserData {
         builder.append(lists.a().size());
         for (int i = 0; i < lists.a().size(); i++) {
             var key = lists.a().get(i);
-            RuntimeAssert.RuntimeAssert(!"".equals(key), "key was an empty string. Use null instead!");
-            if (key == null)
-                key = "";
-            builder.append(key);
+            builder.append(key.getParsableIdentifier());
             builder.append(LuaObject.of(lists.b().get(i)).serialize(serialData, mappedObjs, additionalData));
         }
         return builder.toArray();
@@ -131,7 +139,7 @@ public class ComponentRegistryUD implements LuaUserData {
             // this happens AFTER all UD objects have been initialized, now we may unwrap our components
             synchronized (nu.componentModifyLockObj) {
                 for (int i = 0; i < compMapLen; i++) {
-                    nu.itemstackAssociationMap.put(keys[i], (LuaUserDataComponent) wrappers[i].refVal);
+                    nu.itemstackAssociationMap.put(AcComponentSlotInfo.parse(keys[i]), (LuaUserDataComponent) wrappers[i].refVal);
                 }
             }
         });
@@ -163,5 +171,14 @@ public class ComponentRegistryUD implements LuaUserData {
                     }
                 }
         );
+    }
+
+    public void removeAllComponentsInSlot(Function<AcComponentSlotInfo, Boolean> filter) {
+        synchronized (componentModifyLockObj) {
+            for (var key : Arrays.stream(itemstackAssociationMap.entries()).filter(x -> filter.apply(x.x())).map(Tuple::x).toArray()) {
+                RuntimeAssert.RuntimeAssert(key != null, "key was null");
+                itemstackAssociationMap.remove((AcComponentSlotInfo) key);
+            }
+        }
     }
 }
