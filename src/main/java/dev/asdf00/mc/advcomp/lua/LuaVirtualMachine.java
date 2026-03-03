@@ -25,7 +25,7 @@ public class LuaVirtualMachine {
     private static final int TPS = 20;
     public LuaEventQueue eventQueue;
 
-    private final ComputerBlockEntity cbe;
+    public final ComputerBlockEntity cbe;
 
     private LuaVM vm;
     private final int ipt; // instructions per tick

@@ -4,8 +4,13 @@ import dev.asdf00.jluavm.api.userdata.LuaCallable;
 import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
+import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
+import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockUD;
+import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.lua.components.BaseAcComponent;
+import dev.asdf00.mc.advcomp.utils.LuaSerializationUtils;
 import net.minecraft.core.Direction;
 
 import java.util.List;
@@ -41,14 +46,17 @@ public class RedstoneIoBlockUD extends BaseAcComponent {
         return redstoneIoBlockEntity.getLevel().getSignal(redstoneIoBlockEntity.getBlockPos().relative(direction), direction);
     }
 
-    @LuaDeserializer
-    public static RedstoneIoBlockUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
-        // TODO actually provide serializaion
-        return null;
-    }
-
     @Override
     public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
-        return new byte[0];
+        return LuaSerializationUtils.appendBlockEntity(new ByteArrayBuilder(Integer.BYTES * 3), redstoneIoBlockEntity).toArray();
+    }
+
+    @LuaDeserializer
+    public static RedstoneIoBlockUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
+        var be = LuaSerializationUtils.<RedstoneIoBlockEntity>readBlockEntity(reader, ((LuaVirtualMachine) additionalData).cbe.getLevel());
+        if (be == null) {
+            throw new IllegalStateException("we did not find some RedstoneIoBlockEntity");
+        }
+        return new RedstoneIoBlockUD(be);
     }
 }

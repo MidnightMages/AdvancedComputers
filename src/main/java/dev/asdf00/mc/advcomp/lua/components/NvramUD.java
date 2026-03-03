@@ -3,6 +3,7 @@ package dev.asdf00.mc.advcomp.lua.components;
 import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
+import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 
 import java.util.HashMap;
@@ -41,13 +42,19 @@ public class NvramUD extends BaseAcComponent {
 
     @Override
     public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
-        // TODO actually provide serializaion
-        return null;
+        var bdr = new ByteArrayBuilder();
+        for (var entry : backing.entrySet()) {
+            bdr.append(entry.getKey()).append(entry.getValue().serialize(serialData, mappedObjs, additionalData));
+        }
+        return bdr.toArray();
     }
 
     @LuaDeserializer
-    public static NvramUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
-        // TODO actually provide serializaion
-        return null;
+    public static NvramUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
+        var nu = new NvramUD();
+        while (reader.remaining() > 0) {
+            nu.backing.put(reader.readString(), objs[reader.readInt()]);
+        }
+        return nu;
     }
 }

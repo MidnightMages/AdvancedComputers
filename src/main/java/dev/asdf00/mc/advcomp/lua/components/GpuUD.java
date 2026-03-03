@@ -5,11 +5,20 @@ import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
 import dev.asdf00.jluavm.api.userdata.LuaExposed;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
+import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockUD;
+import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.utils.LuaSerializationUtils;
 import dev.asdf00.mc.advcomp.utils.SetBiMap;
+import dev.asdf00.mc.advcomp.utils.Tuple;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.LevelAccessor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -65,12 +74,32 @@ public class GpuUD extends BaseAcComponent {
 
     @Override
     public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
-        throw new UnsupportedOperationException("not implemented");
+        var bdr = new ByteArrayBuilder();
+        bdr.append(remainingVideoRam);
+        for (var entry : screenBufferMap.entrySet()) {
+            LuaSerializationUtils.appendBlockEntity(bdr, entry.getKey());
+            bdr.append(LuaObject.of(entry.getValue()).serialize(serialData, mappedObjs, additionalData));
+        }
+        return bdr.toArray();
     }
 
     @LuaDeserializer
-    public static GpuUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
-        // TODO actually provide serializaion
-        return null;
+    public static GpuUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
+        LevelAccessor level = ((LuaVirtualMachine) additionalData).cbe.getLevel();
+        int remaining = reader.readInt();
+        var wrappers = new ArrayList<Tuple<ScreenBlockEntity, LuaObject>>();
+        while (reader.remaining() > 0) {
+            var be = LuaSerializationUtils.<ScreenBlockEntity>readBlockEntity(reader, level);
+            if (be == null) {
+                throw new IllegalStateException("we did not find some ScreenBlockEntity");
+            }
+            wrappers.add(new Tuple<>(be, objs[reader.readInt()]));
+        }
+        var nu = new GpuUD();
+        nu.remainingVideoRam = remaining;
+
+        // unwrap UD objects later
+        postActions.add(() -> wrappers.forEach(t -> nu.screenBufferMap.put(t.x(), (TextBufferUD) t.y().refVal)));
+        return nu;
     }
 }
