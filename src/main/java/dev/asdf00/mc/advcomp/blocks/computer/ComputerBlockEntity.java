@@ -166,7 +166,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
     }
 
     @Override
-    protected void saveAdditional(CompoundTag pTag) {
+    protected void saveAdditional(@NotNull CompoundTag pTag) {
         itemHandler.saveContents(pTag);
         super.saveAdditional(pTag);
     }
@@ -175,6 +175,13 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
     public void load(@NotNull CompoundTag pTag) {
         super.load(pTag);
         itemHandler.loadContents(pTag);
+
+        // cannot init the lvm in here, somehow. Need to do it in onLoad() instead.
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
 
         // TODO maybe trigger network loading from within here so we get the inventory data and very consistent network data, even on load?
 
@@ -194,10 +201,6 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
         lazyItemHandler = LazyOptional.of(() -> itemHandler);
     }
 
-    @Override
-    public void onLoad() {
-        super.onLoad();
-    }
 
     @Override
     public void onChunkUnloaded() {
