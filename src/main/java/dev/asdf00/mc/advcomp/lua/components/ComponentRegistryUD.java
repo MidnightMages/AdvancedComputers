@@ -91,7 +91,8 @@ public class ComponentRegistryUD implements LuaUserData {
         var slotId = sourceInfo.getSlotIndex();
         var isComputer = lvm.cbe.getBlockPos().equals(sourceInfo.getInventoryOwnerPos());
         RuntimeAssert.RuntimeAssert(isComputer || slotId == -1, "Only computer supported right now as blocks that contain an inventory of components");
-        component.onVmInit(lvm, (isComputer && slotId != -1) ? lvm.cbe.itemHandler.getStackInSlot(slotId) : null);
+        if (isFreshInit) // do not trigger vminit on deserialize
+            component.onVmInit(lvm, (isComputer && slotId != -1) ? lvm.cbe.itemHandler.getStackInSlot(slotId) : null);
 
         synchronized (componentModifyLockObj) {
             // builtin components are represented using identifier=null
