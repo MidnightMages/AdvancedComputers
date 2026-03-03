@@ -55,6 +55,9 @@ public abstract class BaseAcComponent implements LuaUserDataComponent {
         return componentType;
     }
 
+    /**
+     * Is supposed to only run once during object construction. NOT during deserialization
+     */
     @Override
     public void onVmInit(LuaVirtualMachine acVm, ItemStack is) {
         this.acVm = acVm;

@@ -23,15 +23,24 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
     private ManagedStorageHandler fs = null;
 
 
+    /**
+     * Use this for the initial creation only. For the deserialization use {@link #onVmInit(LuaVirtualMachine, ItemStack)} instead.
+     */
     public static ManagedMassStorageUD initFromItemStack(String storageFamilyName, int totalCapacityBytes) {
         return new ManagedMassStorageUD(storageFamilyName,  totalCapacityBytes);
     }
 
+    /**
+     * Use this for the initial creation only. For the deserialization use {@link #onVmInit(LuaVirtualMachine, ItemStack)} instead.
+     */
     protected ManagedMassStorageUD(String storageFamilyName, int totalCapacityBytes) {
         super(storageFamilyName, "managed");
         this.totalCapacityBytes = totalCapacityBytes;
     }
 
+    /**
+     * Is supposed to only run once during object construction. NOT during deserialization
+     */
     @Override
     public void onVmInit(LuaVirtualMachine acVm, ItemStack is) {
         super.onVmInit(acVm, is);

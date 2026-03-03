@@ -8,7 +8,7 @@ public interface LuaUserDataComponent extends LuaUserData {
     String getComponentType();
 
     /**
-     * Purely for passing data to the userdata object upon vm creation.
+     * Purely for passing data to the userdata object upon **initial** vm creation (NOT during deserialization).
      * You may provide an empty body for this method if you do not require the provided objects.
      * @param acVm A reference to the parent {@link LuaVirtualMachine} object.
      */
