@@ -137,7 +137,7 @@ public class LuaVirtualMachine {
             }
 
             if (uefiScript == null) {
-                tryKill("No uefi installed", false, true);
+                tryKill("No uefi installed", false, false);
                 return;
             }
 
@@ -278,6 +278,7 @@ public class LuaVirtualMachine {
                         stopCode = "[KILLED] " + reason;
                         stopCode_isGraceful = isGracefulShutdown;
 
+                        AdvancedComputers.LOGGER.info("Lvm was killed for reason: %s".formatted(stopCode));
                         executorThread.interrupt();
                         if (suspended) {
                             resume();
