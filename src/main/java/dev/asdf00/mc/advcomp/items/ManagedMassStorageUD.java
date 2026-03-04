@@ -4,12 +4,13 @@ import dev.asdf00.jluavm.api.userdata.LuaCallable;
 import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
+import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
-import dev.asdf00.mc.advcomp.lua.components.AcComponentSlotInfo;
 import dev.asdf00.mc.advcomp.lua.components.fs.LuaFsFileUD;
 import dev.asdf00.mc.advcomp.lua.components.fs.ManagedStorageHandler;
+import dev.asdf00.mc.advcomp.lua.components.fs.VirtualFile;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
@@ -24,14 +25,14 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
 
 
     /**
-     * Use this for the initial creation only. For the deserialization use {@link #onVmInit(LuaVirtualMachine, ItemStack)} instead.
+     * Use this for the initial creation only. For the deserialization mainly use {@link #luaDeserialize(LuaObject[], ByteArrayReader, Queue, Object)} instead.
      */
     public static ManagedMassStorageUD initFromItemStack(String storageFamilyName, int totalCapacityBytes) {
         return new ManagedMassStorageUD(storageFamilyName,  totalCapacityBytes);
     }
 
     /**
-     * Use this for the initial creation only. For the deserialization use {@link #onVmInit(LuaVirtualMachine, ItemStack)} instead.
+     * Use this for the initial creation only. For the deserialization mainly use {@link #luaDeserialize(LuaObject[], ByteArrayReader, Queue, Object)} instead.
      */
     protected ManagedMassStorageUD(String storageFamilyName, int totalCapacityBytes) {
         super(storageFamilyName, "managed");
@@ -114,7 +115,7 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
                 }
             }
         }
-        return LuaObject.of(new LuaFsFileUD(fs.getOrCreateFile(fileName)));
+        return LuaObject.of(new LuaFsFileUD(fs.getOrCreateFile(fileName), this));
     }
 
     @LuaCallable
@@ -188,18 +189,38 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
 
     @Override
     public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
-        // TODO actually provide serializaion
-        return null;
+        var builder = new ByteArrayBuilder();
+        builder.append(diskStorageId);
+        builder.append(super._storageFamilyName);
+        builder.append(totalCapacityBytes);
+        return builder.toArray();
     }
 
     @LuaDeserializer
-    public static ManagedMassStorageUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
-        // TODO actually provide serializaion
-        return null;
+    public static ManagedMassStorageUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
+        var diskStorageId = reader.readInt();
+        var storageFamilyName = reader.readString();
+        var totalCapacityBytes = reader.readInt();
+
+        var rv = new ManagedMassStorageUD(storageFamilyName, totalCapacityBytes);
+        rv.fs = new ManagedStorageHandler(diskStorageId);
+        return rv;
     }
 
     @Override
     int getDiskId() {
         return diskStorageId;
+    }
+
+    public String serializeVirtualFile(VirtualFile f) {
+        return f.getFilepathWithinFs().toString();
+    }
+
+    public VirtualFile deserializeVirtualFile(String fData) {
+        try {
+            return (VirtualFile) (openInner(fData, false).refVal);
+        } catch (LuaJavaError ex) {
+            throw new RuntimeException("Deserialization failed as we somehow are not able to open a file that used to exist when we serialized the vm", ex);
+        }
     }
 }

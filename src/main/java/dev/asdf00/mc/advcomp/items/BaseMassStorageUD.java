@@ -5,7 +5,7 @@ import dev.asdf00.jluavm.api.userdata.LuaProperty;
 import dev.asdf00.mc.advcomp.lua.components.BaseAcComponent;
 
 public abstract class BaseMassStorageUD extends BaseAcComponent {
-    private String _storageFamilyName = ""; // e.g. hdd or floppy (and maybe ssd?)
+    protected String _storageFamilyName = ""; // e.g. hdd or floppy (and maybe ssd?)
     private String storageApiName = "";
 
     public BaseMassStorageUD(String storageFamilyName, String storageApiName) {
