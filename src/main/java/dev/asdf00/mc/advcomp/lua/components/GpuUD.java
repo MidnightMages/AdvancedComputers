@@ -13,9 +13,6 @@ import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.utils.LuaSerializationUtils;
 import dev.asdf00.mc.advcomp.utils.SetBiMap;
 import dev.asdf00.mc.advcomp.utils.Tuple;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.LevelAccessor;
 
 import java.util.ArrayList;
@@ -32,6 +29,11 @@ public class GpuUD extends BaseAcComponent {
 
     public GpuUD() {
         super("gpu");
+        screenBufferMap = new SetBiMap<>();
+    }
+
+    private GpuUD(LuaVirtualMachine acVm) {
+        super("gpu", acVm, true);
         screenBufferMap = new SetBiMap<>();
     }
 
@@ -95,7 +97,7 @@ public class GpuUD extends BaseAcComponent {
             }
             wrappers.add(new Tuple<>(be, objs[reader.readInt()]));
         }
-        var nu = new GpuUD();
+        var nu = new GpuUD((LuaVirtualMachine) additionalData);
         nu.remainingVideoRam = remaining;
 
         // unwrap UD objects later

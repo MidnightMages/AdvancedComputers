@@ -39,6 +39,12 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
         this.totalCapacityBytes = totalCapacityBytes;
     }
 
+    private ManagedMassStorageUD(LuaVirtualMachine acVm, boolean isAccessible, String storageFamilyName, int totalCapacityBytes, ManagedStorageHandler fs) {
+        super(acVm, isAccessible, storageFamilyName, "managed");
+        this.totalCapacityBytes = totalCapacityBytes;
+        this.fs = fs;
+    }
+
     /**
      * Is supposed to only run once during object construction. NOT during deserialization
      */
@@ -189,22 +195,23 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
 
     @Override
     public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
-        var builder = new ByteArrayBuilder();
-        builder.append(diskStorageId);
-        builder.append(super._storageFamilyName);
-        builder.append(totalCapacityBytes);
-        return builder.toArray();
+        return new ByteArrayBuilder()
+                .append(isAccessible)
+                .append(diskStorageId)
+                .append(storageFamilyName)
+                .append(totalCapacityBytes)
+                .toArray();
     }
 
     @LuaDeserializer
     public static ManagedMassStorageUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
+        var isAccessible = reader.readBool();
         var diskStorageId = reader.readInt();
         var storageFamilyName = reader.readString();
         var totalCapacityBytes = reader.readInt();
 
-        var rv = new ManagedMassStorageUD(storageFamilyName, totalCapacityBytes);
-        rv.fs = new ManagedStorageHandler(diskStorageId);
-        return rv;
+        return new ManagedMassStorageUD((LuaVirtualMachine) additionalData, isAccessible, storageFamilyName,
+                totalCapacityBytes, new ManagedStorageHandler(diskStorageId));
     }
 
     @Override

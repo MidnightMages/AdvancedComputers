@@ -5,15 +5,20 @@ import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
+import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-public class NvramUD extends BaseAcComponent {
+public final class NvramUD extends BaseAcComponent {
     public NvramUD() {
         super("nvram");
+    }
+
+    private NvramUD(LuaVirtualMachine acVm) {
+        super("nvram", acVm, true);
     }
 
     private final HashMap<String, LuaObject> backing = new HashMap<>();
@@ -51,7 +56,7 @@ public class NvramUD extends BaseAcComponent {
 
     @LuaDeserializer
     public static NvramUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
-        var nu = new NvramUD();
+        var nu = new NvramUD((LuaVirtualMachine) additionalData);
         while (reader.remaining() > 0) {
             nu.backing.put(reader.readString(), objs[reader.readInt()]);
         }
