@@ -6,9 +6,10 @@ import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
-import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
-import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockUD;
+import dev.asdf00.mc.advcomp.blocks.keycard_reader.KeyCardReaderBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.keycard_reader.KeyCardReaderBlockEntityUD;
 import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.lua.components.BaseAcBlockEntityComponent;
 import dev.asdf00.mc.advcomp.lua.components.BaseAcComponent;
 import dev.asdf00.mc.advcomp.utils.LuaSerializationUtils;
 import net.minecraft.core.Direction;
@@ -17,12 +18,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-public class RedstoneIoBlockUD extends BaseAcComponent {
-    private final RedstoneIoBlockEntity redstoneIoBlockEntity;
+public class RedstoneIoBlockUD extends BaseAcBlockEntityComponent<RedstoneIoBlockEntity> {
 
     public RedstoneIoBlockUD(RedstoneIoBlockEntity redstoneIoBlockEntity) {
-        super("redstone");
-        this.redstoneIoBlockEntity = redstoneIoBlockEntity;
+        super("redstone", redstoneIoBlockEntity);
+    }
+
+    private RedstoneIoBlockUD(LuaVirtualMachine acVm, boolean isAccessible, RedstoneIoBlockEntity redstoneIoBlockEntity) {
+        super("screen", acVm, isAccessible, redstoneIoBlockEntity);
     }
 
     @LuaCallable
@@ -37,26 +40,17 @@ public class RedstoneIoBlockUD extends BaseAcComponent {
         if (level < 0 || level > 15)
             throw new LuaJavaError("level argument (#2) is out of range: %s. Expected integer in range [0, 15]".formatted(level));
 
-        redstoneIoBlockEntity.setSignal(side, (int) level);
+        blockEntity.setSignal(side, (int) level);
     }
 
     @LuaCallable
     public int getInput(int side) {
         var direction = Direction.from3DDataValue(side);
-        return redstoneIoBlockEntity.getLevel().getSignal(redstoneIoBlockEntity.getBlockPos().relative(direction), direction);
-    }
-
-    @Override
-    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
-        return LuaSerializationUtils.appendBlockEntity(new ByteArrayBuilder(Integer.BYTES * 3), redstoneIoBlockEntity).toArray();
+        return blockEntity.getLevel().getSignal(blockEntity.getBlockPos().relative(direction), direction);
     }
 
     @LuaDeserializer
     public static RedstoneIoBlockUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
-        var be = LuaSerializationUtils.<RedstoneIoBlockEntity>readBlockEntity(reader, ((LuaVirtualMachine) additionalData).cbe.getLevel());
-        if (be == null) {
-            throw new IllegalStateException("we did not find some RedstoneIoBlockEntity");
-        }
-        return new RedstoneIoBlockUD(be);
+        return genericDeserialize(RedstoneIoBlockEntity.class, RedstoneIoBlockUD::new, objs, reader, postActions, additionalData);
     }
 }

@@ -64,7 +64,7 @@ public class GpuUD extends BaseAcComponent {
 
     @LuaCallable
     public void assignBuffer(TextBufferUD buf, ScreenBlockUD screenUD) {
-        ScreenBlockEntity sbe = screenUD.screenBlockEntity;
+        ScreenBlockEntity sbe = screenUD.blockEntity;
         if (sbe == null)
             throw new IllegalStateException("internal error trying to find screen");
 
