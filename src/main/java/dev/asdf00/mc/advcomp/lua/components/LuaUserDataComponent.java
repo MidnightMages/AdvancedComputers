@@ -1,7 +1,7 @@
 package dev.asdf00.mc.advcomp.lua.components;
 
 import dev.asdf00.jluavm.api.userdata.LuaUserData;
-import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import net.minecraft.world.item.ItemStack;
 
 public interface LuaUserDataComponent extends LuaUserData {

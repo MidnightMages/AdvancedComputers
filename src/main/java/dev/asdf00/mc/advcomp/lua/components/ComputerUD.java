@@ -3,18 +3,22 @@ package dev.asdf00.mc.advcomp.lua.components;
 import dev.asdf00.jluavm.api.userdata.LuaCallable;
 import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
 import dev.asdf00.jluavm.api.userdata.LuaExposed;
-import dev.asdf00.jluavm.exceptions.InternalLuaSerializationError;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
-import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Stream;
 
 public final class ComputerUD extends BaseAcComponent {
+    private final ConcurrentLinkedQueue<LuaObject[]> eventQueue = new ConcurrentLinkedQueue<>();
+
     @LuaExposed(LuaExposed.Policy.READ)
     public LuaObject nvram;
 
@@ -27,6 +31,14 @@ public final class ComputerUD extends BaseAcComponent {
         // a computer component is always available
         super("computer", acVm, true);
         this.nvram = nvram;
+    }
+
+    /**
+     * This method may be called from outside the LUA thread and enqueues a custom machine event to be read by the host
+     * LUA program.
+     */
+    public void triggerMachineEvent(String eventName, LuaObject... args) {
+        eventQueue.add(Stream.concat(Stream.of(LuaObject.of(eventName)), Arrays.stream(args)).toArray(LuaObject[]::new));
     }
 
     @LuaCallable
@@ -43,7 +55,7 @@ public final class ComputerUD extends BaseAcComponent {
 
     @LuaCallable
     public LuaObject[] getMachineEvent() {
-        var e = acVm.eventQueue.getQueuedEventOrNull();
+        LuaObject[] e = eventQueue.poll();
         return e == null ? new LuaObject[]{LuaObject.NIL} : e;
     }
 

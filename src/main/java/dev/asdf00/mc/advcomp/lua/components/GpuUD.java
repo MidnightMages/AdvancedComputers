@@ -9,7 +9,7 @@ import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockUD;
-import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.utils.LuaSerializationUtils;
 import dev.asdf00.mc.advcomp.utils.SetBiMap;
 import dev.asdf00.mc.advcomp.utils.Tuple;
@@ -87,7 +87,7 @@ public class GpuUD extends BaseAcComponent {
 
     @LuaDeserializer
     public static GpuUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
-        LevelAccessor level = ((LuaVirtualMachine) additionalData).cbe.getLevel();
+        LevelAccessor level = ((LuaVirtualMachine) additionalData).computerBlockEntity.getLevel();
         int remaining = reader.readInt();
         var wrappers = new ArrayList<Tuple<ScreenBlockEntity, LuaObject>>();
         while (reader.remaining() > 0) {

@@ -3,7 +3,7 @@ package dev.asdf00.mc.advcomp.lua.components;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
-import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.utils.LuaSerializationUtils;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.apache.commons.lang3.function.TriFunction;
@@ -35,7 +35,7 @@ public abstract class BaseAcBlockEntityComponent<BE extends BlockEntity> extends
             Class<BE> blockEntityClazz, TriFunction<LuaVirtualMachine, Boolean, BE, T> constructor,
             LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
         boolean isAccessible = reader.readBool();
-        BE be = LuaSerializationUtils.readBlockEntity(reader, ((LuaVirtualMachine) additionalData).cbe.getLevel());
+        BE be = LuaSerializationUtils.readBlockEntity(reader, ((LuaVirtualMachine) additionalData).computerBlockEntity.getLevel());
         if (be == null || !blockEntityClazz.isAssignableFrom(be.getClass())) {
             throw new IllegalStateException("we did not find some " + blockEntityClazz.getSimpleName());
         }

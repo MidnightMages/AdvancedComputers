@@ -2,7 +2,7 @@ package dev.asdf00.mc.advcomp.items;
 
 import dev.asdf00.jluavm.api.userdata.LuaExposed;
 import dev.asdf00.jluavm.api.userdata.LuaProperty;
-import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.lua.components.BaseAcComponent;
 
 public abstract class BaseMassStorageUD extends BaseAcComponent {

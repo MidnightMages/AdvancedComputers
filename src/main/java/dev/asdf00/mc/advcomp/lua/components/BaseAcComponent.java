@@ -1,14 +1,9 @@
 package dev.asdf00.mc.advcomp.lua.components;
 
 import dev.asdf00.jluavm.api.userdata.LuaExposed;
-import dev.asdf00.jluavm.api.userdata.LuaProperty;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
-import dev.asdf00.jluavm.utils.ByteArrayBuilder;
-import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import net.minecraft.world.item.ItemStack;
-
-import java.util.List;
-import java.util.Map;
 
 public abstract class BaseAcComponent implements LuaUserDataComponent {
     private LuaObject luaIdentity;

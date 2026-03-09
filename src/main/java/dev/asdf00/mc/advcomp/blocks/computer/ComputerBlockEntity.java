@@ -5,10 +5,9 @@ import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.NetCodeUtils.NetworkMessage;
 import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.api.AcClusterHostEntity;
-import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.exceptions.ACError;
-import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
 import dev.asdf00.mc.advcomp.types.AcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
@@ -54,14 +53,19 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
 
     // set to STOPPED on first tick to reset block state to indicate stopped LVM
     private final AtomicReference<ComputerBlock.ComputerRunState> newRunState = new AtomicReference<>(ComputerBlock.ComputerRunState.STOPPED);
-    public void SetRunState(ComputerBlock.ComputerRunState rs){
-        newRunState.set(rs);
+
+    public void setRunState(ComputerBlock.ComputerRunState rs) {
+        synchronized (newRunState) {
+            newRunState.set(rs);
+            BlockState bs = level.getBlockState(getBlockPos()).setValue(ComputerBlock.RUN_STATE, rs);
+            level.setBlock(getBlockPos(), bs, 2);
+        }
     }
 
     void itemHandler_onSlotChanged(int slot) {
         if(!isServer()) return;
         if(lvm != null) // TODO maybe not make this check true if the computer is shut down currently
-            lvm.onInventorySlotChanged(slot, true);
+            lvm.onInventorySlotChanged(slot);
     }
 
     public void tick(Level pLevel, BlockPos pPos, BlockState pState) {
@@ -240,7 +244,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
         var cc = net.getHostCount();
         if (cc > 1) {
             if (lvm != null)
-                lvm.tryKill("Too many computers connected to this network", false, true); // TODO make sure lvm checks how many computers are part of this net when lvm is started, as lvm is null on world load
+                lvm.tryKill("Too many computers connected to this network"); // TODO make sure lvm checks how many computers are part of this net when lvm is started, as lvm is null on world load
 
             AdvancedComputers.LOGGER.info("invalid network for computer at bp %s. Computer count: %s"
                     .formatted(this.getBlockPos(), cc));
@@ -263,7 +267,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
         if (isServer()) {
             synchronized (lockLVM) {
                 if (lvm == null) {
-                    lvm = new LuaVirtualMachine(this, Integer.MAX_VALUE);
+                    lvm = new LuaVirtualMachine(this);
                 }
                 return lvm;
             }
@@ -278,11 +282,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
 
     public void toggleLVMPowerState() {
         if (isServer()) {
-            getLvm().toggleOnOff(() -> {
-                        var bs = level.getBlockState(getBlockPos()).setValue(ComputerBlock.RUN_STATE, ComputerBlock.ComputerRunState.RUNNING);
-                        level.setBlock(getBlockPos(), bs, 2);
-                    },
-                    (gracefulShutdown) -> SetRunState(gracefulShutdown ? ComputerBlock.ComputerRunState.STOPPED :  ComputerBlock.ComputerRunState.CRASHED));
+            getLvm().toggleOnOff();
         } else {
             NetCodeUtils.sendToServer(new ClientOriginatingUiEvent(this, 1));
         }

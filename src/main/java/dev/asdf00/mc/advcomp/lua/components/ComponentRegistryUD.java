@@ -8,7 +8,7 @@ import dev.asdf00.jluavm.internals.LuaVM_RT;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
-import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.types.RuntimeAssert;
 import dev.asdf00.mc.advcomp.utils.Tuple;
 import dev.asdf00.mc.advcomp.utils.TupleArrayListMap;
@@ -83,23 +83,20 @@ public class ComponentRegistryUD implements LuaUserData {
     /**
      * @param component
      * @param sourceInfo
-     * @param isFreshInit whether we are creating a fresh {@link LuaVirtualMachine} instance.
      */
-    public void addComponentInitAndNotify(LuaUserDataComponent component, AcComponentSlotInfo sourceInfo, boolean isFreshInit) {
+    public void addComponentInitAndNotify(LuaUserDataComponent component, AcComponentSlotInfo sourceInfo) {
         // trigger compilation of this UD binding ahead of time, so we dont have to wait for it later
         triggerUserdataDescriptorCompilation(component.getClass());
         var slotId = sourceInfo.getSlotIndex();
-        var isComputer = lvm.cbe.getBlockPos().equals(sourceInfo.getInventoryOwnerPos());
+        var isComputer = lvm.computerBlockEntity.getBlockPos().equals(sourceInfo.getInventoryOwnerPos());
         RuntimeAssert.RuntimeAssert(isComputer || slotId == -1, "Only computer supported right now as blocks that contain an inventory of components");
-        if (isFreshInit) // do not trigger vminit on deserialize
-            component.onVmInit(lvm, (isComputer && slotId != -1) ? lvm.cbe.itemHandler.getStackInSlot(slotId) : null);
+        component.onVmInit(lvm, (isComputer && slotId != -1) ? lvm.computerBlockEntity.itemHandler.getStackInSlot(slotId) : null);
 
         synchronized (componentModifyLockObj) {
             // builtin components are represented using identifier=null
             itemstackAssociationMap.put(isComputer ? null : sourceInfo, component);
         }
-        if (isFreshInit)
-            lvm.eventQueue.addComponentAdded(component);
+        lvm.triggerMachineEvent("componentAdded", LuaObject.of(component.getComponentType()), LuaObject.of(component));
     }
 
     public void removeComponentAndNotify(AcComponentSlotInfo slotInfo) {
@@ -107,7 +104,7 @@ public class ComponentRegistryUD implements LuaUserData {
             var component = itemstackAssociationMap.get(slotInfo);
             if (component != null) {
                 component.makeObjectInaccessible();
-                lvm.eventQueue.addComponentRemoved(component);
+                lvm.triggerMachineEvent("componentRemoved", LuaObject.of(component));
             }
         }
     }
@@ -115,10 +112,14 @@ public class ComponentRegistryUD implements LuaUserData {
     @Override
     public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
         var builder = new ByteArrayBuilder();
-        var lists = itemstackAssociationMap.getDataToSerialize();
+        TupleArrayListMap.SerializeData<AcComponentSlotInfo, LuaUserDataComponent> lists;
+        synchronized (componentModifyLockObj) {
+            lists = itemstackAssociationMap.getDataToSerialize();
+        }
         builder.append(lists.a().size());
         for (int i = 0; i < lists.a().size(); i++) {
-            var key = lists.a().get(i);
+            AcComponentSlotInfo key = lists.a().get(i);
+
             builder.append(key.getParsableIdentifier());
             builder.append(LuaObject.of(lists.b().get(i)).serialize(serialData, mappedObjs, additionalData));
         }

@@ -7,7 +7,7 @@ import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.lua.components.fs.LuaFsFileUD;
 import dev.asdf00.mc.advcomp.lua.components.fs.ManagedStorageHandler;
 import dev.asdf00.mc.advcomp.lua.components.fs.VirtualFile;
