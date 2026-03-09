@@ -15,10 +15,12 @@ import dev.asdf00.mc.advcomp.items.MainboardItem;
 import dev.asdf00.mc.advcomp.lua.ExtendedMixedStateFunctionRegistry;
 import dev.asdf00.mc.advcomp.lua.LuaEventQueue;
 import dev.asdf00.mc.advcomp.lua.components.*;
+import dev.asdf00.mc.advcomp.utils.AcPaths;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.network.PacketDistributor;
 
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -110,6 +112,12 @@ public class LuaVirtualMachine {
     }
 
     public static LuaVirtualMachine deserializeOrNull(ComputerBlockEntity computerBlockEntity) {
+        var serializedVmPath = AcPaths.getVmStatesPath(computerBlockEntity);
+        var vmExists = Files.exists(serializedVmPath);
+        if (!vmExists)
+            return null;
+
+        // deserialize
         return null;
     }
 
