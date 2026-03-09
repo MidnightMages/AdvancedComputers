@@ -66,6 +66,14 @@ public class LuaVirtualMachine {
         }
     }
 
+    public void onUdDeserialize(ComputerUD luaComputer) {
+        this.luaComputer = luaComputer;
+    }
+
+    public void onUdDeserialize(ComponentRegistryUD componentReg) {
+        this.componentReg = componentReg;
+    }
+
     // =================================================================================================================
     //    TICK THREAD     TICK THREAD     TICK THREAD     TICK THREAD     TICK THREAD     TICK THREAD     TICK THREAD
     // =================================================================================================================

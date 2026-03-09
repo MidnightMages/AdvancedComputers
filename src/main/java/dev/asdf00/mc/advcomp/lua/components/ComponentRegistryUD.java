@@ -128,7 +128,9 @@ public class ComponentRegistryUD implements LuaUserData {
 
     @LuaDeserializer
     public static ComponentRegistryUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
-        final var nu = new ComponentRegistryUD((LuaVirtualMachine) additionalData);
+        var acVM = (LuaVirtualMachine) additionalData;
+        final var nu = new ComponentRegistryUD(acVM);
+        acVM.onUdDeserialize(nu);
         final int compMapLen = reader.readInt();
         final String[] keys = new String[compMapLen];
         final LuaObject[] wrappers = new LuaObject[compMapLen];

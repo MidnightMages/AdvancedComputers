@@ -68,7 +68,9 @@ public final class ComputerUD extends BaseAcComponent {
     @LuaDeserializer
     public static ComputerUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
         int nvrIdx = reader.readInt();
-        var nu = new ComputerUD((LuaVirtualMachine) additionalData, objs[nvrIdx]);
+        var acVM = (LuaVirtualMachine) additionalData;
+        var nu = new ComputerUD(acVM, objs[nvrIdx]);
+        acVM.onUdDeserialize(nu);
         postActions.add(() -> {
             if (!(nu.nvram.refVal instanceof NvramUD)) {
                 throw new IllegalStateException(nu + " has no NvramUD after deserialization");
