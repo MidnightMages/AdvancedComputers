@@ -17,6 +17,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.network.PacketDistributor;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -106,7 +107,13 @@ public class LuaVirtualMachine {
             return null;
 
         // deserialize
-        return null;
+        var vm = new LuaVirtualMachine(computerBlockEntity);
+        try {
+            vm.start(Files.readAllBytes(serializedVmPath));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return vm;
     }
 
     /**
@@ -130,7 +137,11 @@ public class LuaVirtualMachine {
             // The VM is suspended, we may now serialize the VM.
             // We keep the lock because the state must not be changed during serialization.
             byte[] serializedState = vm.serialize(this);
-            // TODO write this to file
+            try {
+                Files.write(AcPaths.getVmStatesPath(computerBlockEntity), serializedState);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

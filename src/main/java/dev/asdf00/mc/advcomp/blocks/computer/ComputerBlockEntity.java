@@ -50,16 +50,13 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
     private int computerState = 0;
     private LuaVirtualMachine lvm;
     private final Object lockLVM = new Object();
+    private boolean isFirstTick = true;
 
     // set to STOPPED on first tick to reset block state to indicate stopped LVM
     private final AtomicReference<ComputerBlock.ComputerRunState> newRunState = new AtomicReference<>(ComputerBlock.ComputerRunState.STOPPED);
 
     public void setRunState(ComputerBlock.ComputerRunState rs) {
-        synchronized (newRunState) {
-            newRunState.set(rs);
-            BlockState bs = level.getBlockState(getBlockPos()).setValue(ComputerBlock.RUN_STATE, rs);
-            level.setBlock(getBlockPos(), bs, 2);
-        }
+        newRunState.set(rs);
     }
 
     void itemHandler_onSlotChanged(int slot) {
@@ -72,6 +69,11 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
         // todo add logic
         int a = 0;
         if (!pLevel.isClientSide()) {
+            if (isFirstTick) { // trigger attempting to load vm
+                onFirstTick();
+                isFirstTick = false;
+            }
+
             var newRstate = newRunState.getAndSet(null);
             if (newRstate != null) {
                 // LVM state changed last tick
@@ -189,7 +191,6 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
             if (b instanceof ComputerBlock c) {
                 this.block = c;
                 this.tier = this.block.TIER;
-                this.lvm = LuaVirtualMachine.deserializeOrNull(this);
             } else {
                 AdvancedComputers.LOGGER.error("Associated block was not a computer blocK, but instead was somehow %s???".formatted(b.getName()));
             }
@@ -198,6 +199,10 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
         lazyItemHandler = LazyOptional.of(() -> itemHandler);
     }
 
+    private void onFirstTick() {
+        if (this.lvm == null)
+            this.lvm = LuaVirtualMachine.deserializeOrNull(this);
+    }
 
     @Override
     public void onChunkUnloaded() {
