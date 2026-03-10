@@ -1,6 +1,5 @@
 package dev.asdf00.mc.advcomp.lua.components;
 
-import dev.asdf00.jluavm.api.functions.AtomicLuaFunction;
 import dev.asdf00.jluavm.api.userdata.LuaCallable;
 import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
 import dev.asdf00.jluavm.api.userdata.LuaUserData;
@@ -35,37 +34,25 @@ public class ComponentRegistryUD implements LuaUserData {
     }
 
     @LuaCallable
-    public LuaObject[] list() { // TODO replace with something that can be serialized
+    public LuaObject list() { // TODO replace with something that can be serialized
 
         // TODO sort allComponents by inventory-first, then euclidean distance, then by y x and z distances
         // or more generally, sort first by euclidean distance, then by y x z distances, then by slot index
 
-        LuaObject[][] rets;
+        LuaObject[] rets;
         synchronized (componentModifyLockObj) {
             rets = Arrays.stream(itemstackAssociationMap.entries())
                     .map(Tuple::y)
                     .map(x ->
-                            new LuaObject[]{LuaObject.of(x.getComponentType()), LuaObject.of(x)}
+                            LuaObject.of(LuaObject.of(x.getComponentType()), LuaObject.of(x)) // create ARRAY
                     )
-                    .toArray(LuaObject[][]::new);
+                    .toArray(LuaObject[]::new);
         }
-        return new LuaObject[]{
-                AtomicLuaFunction.forManyResults(null, (vm, state) -> {
-                    var oldIdx = state.get(LuaObject.of(0));
-                    if (!oldIdx.isLong()) {
-                        vm.error(LuaObject.of("Internal error, or someone messed with the iterator state"));
-                        return null;
-                    }
-                    int nuIdx = (int) oldIdx.asLong() + 1;
-                    if (nuIdx < rets.length && nuIdx >= 0) {
-                        state.set(LuaObject.of(0), LuaObject.of(nuIdx));
-                        return rets[nuIdx];
-                    } else {
-                        return new LuaObject[0];
-                    }
-                }).obj(),
-                LuaObject.table(LuaObject.of(0), LuaObject.of(-1))
-        };
+
+        return LuaObject.of(LuaVirtualMachine.BUILTIN_FUNCTIONS.getFunction("$internal.unpacking_iterator",
+                LuaObject.tableFromArray(rets),
+                new LuaObject[]{LuaObject.of(1)}
+        ));
     }
 
     @LuaCallable

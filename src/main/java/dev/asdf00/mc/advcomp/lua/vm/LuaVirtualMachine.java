@@ -334,7 +334,7 @@ public class LuaVirtualMachine {
     //      STATICS     STATICS     STATICS     STATICS     STATICS     STATICS     STATICS     STATICS     STATICS
     // =================================================================================================================
 
-    private static final MixedStateFunctionRegistry BUILTIN_FUNCTIONS;
+    public static final MixedStateFunctionRegistry BUILTIN_FUNCTIONS;
 
     static {
         BUILTIN_FUNCTIONS = new MixedStateFunctionRegistry("advancedcomputers.builtins");
@@ -346,6 +346,10 @@ public class LuaVirtualMachine {
                         printInlineLUA(Arrays.stream(args).map(LuaObject::asString).collect(Collectors.joining("\t")))));
         BUILTIN_FUNCTIONS.register("sleep", LuaSleepFunction.class,
                 tracker -> new LuaSleepFunction(BUILTIN_FUNCTIONS, tracker));
+
+        // general purpose iterator that returns one set of values after another
+        BUILTIN_FUNCTIONS.register("$internal.unpacking_iterator", LuaUnpackingIteratorFunction.class,
+                (tableToIterateOver, closures) -> new LuaUnpackingIteratorFunction(BUILTIN_FUNCTIONS, tableToIterateOver, closures));
     }
 
     // TODO remove
