@@ -10,6 +10,7 @@ import dev.asdf00.jluavm.runtime.utils.UDTranslators;
 import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
+import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -290,10 +291,15 @@ public final class TextBufferUD implements LuaUserData {
         LuaObject gpuUDWrapper = objs[reader.readInt()];
         boolean isFreed = reader.readBool();
         char[] text = new String(reader.readArray(reader.readInt()), StandardCharsets.UTF_8).toCharArray();
+        // TODO read fg color
+        // TODO read bg color
         int lStart = reader.readInt();
 
         var nu = new TextBufferUD(width, height, null, isFreed, lStart);
         System.arraycopy(text, 0, nu.text, 0, text.length);
+
+        // trigger update to this buffer
+        ((LuaVirtualMachine) additionalData).dirtyBuffer(nu);
 
         // unwrap gpuUD later
         postActions.add(() -> nu.gpuUD = (GpuUD) gpuUDWrapper.refVal);

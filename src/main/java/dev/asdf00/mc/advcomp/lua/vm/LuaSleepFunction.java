@@ -26,8 +26,8 @@ final class LuaSleepFunction extends LuaJavaApiFunction {
             long sleptForNs = Math.max(0, System.nanoTime() - sleepBegunAt);
             safepointHandler.refundNanos(sleptForNs);
         } catch (InterruptedException e) {
+            // premature exit, preserve interrupted state
             Thread.currentThread().interrupt();
-            throw new LvmKillException();
         }
     }
 

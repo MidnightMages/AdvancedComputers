@@ -8,12 +8,9 @@ import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
-import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlock;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
-import dev.asdf00.mc.advcomp.lua.ExtendedMixedStateFunctionRegistry;
-import dev.asdf00.mc.advcomp.lua.LuaEventQueue;
 import dev.asdf00.mc.advcomp.lua.components.*;
 import dev.asdf00.mc.advcomp.utils.AcPaths;
 import net.minecraft.world.item.ItemStack;
@@ -21,10 +18,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.network.PacketDistributor;
 
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class LuaVirtualMachine {
@@ -39,9 +34,9 @@ public class LuaVirtualMachine {
     private volatile Thread executorThread;
 
     // execution state
-    private LuaVM vm;
-    private ComputerUD luaComputer;
-    public ComponentRegistryUD componentReg;
+    LuaVM vm;
+    ComputerUD luaComputer;
+    ComponentRegistryUD componentReg;
     LuaSafepointHandler timeTracker;
     public String stopCode;
     final LinkedHashSet<TextBufferUD> dirtyBuffers = new LinkedHashSet<>();
@@ -68,14 +63,6 @@ public class LuaVirtualMachine {
         }
     }
 
-    public void onUdDeserialize(ComputerUD luaComputer) {
-        this.luaComputer = luaComputer;
-    }
-
-    public void onUdDeserialize(ComponentRegistryUD componentReg) {
-        this.componentReg = componentReg;
-    }
-
     // =================================================================================================================
     //    TICK THREAD     TICK THREAD     TICK THREAD     TICK THREAD     TICK THREAD     TICK THREAD     TICK THREAD
     // =================================================================================================================
@@ -83,7 +70,8 @@ public class LuaVirtualMachine {
     public void toggleOnOff() {
         synchronized (state) {
             if (state.getState().resting) {
-                startCold();
+                // initialize cold start
+                start(null);
             } else if (state.getState().killable) {
                 tryKill("ON/OFF button to kill");
             } else {
@@ -121,25 +109,49 @@ public class LuaVirtualMachine {
         return null;
     }
 
-    public void serialize() {
+    /**
+     * This method stops execution on the LUA thread and subsequently serializes the entire state of the VM.
+     *
+     * @throws InterruptedException if an interrupt occurs while waiting on the LUA thread to stop.
+     */
+    public void serialize() throws InterruptedException {
+        synchronized (state) {
+            if (!state.getState().resting) {
+                state.suspendAndWait(() -> {
+                    vm.requestStop();
+                    executorThread.interrupt();
+                });
+            }
+            if (state.getState() != State.SUSPENDED) {
+                // this thread is not suspended -> it is not in a serializable condition
+                return;
+            }
 
+            // The VM is suspended, we may now serialize the VM.
+            // We keep the lock because the state must not be changed during serialization.
+            byte[] serializedState = vm.serialize(this);
+            // TODO write this to file
+        }
     }
 
-    private void startCold() {
+    /**
+     * This method starts this VM either from a fully OFF state or from some serialized state passed as a parameter
+     *
+     * @param serializedState the serialized state of an earlier run of this VM or {@code null} if this is a cold boot.
+     */
+    private void start(byte[] serializedState) {
+        boolean isCold = serializedState == null;
         synchronized (state) {
-            coldInitialize();
-            state.initializing();
+            if (isCold) {
+                coldInitialize();
+            } else {
+                initializeFromState(serializedState);
+            }
+            state.initialize();
             executorThread = new Thread(() -> {
                 startLuaExecution();
             });
             executorThread.start();
-        }
-    }
-
-    private void startFromState() {
-        synchronized (state) {
-            initializeFromState();
-            // TODO
         }
     }
 
@@ -148,7 +160,6 @@ public class LuaVirtualMachine {
             if (!state.getState().resting) {
                 throw new IllegalStateException("trying to initialize non-resting LVM");
             }
-            state.initializing();
             AdvancedComputers.LOGGER.info("Trying to start LVM");
 
             // rebuild device cable cluster just in case
@@ -212,13 +223,35 @@ public class LuaVirtualMachine {
                 _G.get("vm").set("pause", LuaObject.nil());
             }).rootFunc(uefiScript).build();
             vm.eventCallback = timeTracker::handleVmEvent;
+
+            // now the VM is initialized for a cold start
+            state.initialize();
         }
     }
 
-    private void initializeFromState() {
+    private void initializeFromState(byte[] serializedState) {
+        synchronized (state) {
+            if (state.getState() != State.UNINITIALIZED) {
+                throw new IllegalStateException("trying to initialize non-resting LVM");
+            }
+            AdvancedComputers.LOGGER.info("Trying to load suspended LVM");
 
+            // rebuild device cable cluster just in case
+            CableCluster.onBlockPosChangedInternal(computerBlockEntity.getLevel(), computerBlockEntity.getBlockPos(), AdvancedComputers.CLUSTER_TYPE_DEVICE);
+
+            // initialize state of 'this'
+            timeTracker = new LuaSafepointHandler(this, computerBlockEntity.getTier().threadExecutionSleepFactor);
+            stopCode = "";
+            // luaComputer and componentReg are initialized automatically during deserization
+
+            // deserialize lua VM
+            vm = LuaVM.builder().fromState(serializedState, this).build();
+            vm.eventCallback = timeTracker::handleVmEvent;
+
+            // now the vm is suspended
+            state.suspend();
+        }
     }
-
 
     // =================================================================================================================
     //       LUA THREAD     LUA THREAD     LUA THREAD     LUA THREAD     LUA THREAD     LUA THREAD     LUA THREAD
@@ -239,13 +272,14 @@ public class LuaVirtualMachine {
     private void startLuaExecution() {
         try {
             synchronized (state) {
-                if (state.getState() != State.STARTING) {
+                if (!state.getState().startable) {
                     throw new IllegalStateException("not starting from proper state");
                 }
                 state.startRun();
             }
             try {
-                LuaVM.VmResult res = vm.run();
+                // continue on suspend, run on start
+                LuaVM.VmResult res = state.getState() == State.SUSPENDED ? vm.runContinue() : vm.run();
                 switch (res.state()) {
                     case SUCCESS -> {
                         state.stop();
@@ -268,6 +302,18 @@ public class LuaVirtualMachine {
             state.crash();
             AdvancedComputers.LOGGER.error("caught lvm exception: ", ex);
         }
+    }
+
+    // =================================================================================================================
+    //       INTERNAL HELPERS     INTERNAL HELPERS     INTERNAL HELPERS     INTERNAL HELPERS     INTERNAL HELPERS
+    // =================================================================================================================
+
+    public void onUdDeserialize(ComputerUD luaComputer) {
+        this.luaComputer = luaComputer;
+    }
+
+    public void onUdDeserialize(ComponentRegistryUD componentReg) {
+        this.componentReg = componentReg;
     }
 
     // =================================================================================================================

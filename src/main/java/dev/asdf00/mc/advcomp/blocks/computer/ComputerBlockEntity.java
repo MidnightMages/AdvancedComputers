@@ -63,8 +63,8 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
     }
 
     void itemHandler_onSlotChanged(int slot) {
-        if(!isServer()) return;
-        if(lvm != null) // TODO maybe not make this check true if the computer is shut down currently
+        if (!isServer()) return;
+        if (lvm != null) // TODO maybe not make this check true if the computer is shut down currently
             lvm.onInventorySlotChanged(slot);
     }
 
@@ -114,7 +114,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
     }
 
     public ComputerTier getTier() {
-        return tier != null ? tier : ((ComputerBlock)level.getBlockState(getBlockPos()).getBlock()).TIER;
+        return tier != null ? tier : ((ComputerBlock) level.getBlockState(getBlockPos()).getBlock()).TIER;
     }
 
     @Override
@@ -153,7 +153,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
 
         if (!t.isEmpty())
             is.addTagElement("blockData", t);
-        Containers.dropItemStack(this.level, this.worldPosition.getX(),this.worldPosition.getY(), this.worldPosition.getZ(), is);
+        Containers.dropItemStack(this.level, this.worldPosition.getX(), this.worldPosition.getY(), this.worldPosition.getZ(), is);
     }
 
     @Nullable
@@ -205,7 +205,11 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
         // crash LVM
         if (isServer()) {
             if (lvm != null) {
-                lvm.serialize();
+                try {
+                    lvm.serialize();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }
@@ -276,7 +280,7 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
         }
     }
 
-    private void setBlockStates(ComputerBlock.ComputerRunState newState){
+    private void setBlockStates(ComputerBlock.ComputerRunState newState) {
 
     }
 

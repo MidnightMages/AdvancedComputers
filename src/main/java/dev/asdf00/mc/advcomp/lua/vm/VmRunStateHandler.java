@@ -15,7 +15,7 @@ class VmRunStateHandler {
         return state;
     }
 
-    synchronized void initializing() {
+    synchronized void initialize() {
         state = State.STARTING;
         computer.setRunState(ComputerBlock.ComputerRunState.RUNNING);
         notifyAll();

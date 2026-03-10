@@ -37,7 +37,13 @@ class LuaSafepointHandler implements LuaUserData {
 
     void handleVmEvent(LuaVM vmObj, LuaVM.HookType eventType) {
         if (Thread.interrupted()) {
-            throw new LvmKillException();
+            if (vmObj.isStopping()) {
+                // skip any safepoint handling and let the vm exit gracefully
+                return;
+            } else {
+                // this is not a suspend but a kill
+                throw new LvmKillException();
+            }
         }
         switch (eventType) {
             case COMPILATION_STARTED -> {
@@ -67,6 +73,10 @@ class LuaSafepointHandler implements LuaUserData {
                         Thread.sleep(sleepTimeMs, (int) (sleepTimeNs % 1_000_000));
                     } catch (InterruptedException ignore) {
                         Thread.currentThread().interrupt();
+                        if (!vmObj.isStopping()) {
+                            // this is not a suspend but a kill
+                            throw new LvmKillException();
+                        }
                     }
                     lastSafepointTimestamp = System.nanoTime();
                 }
