@@ -32,7 +32,7 @@ public class AcPaths {
     public static Path getVmStatesPath(ComputerBlockEntity cbe) {
         String dimId = Objects.requireNonNull(cbe.getLevel()).dimension().location().toString();
         return getAcWorldSaveSubFolderPath()
-                .resolve(Path.of("vmStates", dimId + "_" + cbe.getBlockPos().asLong() + ".lvm"));
+                .resolve(Path.of("vmStates", dimId.replace(':','_') + "_" + cbe.getBlockPos().asLong() + ".lvm"));
     }
 
     public static void createPathsIfNecessary() {
