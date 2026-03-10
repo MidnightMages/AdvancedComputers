@@ -148,9 +148,7 @@ public class LuaVirtualMachine {
                 initializeFromState(serializedState);
             }
             state.initialize();
-            executorThread = new Thread(() -> {
-                startLuaExecution();
-            });
+            executorThread = new Thread(this::startLuaExecution);
             executorThread.start();
         }
     }
