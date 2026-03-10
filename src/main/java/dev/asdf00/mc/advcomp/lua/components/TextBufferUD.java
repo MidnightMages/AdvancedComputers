@@ -270,7 +270,7 @@ public final class TextBufferUD implements LuaUserData {
 
     @Override
     public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
-        byte[] txtBytes = getTextAsString().getBytes(StandardCharsets.UTF_8);
+        byte[] txtBytes = new String(this.text).getBytes(StandardCharsets.UTF_8);
         // 4 integer fields + 1 boolean field + 1 int string length + string bytes
         return new ByteArrayBuilder(Integer.BYTES * 5 + 1 + txtBytes.length)
                 .append(width)
