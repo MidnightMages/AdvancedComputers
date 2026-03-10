@@ -113,6 +113,11 @@ public class LuaVirtualMachine {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        try {
+            Files.delete(serializedVmPath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         return vm;
     }
 
@@ -254,7 +259,7 @@ public class LuaVirtualMachine {
             // luaComputer and componentReg are initialized automatically during deserization
 
             // deserialize lua VM
-            vm = LuaVM.builder().fromState(serializedState, this).build();
+            vm = LuaVM.builder().withApiRegistry(BUILTIN_FUNCTIONS).fromState(serializedState, this).build();
             vm.eventCallback = timeTracker::handleVmEvent;
 
             // now the vm is suspended
