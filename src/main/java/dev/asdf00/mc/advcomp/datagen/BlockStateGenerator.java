@@ -31,7 +31,8 @@ public class BlockStateGenerator extends BlockStateProvider {
         orientedBlock(AdvancedComputers.SCREEN_BLOCK_DIAMOND);
         for (var i : new RegistryBlockItemPair<?>[]{
                 AdvancedComputers.COMPUTER_BLOCK_WOOD, AdvancedComputers.COMPUTER_BLOCK,
-                AdvancedComputers.COMPUTER_BLOCK_DIAMOND, AdvancedComputers.COMPUTER_BLOCK_NETHERITE
+                AdvancedComputers.COMPUTER_BLOCK_DIAMOND, AdvancedComputers.COMPUTER_BLOCK_NETHERITE,
+                AdvancedComputers.COMPUTER_BLOCK_CREATIVE
         }) {
             //noinspection unchecked
             orientedBlock((RegistryBlockItemPair<Block>) i, new Property[]{ComputerBlock.RUN_STATE});

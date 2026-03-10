@@ -40,7 +40,7 @@ public class ItemModelGenerator extends ItemModelProvider {
             basicItem("hdd_tier" + i);
         }
 
-        for (var type : "wood,iron,diamond,netherite".split(",", -1)) {
+        for (var type : "wood,iron,diamond,netherite,creative".split(",", -1)) {
             var blockType = type.equals("iron") ? "" : ("_" + type);
             this.withExistingParent("computer_block" + blockType, rl("block/computer_block" + blockType));
         }

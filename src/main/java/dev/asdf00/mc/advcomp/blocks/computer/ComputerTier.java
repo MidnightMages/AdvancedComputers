@@ -4,7 +4,8 @@ public enum ComputerTier {
     Wood(0,1, 64),
     Iron(1,3, 16),
     Diamond(3,5, 4),
-    Netherite(3,6, 1);
+    Netherite(3, 6, 1),
+    Creative(3, 6, 0);
 
     public final int diskSlotCount;
     public final int componentSlotCount;

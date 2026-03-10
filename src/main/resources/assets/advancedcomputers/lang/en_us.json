@@ -3,6 +3,7 @@
 	"block.advancedcomputers.computer_block": "Computer",
 	"block.advancedcomputers.computer_block_diamond": "Diamond Computer",
 	"block.advancedcomputers.computer_block_netherite": "Netherite Computer",
+	"block.advancedcomputers.computer_block_creative": "Creative Computer",
 	"gui.advancedcomputers.computer_block.button.onoff": "On/Off",
 	"gui.advancedcomputers.computer_block.title": "Computer",
 	
