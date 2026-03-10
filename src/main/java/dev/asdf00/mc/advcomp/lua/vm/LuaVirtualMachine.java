@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
 public class LuaVirtualMachine {
@@ -41,6 +42,7 @@ public class LuaVirtualMachine {
     LuaSafepointHandler timeTracker;
     public String stopCode;
     final LinkedHashSet<TextBufferUD> dirtyBuffers = new LinkedHashSet<>();
+    public final ConcurrentLinkedQueue<ScreenBlockEntity> dirtyScreenBlockEntities = new ConcurrentLinkedQueue<>();
 
     public LuaVirtualMachine(ComputerBlockEntity computerBlockEntity) {
         this.computerBlockEntity = computerBlockEntity;

@@ -7,6 +7,7 @@ import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
+import dev.asdf00.mc.advcomp.lua.components.GpuUD;
 import dev.asdf00.mc.advcomp.lua.components.TextBufferUD;
 import net.minecraftforge.network.PacketDistributor;
 
@@ -104,6 +105,18 @@ public class LuaSafepointHandler implements LuaUserData {
      * @return if updates were sent.
      */
     boolean sendTextBufferUpdates() {
+        if (!acVm.dirtyScreenBlockEntities.isEmpty()) {
+            var gpu = acVm.componentReg.getSingleOfType(GpuUD.class);
+
+            while (true) {
+                var dirtyEntity = acVm.dirtyScreenBlockEntities.poll();
+                if (dirtyEntity == null)
+                    break;
+
+                acVm.dirtyBuffers.add(gpu.screenBufferMap.get(dirtyEntity));
+            }
+        }
+
         if (acVm.dirtyBuffers.isEmpty()) {
             return false;
         }

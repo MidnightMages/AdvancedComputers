@@ -63,6 +63,10 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
     public void onLoad() {
         super.onLoad();
         lazyItemhandler = LazyOptional.of(() -> itemHandler);
+        assert level != null;
+        if (level.isClientSide()) {
+            NetCodeUtils.sendToServer(new ScreenInputToServerEvent(this, "clientLoadedScreen", ""));
+        }
     }
 
     @Override
@@ -279,6 +283,10 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
                     ACError.Assert(!sbe.getLevel().isClientSide(), "Handling this screen event must be done server-side");
                     if (eventName == null || content == null) {
                         AdvancedComputers.LOGGER.warn("Received invalid Screen event containing null values");
+                        return;
+                    }
+                    if (eventName.equals("clientLoadedScreen")) {
+                        sbe.getComputerBlockEntity().getLvm().dirtyScreenBlockEntities.add(sbe);
                         return;
                     }
                     sbe.triggerMachineEvent(eventName, content);

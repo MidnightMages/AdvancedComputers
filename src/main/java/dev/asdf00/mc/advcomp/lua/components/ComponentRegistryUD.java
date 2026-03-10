@@ -34,11 +34,9 @@ public class ComponentRegistryUD implements LuaUserData {
     }
 
     @LuaCallable
-    public LuaObject list() { // TODO replace with something that can be serialized
-
+    public LuaObject list() {
         // TODO sort allComponents by inventory-first, then euclidean distance, then by y x and z distances
         // or more generally, sort first by euclidean distance, then by y x z distances, then by slot index
-
         LuaObject[] rets;
         synchronized (componentModifyLockObj) {
             rets = Arrays.stream(itemstackAssociationMap.entries())
@@ -64,6 +62,19 @@ public class ComponentRegistryUD implements LuaUserData {
                     .map(LuaObject::of)
                     .findFirst()
                     .orElse(LuaObject.NIL);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends LuaUserData> T getSingleOfType(Class<T> type) {
+        synchronized (componentModifyLockObj) {
+            var rv = Arrays.stream(itemstackAssociationMap.entries())
+                    .map(Tuple::y)
+                    .filter(x -> x.getClass() == type).toArray(LuaUserData[]::new);
+            if (rv.length != 1)
+                throw new RuntimeException("Unable to look up component of type %s. It existed %s times.".formatted(type.toString(), rv.length));
+
+            return (T) rv[0];
         }
     }
 
