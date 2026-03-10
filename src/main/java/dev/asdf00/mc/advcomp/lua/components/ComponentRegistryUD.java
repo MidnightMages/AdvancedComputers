@@ -120,7 +120,7 @@ public class ComponentRegistryUD implements LuaUserData {
         for (int i = 0; i < lists.a().size(); i++) {
             AcComponentSlotInfo key = lists.a().get(i);
 
-            builder.append(key.getParsableIdentifier());
+            builder.append(key == null ? "" : key.getParsableIdentifier());
             builder.append(LuaObject.of(lists.b().get(i)).serialize(serialData, mappedObjs, additionalData));
         }
         return builder.toArray();
@@ -143,7 +143,8 @@ public class ComponentRegistryUD implements LuaUserData {
             // this happens AFTER all UD objects have been initialized, now we may unwrap our components
             synchronized (nu.componentModifyLockObj) {
                 for (int i = 0; i < compMapLen; i++) {
-                    nu.itemstackAssociationMap.put(AcComponentSlotInfo.parse(keys[i]), (LuaUserDataComponent) wrappers[i].refVal);
+                    nu.itemstackAssociationMap.put(keys[i] == null ? null : AcComponentSlotInfo.parse(keys[i]),
+                            (LuaUserDataComponent) wrappers[i].refVal);
                 }
             }
         });
