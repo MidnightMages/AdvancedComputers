@@ -24,6 +24,7 @@ public final class TextBufferUD implements LuaUserData {
 
     private GpuUD gpuUD;
     public boolean isFreed;
+    private LuaObject luaSelf = null;
 
     /**
      * The bits in the foreground color are inverted for performance reasons.
@@ -348,5 +349,15 @@ public final class TextBufferUD implements LuaUserData {
         public enum LineMode {
             SINGLE, MULTI, SCROLL
         }
+    }
+
+    @Override
+    public LuaObject getSelfAsLuaObject() {
+        return luaSelf;
+    }
+
+    @Override
+    public void setSelfAsLuaObject(LuaObject self) {
+        luaSelf = self;
     }
 }

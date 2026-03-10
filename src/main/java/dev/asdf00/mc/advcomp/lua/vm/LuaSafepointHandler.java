@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
-class LuaSafepointHandler implements LuaUserData {
+public class LuaSafepointHandler implements LuaUserData {
     private static final long SECOND = 1_000_000_000;
     private static final int BUF_SEND_PER_SEC = 30; // TODO make this a config option
 

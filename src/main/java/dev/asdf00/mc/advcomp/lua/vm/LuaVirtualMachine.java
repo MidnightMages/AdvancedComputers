@@ -163,7 +163,6 @@ public class LuaVirtualMachine {
             } else {
                 initializeFromState(serializedState);
             }
-            state.initialize();
             executorThread = new Thread(this::startLuaExecution);
             executorThread.start();
         }
@@ -285,15 +284,17 @@ public class LuaVirtualMachine {
 
     private void startLuaExecution() {
         try {
+            boolean isResuming;
             synchronized (state) {
                 if (!state.getState().startable) {
                     throw new IllegalStateException("not starting from proper state");
                 }
+                isResuming = state.getState() == State.SUSPENDED;
                 state.startRun();
             }
             try {
                 // continue on suspend, run on start
-                LuaVM.VmResult res = state.getState() == State.SUSPENDED ? vm.runContinue() : vm.run();
+                LuaVM.VmResult res = isResuming ? vm.runContinue() : vm.run();
                 switch (res.state()) {
                     case SUCCESS -> {
                         state.stop();
