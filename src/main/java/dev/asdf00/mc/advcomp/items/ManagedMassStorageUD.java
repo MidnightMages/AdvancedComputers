@@ -7,10 +7,11 @@ import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.lua.components.fs.LuaFsFileUD;
 import dev.asdf00.mc.advcomp.lua.components.fs.ManagedStorageHandler;
 import dev.asdf00.mc.advcomp.lua.components.fs.VirtualFile;
+import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.types.RuntimeAssert;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
@@ -39,10 +40,14 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
         this.totalCapacityBytes = totalCapacityBytes;
     }
 
-    private ManagedMassStorageUD(LuaVirtualMachine acVm, boolean isAccessible, String storageFamilyName, int totalCapacityBytes, ManagedStorageHandler fs) {
+    /**
+     * This ctor is for deserialization
+     */
+    private ManagedMassStorageUD(LuaVirtualMachine acVm, boolean isAccessible, String storageFamilyName, int totalCapacityBytes, int diskStorageId) {
         super(acVm, isAccessible, storageFamilyName, "managed");
         this.totalCapacityBytes = totalCapacityBytes;
-        this.fs = fs;
+        this.fs = new ManagedStorageHandler(diskStorageId);
+        this.diskStorageId = diskStorageId;
     }
 
     /**
@@ -207,11 +212,12 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
     public static ManagedMassStorageUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
         var isAccessible = reader.readBool();
         var diskStorageId = reader.readInt();
+        RuntimeAssert.RuntimeAssert(diskStorageId >= 0, "attempted to load a computer with disk id -1. Something must have gone wrong.");
         var storageFamilyName = reader.readString();
         var totalCapacityBytes = reader.readInt();
 
         return new ManagedMassStorageUD((LuaVirtualMachine) additionalData, isAccessible, storageFamilyName,
-                totalCapacityBytes, new ManagedStorageHandler(diskStorageId));
+                totalCapacityBytes, diskStorageId);
     }
 
     @Override
