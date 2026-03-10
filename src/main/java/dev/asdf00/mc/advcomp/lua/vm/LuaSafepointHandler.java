@@ -32,7 +32,7 @@ class LuaSafepointHandler implements LuaUserData {
     }
 
     void refundNanos(long nanos) {
-        lastCompilationStartedTimestamp += nanos;
+        lastSafepointTimestamp += nanos;
     }
 
     void handleVmEvent(LuaVM vmObj, LuaVM.HookType eventType) {
