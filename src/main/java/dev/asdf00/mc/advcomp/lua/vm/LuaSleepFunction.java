@@ -14,6 +14,7 @@ final class LuaSleepFunction extends LuaJavaApiFunction {
 
     @Override
     public void invoke(LuaVM_RT vm, LuaObject[] stackFrame, int resume, LuaObject[] expressionStack, LuaObject[] returned) {
+        vm.registerLocals(1);
         try {
             var argument = stackFrame[0];
             if (!argument.isNumberCoercible()) {
@@ -29,6 +30,7 @@ final class LuaSleepFunction extends LuaJavaApiFunction {
             // premature exit, preserve interrupted state
             Thread.currentThread().interrupt();
         }
+        vm.returnValue();
     }
 
     @Override
