@@ -42,7 +42,7 @@ public class LuaVirtualMachine {
     LuaSafepointHandler timeTracker;
     public String stopCode;
     final LinkedHashSet<TextBufferUD> dirtyBuffers = new LinkedHashSet<>();
-    public final ConcurrentLinkedQueue<ScreenBlockEntity> dirtyScreenBlockEntities = new ConcurrentLinkedQueue<>();
+    final ConcurrentLinkedQueue<ScreenBlockEntity> dirtyScreenBlockEntities = new ConcurrentLinkedQueue<>();
 
     public LuaVirtualMachine(ComputerBlockEntity computerBlockEntity) {
         this.computerBlockEntity = computerBlockEntity;
@@ -55,6 +55,10 @@ public class LuaVirtualMachine {
 
     public void triggerMachineEvent(String eventName, LuaObject... args) {
         luaComputer.triggerMachineEvent(eventName, args);
+    }
+
+    public void requestScreenContents(ScreenBlockEntity sbe) {
+        dirtyScreenBlockEntities.add(sbe);
     }
 
     public void tryKill(String reason) {

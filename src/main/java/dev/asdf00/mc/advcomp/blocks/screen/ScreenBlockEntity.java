@@ -286,7 +286,7 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
                         return;
                     }
                     if (eventName.equals("clientLoadedScreen")) {
-                        sbe.getComputerBlockEntity().getLvm().dirtyScreenBlockEntities.add(sbe);
+                        sbe.getComputerBlockEntity().getLvm().requestScreenContents(sbe);
                         return;
                     }
                     sbe.triggerMachineEvent(eventName, content);

@@ -108,12 +108,11 @@ public class LuaSafepointHandler implements LuaUserData {
         if (!acVm.dirtyScreenBlockEntities.isEmpty()) {
             var gpu = acVm.componentReg.getSingleOfType(GpuUD.class);
 
-            while (true) {
-                var dirtyEntity = acVm.dirtyScreenBlockEntities.poll();
-                if (dirtyEntity == null)
-                    break;
-
-                acVm.dirtyBuffers.add(gpu.screenBufferMap.get(dirtyEntity));
+            ScreenBlockEntity dirtyEntity;
+            while ((dirtyEntity = acVm.dirtyScreenBlockEntities.poll()) != null) {
+                var buffer = gpu.screenBufferMap.get(dirtyEntity);
+                if (buffer != null)
+                    acVm.dirtyBuffers.add(buffer);
             }
         }
 
