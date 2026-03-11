@@ -118,7 +118,12 @@ public class LuaVirtualMachine {
             vm.start(Files.readAllBytes(serializedVmPath));
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } catch (Exception e) {
+            // on error, give up and return null instead
+            vm = null;
+            AdvancedComputers.LOGGER.warn("Failed to deserialize vm, please report this. Original exception:\n%s".formatted(e));
         }
+
         try {
             Files.delete(serializedVmPath);
         } catch (IOException e) {
