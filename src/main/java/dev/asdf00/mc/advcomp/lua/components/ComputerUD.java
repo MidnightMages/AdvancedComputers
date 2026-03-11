@@ -1,24 +1,45 @@
 package dev.asdf00.mc.advcomp.lua.components;
 
-import dev.asdf00.jluavm.api.userdata.*;
+import dev.asdf00.jluavm.api.userdata.LuaCallable;
+import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
+import dev.asdf00.jluavm.api.userdata.LuaExposed;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
+import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
-import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Stream;
 
-public class ComputerUD extends BaseAcComponent {
-    private final LuaVirtualMachine lvm;
-
-    public ComputerUD(LuaVirtualMachine lvm) {
-        super("computer");
-        this.lvm = lvm;
-    }
+public final class ComputerUD extends BaseAcComponent {
+    private final ConcurrentLinkedQueue<LuaObject[]> eventQueue = new ConcurrentLinkedQueue<>();
 
     @LuaExposed(LuaExposed.Policy.READ)
-    public LuaObject nvram = LuaObject.of(new NvramUD());
+    public LuaObject nvram;
+
+    public ComputerUD() {
+        super("computer");
+        nvram = LuaObject.of(new NvramUD());
+    }
+
+    private ComputerUD(LuaVirtualMachine acVm, LuaObject nvram) {
+        // a computer component is always available
+        super("computer", acVm, true);
+        this.nvram = nvram;
+    }
+
+    /**
+     * This method may be called from outside the LUA thread and enqueues a custom machine event to be read by the host
+     * LUA program.
+     */
+    public void triggerMachineEvent(String eventName, LuaObject... args) {
+        eventQueue.add(Stream.concat(Stream.of(LuaObject.of(eventName)), Arrays.stream(args)).toArray(LuaObject[]::new));
+    }
 
     @LuaCallable
     public void beep(double freq, double duration) {
@@ -34,19 +55,27 @@ public class ComputerUD extends BaseAcComponent {
 
     @LuaCallable
     public LuaObject[] getMachineEvent() {
-        var e = lvm.eventQueue.getQueuedEventOrNull();
+        LuaObject[] e = eventQueue.poll();
         return e == null ? new LuaObject[]{LuaObject.NIL} : e;
     }
 
     @Override
-    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs) {
-        // TODO actually provide serializaion
-        return null;
+    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
+        int nvrId = nvram.serialize(serialData, mappedObjs, additionalData);
+        return new ByteArrayBuilder(Integer.BYTES).append(nvrId).toArray();
     }
 
     @LuaDeserializer
-    public static ComputerUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
-        // TODO actually provide serializaion
-        return null;
+    public static ComputerUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
+        int nvrIdx = reader.readInt();
+        var acVM = (LuaVirtualMachine) additionalData;
+        var nu = new ComputerUD(acVM, objs[nvrIdx]);
+        acVM.onUdDeserialize(nu);
+        postActions.add(() -> {
+            if (!(nu.nvram.refVal instanceof NvramUD)) {
+                throw new IllegalStateException(nu + " has no NvramUD after deserialization");
+            }
+        });
+        return nu;
     }
 }

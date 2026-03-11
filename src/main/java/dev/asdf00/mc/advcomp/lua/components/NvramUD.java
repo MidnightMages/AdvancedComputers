@@ -3,15 +3,22 @@ package dev.asdf00.mc.advcomp.lua.components;
 import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
+import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
+import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
-public class NvramUD extends BaseAcComponent {
+public final class NvramUD extends BaseAcComponent {
     public NvramUD() {
         super("nvram");
+    }
+
+    private NvramUD(LuaVirtualMachine acVm) {
+        super("nvram", acVm, true);
     }
 
     private final HashMap<String, LuaObject> backing = new HashMap<>();
@@ -39,14 +46,20 @@ public class NvramUD extends BaseAcComponent {
     }
 
     @Override
-    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs) {
-        // TODO actually provide serializaion
-        return null;
+    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
+        var bdr = new ByteArrayBuilder();
+        for (var entry : backing.entrySet()) {
+            bdr.append(entry.getKey()).append(entry.getValue().serialize(serialData, mappedObjs, additionalData));
+        }
+        return bdr.toArray();
     }
 
     @LuaDeserializer
-    public static NvramUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
-        // TODO actually provide serializaion
-        return null;
+    public static NvramUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
+        var nu = new NvramUD((LuaVirtualMachine) additionalData);
+        while (reader.remaining() > 0) {
+            nu.backing.put(reader.readString(), objs[reader.readInt()]);
+        }
+        return nu;
     }
 }

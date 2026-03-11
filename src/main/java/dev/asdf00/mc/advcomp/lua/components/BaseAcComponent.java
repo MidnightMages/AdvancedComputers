@@ -1,21 +1,28 @@
 package dev.asdf00.mc.advcomp.lua.components;
 
 import dev.asdf00.jluavm.api.userdata.LuaExposed;
-import dev.asdf00.jluavm.api.userdata.LuaProperty;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
-import dev.asdf00.mc.advcomp.lua.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
+import net.minecraft.world.item.ItemStack;
 
 public abstract class BaseAcComponent implements LuaUserDataComponent {
-    private final String componentTypeString;
+    private LuaObject luaIdentity;
+
     protected LuaVirtualMachine acVm;
-    private boolean isAccessible = true;
+    protected volatile boolean isAccessible = true;
 
     @LuaExposed(LuaExposed.Policy.READ)
-    public final LuaProperty componentType;
+    public final String componentType;
+    private ItemStack itemStack; // TODO put this into a seperate class derived from this one, and do the same for block components, giving them a blockentity?
 
     public BaseAcComponent(String componentType) {
-        this.componentTypeString = componentType;
-        this.componentType = LuaProperty.ofString(() -> componentType, null);
+        this(componentType, null, true);
+    }
+
+    protected BaseAcComponent(String componentType, LuaVirtualMachine acVm, boolean isAccessible) {
+        this.componentType = componentType;
+        this.acVm = acVm;
+        this.isAccessible = isAccessible;
     }
 
     @Override
@@ -29,13 +36,27 @@ public abstract class BaseAcComponent implements LuaUserDataComponent {
     }
 
     @Override
-    public String getComponentType() {
-        return componentTypeString;
+    public final LuaObject getSelfAsLuaObject() {
+        return luaIdentity;
     }
 
     @Override
-    public void onVmInit(LuaVirtualMachine acVm) {
+    public final void setSelfAsLuaObject(LuaObject self) {
+        luaIdentity = self;
+    }
+
+    @Override
+    public String getComponentType() {
+        return componentType;
+    }
+
+    /**
+     * Is supposed to only run once during object construction. NOT during deserialization
+     */
+    @Override
+    public void onVmInit(LuaVirtualMachine acVm, ItemStack is) {
         this.acVm = acVm;
+        this.itemStack = is;
     }
 
     @Override

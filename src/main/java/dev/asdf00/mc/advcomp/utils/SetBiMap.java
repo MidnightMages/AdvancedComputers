@@ -2,6 +2,7 @@ package dev.asdf00.mc.advcomp.utils;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -46,5 +47,9 @@ public class SetBiMap<K, V> {
                 }
             }
         }
+    }
+
+    public Set<Map.Entry<K, V>> entrySet() {
+        return forward.entrySet();
     }
 }

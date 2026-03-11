@@ -7,13 +7,13 @@ import dev.asdf00.jluavm.api.userdata.LuaUserData;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.runtime.utils.UDTranslators;
+import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
+import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 public final class TextBufferUD implements LuaUserData {
 
@@ -22,16 +22,32 @@ public final class TextBufferUD implements LuaUserData {
     @LuaExposed(LuaExposed.Policy.READ)
     public int height;
 
-    private final GpuUD gpuUD;
-    public boolean isFreed = false;
+    private GpuUD gpuUD;
+    public boolean isFreed;
+    private LuaObject luaSelf = null;
 
     /**
      * The bits in the foreground color are inverted for performance reasons.
      */
-    private byte[] foregroundColor;
-    private byte[] backgroundColor;
+    private byte[] foregroundColor; // TODO: not yet serialized
+    private byte[] backgroundColor; // TODO: not yet serialized
     private char[] text;
     private int lStart;
+
+    public TextBufferUD(int width, int height, GpuUD gpuUD) {
+        this(width, height, gpuUD, false, 0);
+    }
+
+    private TextBufferUD(int width, int height, GpuUD gpuUD, boolean isFreed, int lStart) {
+        this.width = width;
+        this.height = height;
+        this.gpuUD = gpuUD;
+        this.isFreed = isFreed;
+        this.foregroundColor = new byte[width * height];
+        this.backgroundColor = new byte[width * height];
+        this.text = new char[width * height];
+        this.lStart = lStart;
+    }
 
     public String getTextAsString() {
         var guiTextSb = new StringBuilder();
@@ -43,16 +59,6 @@ public final class TextBufferUD implements LuaUserData {
             guiTextSb.append(lineText);
         }
         return guiTextSb.toString();
-    }
-
-    public TextBufferUD(int width, int height, GpuUD gpuUD) {
-        this.width = width;
-        this.height = height;
-        this.gpuUD = gpuUD;
-        this.foregroundColor = new byte[width * height];
-        this.backgroundColor = new byte[width * height];
-        this.text = new char[width * height];
-        this.lStart = 0;
     }
 
     @LuaCallable
@@ -256,21 +262,49 @@ public final class TextBufferUD implements LuaUserData {
         return ((lStart + y) % height) * width + x;
     }
 
-    @Override
-    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs) {
-        throw new UnsupportedOperationException("serialization not implemented");
-    }
-
     private static void luaGuarantee(boolean condition, String msg) {
         if (!condition) {
             throw new LuaJavaError(msg);
         }
     }
 
+    @Override
+    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
+        byte[] txtBytes = new String(this.text).getBytes(StandardCharsets.UTF_8);
+        // 4 integer fields + 1 boolean field + 1 int string length + string bytes
+        return new ByteArrayBuilder(Integer.BYTES * 5 + 1 + txtBytes.length)
+                .append(width)
+                .append(height)
+                .append(LuaObject.of(gpuUD).serialize(serialData, mappedObjs, additionalData))
+                .append(isFreed)
+                // TODO append fg color
+                // TODO append bg color
+                .append(txtBytes.length)
+                .appendAll(txtBytes)
+                .append(lStart)
+                .toArray();
+    }
+
     @LuaDeserializer
-    public static TextBufferUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
-        // TODO actually provide serializaion
-        return null;
+    public static TextBufferUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
+        int width = reader.readInt();
+        int height = reader.readInt();
+        LuaObject gpuUDWrapper = objs[reader.readInt()];
+        boolean isFreed = reader.readBool();
+        char[] text = new String(reader.readArray(reader.readInt()), StandardCharsets.UTF_8).toCharArray();
+        // TODO read fg color
+        // TODO read bg color
+        int lStart = reader.readInt();
+
+        var nu = new TextBufferUD(width, height, null, isFreed, lStart);
+        System.arraycopy(text, 0, nu.text, 0, text.length);
+
+        // trigger update to this buffer
+        ((LuaVirtualMachine) additionalData).dirtyBuffer(nu);
+
+        // unwrap gpuUD later
+        postActions.add(() -> nu.gpuUD = (GpuUD) gpuUDWrapper.refVal);
+        return nu;
     }
 
     @Override
@@ -317,6 +351,13 @@ public final class TextBufferUD implements LuaUserData {
         }
     }
 
-    private record LPrintInfo(int printed, int xAfter) {
+    @Override
+    public LuaObject getSelfAsLuaObject() {
+        return luaSelf;
+    }
+
+    @Override
+    public void setSelfAsLuaObject(LuaObject self) {
+        luaSelf = self;
     }
 }

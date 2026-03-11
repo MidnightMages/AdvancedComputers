@@ -1,5 +1,6 @@
 package dev.asdf00.mc.advcomp.items;
 
+import dev.asdf00.mc.advcomp.lua.components.AcComponentSlotInfo;
 import dev.asdf00.mc.advcomp.lua.components.AcItemComponent;
 import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 import net.minecraft.world.item.Item;
@@ -16,7 +17,7 @@ public class BaseDataStorageItem extends Item implements AcItemComponent {
     }
 
     @Override
-    public LuaUserDataComponent CreateUserdata(ItemStack stack) {
-        return ManagedMassStorageUD.initFromItemStack(storageFamilyName, stack, totalCapacityBytes);
+    public LuaUserDataComponent CreateUserdata(AcComponentSlotInfo slotInfo) {
+        return ManagedMassStorageUD.initFromItemStack(storageFamilyName, totalCapacityBytes);
     }
 }

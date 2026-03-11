@@ -4,48 +4,80 @@ import dev.asdf00.jluavm.api.userdata.LuaCallable;
 import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
+import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.lua.components.fs.LuaFsFileUD;
 import dev.asdf00.mc.advcomp.lua.components.fs.ManagedStorageHandler;
+import dev.asdf00.mc.advcomp.lua.components.fs.VirtualFile;
+import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.types.RuntimeAssert;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.stream.Stream;
 
 public class ManagedMassStorageUD extends BaseMassStorageUD {
-    private final ItemStack is;
     private final int totalCapacityBytes;
     private int diskStorageId = -1;
     private ManagedStorageHandler fs = null;
 
 
-    public static ManagedMassStorageUD initFromItemStack(String storageFamilyName, ItemStack stack, int totalCapacityBytes) {
-        var rv = new ManagedMassStorageUD(storageFamilyName, stack, totalCapacityBytes);
-        rv.initFilesystem();
-        return rv;
+    /**
+     * Use this for the initial creation only. For the deserialization mainly use {@link #luaDeserialize(LuaObject[], ByteArrayReader, Queue, Object)} instead.
+     */
+    public static ManagedMassStorageUD initFromItemStack(String storageFamilyName, int totalCapacityBytes) {
+        return new ManagedMassStorageUD(storageFamilyName,  totalCapacityBytes);
     }
 
-    protected ManagedMassStorageUD(String storageFamilyName, ItemStack stack, int totalCapacityBytes) {
+    /**
+     * Use this for the initial creation only. For the deserialization mainly use {@link #luaDeserialize(LuaObject[], ByteArrayReader, Queue, Object)} instead.
+     */
+    protected ManagedMassStorageUD(String storageFamilyName, int totalCapacityBytes) {
         super(storageFamilyName, "managed");
-        this.is = stack;
         this.totalCapacityBytes = totalCapacityBytes;
     }
 
-    public void initFilesystem() {
+    /**
+     * This ctor is for deserialization
+     */
+    private ManagedMassStorageUD(LuaVirtualMachine acVm, boolean isAccessible, String storageFamilyName, int totalCapacityBytes, int diskStorageId) {
+        super(acVm, isAccessible, storageFamilyName, "managed");
+        this.totalCapacityBytes = totalCapacityBytes;
+        this.fs = new ManagedStorageHandler(diskStorageId);
+        this.diskStorageId = diskStorageId;
+    }
+
+    /**
+     * Is supposed to only run once during object construction. NOT during deserialization
+     */
+    @Override
+    public void onVmInit(LuaVirtualMachine acVm, ItemStack is) {
+        super.onVmInit(acVm, is);
+        initItemStackDiskIdIfNeeded(is);
+        initFilesystem(is);
+    }
+
+    public void initFilesystem(ItemStack is) {
         if (fs != null)
             throw new RuntimeException("Fs is already inited for disk id %d but was attempted to be initialized again.".formatted(diskStorageId));
 
-        var tag = is.getOrCreateTag();
+        initItemStackDiskIdIfNeeded(is);
 
+
+        assert is.getTag() != null;
+        diskStorageId = is.getTag().getInt("mDiskId");
+        fs = new ManagedStorageHandler(diskStorageId);
+    }
+
+    public static void initItemStackDiskIdIfNeeded(ItemStack is) {
+        var tag = is.getOrCreateTag();
         if (!tag.contains("mDiskId")) { // no folder associated yet with this disk
             int newDiskId = AdvancedComputers.globalDataStorage.getNextFreeUniqueStorageId();
             tag.putInt("mDiskId", newDiskId);
         }
-
-        diskStorageId = tag.getInt("mDiskId");
-        fs = new ManagedStorageHandler(diskStorageId);
     }
 
     @LuaCallable
@@ -94,7 +126,7 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
                 }
             }
         }
-        return LuaObject.of(new LuaFsFileUD(fs.getOrCreateFile(fileName)));
+        return LuaObject.of(new LuaFsFileUD(fs.getOrCreateFile(fileName), this));
     }
 
     @LuaCallable
@@ -167,19 +199,41 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
 
 
     @Override
-    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs) {
-        // TODO actually provide serializaion
-        return null;
+    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
+        return new ByteArrayBuilder()
+                .append(isAccessible)
+                .append(diskStorageId)
+                .append(storageFamilyName)
+                .append(totalCapacityBytes)
+                .toArray();
     }
 
     @LuaDeserializer
-    public static ManagedMassStorageUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
-        // TODO actually provide serializaion
-        return null;
+    public static ManagedMassStorageUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
+        var isAccessible = reader.readBool();
+        var diskStorageId = reader.readInt();
+        RuntimeAssert.RuntimeAssert(diskStorageId >= 0, "attempted to load a computer with disk id -1. Something must have gone wrong.");
+        var storageFamilyName = reader.readString();
+        var totalCapacityBytes = reader.readInt();
+
+        return new ManagedMassStorageUD((LuaVirtualMachine) additionalData, isAccessible, storageFamilyName,
+                totalCapacityBytes, diskStorageId);
     }
 
     @Override
     int getDiskId() {
         return diskStorageId;
+    }
+
+    public String serializeVirtualFile(VirtualFile f) {
+        return f.getFilepathWithinFs().toString();
+    }
+
+    public VirtualFile deserializeVirtualFile(String fData) {
+        try {
+            return (VirtualFile) (openInner(fData, false).refVal);
+        } catch (LuaJavaError ex) {
+            throw new RuntimeException("Deserialization failed as we somehow are not able to open a file that used to exist when we serialized the vm", ex);
+        }
     }
 }

@@ -1,36 +1,25 @@
 package dev.asdf00.mc.advcomp.blocks.screen;
 
-import dev.asdf00.jluavm.api.userdata.LuaCallable;
 import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
-import dev.asdf00.mc.advcomp.NetCodeUtils;
-import dev.asdf00.mc.advcomp.lua.components.BaseAcComponent;
-import net.minecraftforge.network.PacketDistributor;
+import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.lua.components.BaseAcBlockEntityComponent;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Queue;
 
-public class ScreenBlockUD extends BaseAcComponent {
-
-    public final ScreenBlockEntity screenBlockEntity;
+public final class ScreenBlockUD extends BaseAcBlockEntityComponent<ScreenBlockEntity> {
 
     public ScreenBlockUD(ScreenBlockEntity screenBlockEntity) {
-        super("screen");
-        this.screenBlockEntity = screenBlockEntity;
+        super("screen", screenBlockEntity);
     }
 
-    @Override
-    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs) {
-        // TODO actually provide serializaion
-        return null;
+    private ScreenBlockUD(LuaVirtualMachine acVm, boolean isAccessible, ScreenBlockEntity screenBlockEntity) {
+        super("screen", acVm, isAccessible, screenBlockEntity);
     }
 
     @LuaDeserializer
-    public static ScreenBlockUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
-        // TODO actually provide serializaion
-        return null;
+    public static ScreenBlockUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
+        return genericDeserialize(ScreenBlockEntity.class, ScreenBlockUD::new, objs, reader, postActions, additionalData);
     }
 }

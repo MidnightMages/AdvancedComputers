@@ -1,6 +1,7 @@
 package dev.asdf00.mc.advcomp.items;
 
 import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
+import dev.asdf00.mc.advcomp.lua.components.AcComponentSlotInfo;
 import dev.asdf00.mc.advcomp.lua.components.AcItemComponent;
 import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 import dev.asdf00.mc.advcomp.utils.ResourceUtil;
@@ -53,9 +54,9 @@ public class FloppyDiskItem extends BaseAcDyableItem implements ItemCanBeInitial
     private void init(ItemStack is, boolean forceInit) {
         var nbt = is.getTag();
         boolean willCopyData = nbt != null && nbt.contains("desiredDiskData");
-        // initialize the fs on disk so we can copy data to it. Also sets the disk id nbt.
+        // initialize the fs on disk so we can copy data to it.
         if (forceInit || willCopyData)
-            ManagedMassStorageUD.initFromItemStack("floppy", is, 0);
+            ManagedMassStorageUD.initItemStackDiskIdIfNeeded(is); // Sets the disk id nbt.
 
         nbt = is.getTag();
         if (willCopyData) {
@@ -72,7 +73,7 @@ public class FloppyDiskItem extends BaseAcDyableItem implements ItemCanBeInitial
     }
 
     @Override
-    public LuaUserDataComponent CreateUserdata(ItemStack stack) {
-        return ManagedMassStorageUD.initFromItemStack("floppy", stack, totalCapacityBytes);
+    public LuaUserDataComponent CreateUserdata(AcComponentSlotInfo slotInfo) {
+        return ManagedMassStorageUD.initFromItemStack("floppy", totalCapacityBytes);
     }
 }

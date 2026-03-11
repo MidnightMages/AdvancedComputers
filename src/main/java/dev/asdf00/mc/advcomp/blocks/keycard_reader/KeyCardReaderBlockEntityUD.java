@@ -4,16 +4,19 @@ import dev.asdf00.jluavm.api.userdata.LuaCallable;
 import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
-import dev.asdf00.mc.advcomp.lua.components.BaseAcComponent;
+import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.lua.components.BaseAcBlockEntityComponent;
 
-import java.util.List;
-import java.util.Map;
+import java.util.Queue;
 
-public class KeyCardReaderBlockEntityUD extends BaseAcComponent {
-    private final KeyCardReaderBlockEntity keyCardReaderBlockEntity;
+public class KeyCardReaderBlockEntityUD extends BaseAcBlockEntityComponent<KeyCardReaderBlockEntity> {
+
     public KeyCardReaderBlockEntityUD(KeyCardReaderBlockEntity keyCardReaderBlockEntity) {
-        super("keycardReader");
-        this.keyCardReaderBlockEntity = keyCardReaderBlockEntity;
+        super("keycardReader", keyCardReaderBlockEntity);
+    }
+
+    private KeyCardReaderBlockEntityUD(LuaVirtualMachine luaVirtualMachine, boolean isAccessible, KeyCardReaderBlockEntity blockEntity) {
+        super("keycardReader", luaVirtualMachine, isAccessible, blockEntity);
     }
 
     @LuaCallable
@@ -21,15 +24,8 @@ public class KeyCardReaderBlockEntityUD extends BaseAcComponent {
         return "keycard reader works!";
     }
 
-    @Override
-    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs) {
-        // TODO actually provide serializaion
-        return null;
-    }
-
     @LuaDeserializer
-    public static KeyCardReaderBlockEntityUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
-        // TODO actually provide serializaion
-        return null;
+    public static KeyCardReaderBlockEntityUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
+        return genericDeserialize(KeyCardReaderBlockEntity.class, KeyCardReaderBlockEntityUD::new, objs, reader, postActions, additionalData);
     }
 }

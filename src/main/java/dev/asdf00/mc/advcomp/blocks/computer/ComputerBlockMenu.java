@@ -132,6 +132,7 @@ public class ComputerBlockMenu extends AbstractContainerMenu {
             AdvancedComputers.COMPUTER_BLOCK.block(),
             AdvancedComputers.COMPUTER_BLOCK_DIAMOND.block(),
             AdvancedComputers.COMPUTER_BLOCK_NETHERITE.block(),
+            AdvancedComputers.COMPUTER_BLOCK_CREATIVE.block(),
     };
 
     @Override

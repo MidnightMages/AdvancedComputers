@@ -5,18 +5,20 @@ import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
-import dev.asdf00.mc.advcomp.lua.components.BaseAcComponent;
+import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.lua.components.BaseAcBlockEntityComponent;
 import net.minecraft.core.Direction;
 
-import java.util.List;
-import java.util.Map;
+import java.util.Queue;
 
-public class RedstoneIoBlockUD extends BaseAcComponent {
-    private final RedstoneIoBlockEntity redstoneIoBlockEntity;
+public class RedstoneIoBlockUD extends BaseAcBlockEntityComponent<RedstoneIoBlockEntity> {
 
     public RedstoneIoBlockUD(RedstoneIoBlockEntity redstoneIoBlockEntity) {
-        super("redstone");
-        this.redstoneIoBlockEntity = redstoneIoBlockEntity;
+        super("redstone", redstoneIoBlockEntity);
+    }
+
+    private RedstoneIoBlockUD(LuaVirtualMachine acVm, boolean isAccessible, RedstoneIoBlockEntity redstoneIoBlockEntity) {
+        super("screen", acVm, isAccessible, redstoneIoBlockEntity);
     }
 
     @LuaCallable
@@ -31,23 +33,17 @@ public class RedstoneIoBlockUD extends BaseAcComponent {
         if (level < 0 || level > 15)
             throw new LuaJavaError("level argument (#2) is out of range: %s. Expected integer in range [0, 15]".formatted(level));
 
-        redstoneIoBlockEntity.setSignal(side, (int)level);
+        blockEntity.setSignal(side, (int) level);
     }
 
     @LuaCallable
     public int getInput(int side) {
         var direction = Direction.from3DDataValue(side);
-        return redstoneIoBlockEntity.getLevel().getSignal(redstoneIoBlockEntity.getBlockPos().relative(direction), direction);
+        return blockEntity.getLevel().getSignal(blockEntity.getBlockPos().relative(direction), direction);
     }
 
     @LuaDeserializer
-    public static RedstoneIoBlockUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
-        // TODO actually provide serializaion
-        return null;
-    }
-
-    @Override
-    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs) {
-        return new byte[0];
+    public static RedstoneIoBlockUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
+        return genericDeserialize(RedstoneIoBlockEntity.class, RedstoneIoBlockUD::new, objs, reader, postActions, additionalData);
     }
 }

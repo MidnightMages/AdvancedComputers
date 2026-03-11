@@ -63,6 +63,10 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
     public void onLoad() {
         super.onLoad();
         lazyItemhandler = LazyOptional.of(() -> itemHandler);
+        assert level != null;
+        if (level.isClientSide()) {
+            NetCodeUtils.sendToServer(new ScreenInputToServerEvent(this, "clientLoadedScreen", ""));
+        }
     }
 
     @Override
@@ -118,7 +122,7 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
 
             ComputerBlockEntity cbe = getComputerBlockEntityOrNull();
             if(cbe != null) {
-                cbe.getLvm().eventQueue.addRaw(name, LuaObject.of(content));
+                cbe.getLvm().triggerMachineEvent(name, LuaObject.of(content));
             }
             // just drop event if no computer is connected
         }
@@ -279,6 +283,10 @@ public class ScreenBlockEntity extends BaseAcCableConnectableBlockEntity impleme
                     ACError.Assert(!sbe.getLevel().isClientSide(), "Handling this screen event must be done server-side");
                     if (eventName == null || content == null) {
                         AdvancedComputers.LOGGER.warn("Received invalid Screen event containing null values");
+                        return;
+                    }
+                    if (eventName.equals("clientLoadedScreen")) {
+                        sbe.getComputerBlockEntity().getLvm().requestScreenContents(sbe);
                         return;
                     }
                     sbe.triggerMachineEvent(eventName, content);

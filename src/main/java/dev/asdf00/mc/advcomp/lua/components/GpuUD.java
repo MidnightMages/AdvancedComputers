@@ -5,14 +5,20 @@ import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
 import dev.asdf00.jluavm.api.userdata.LuaExposed;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
+import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockUD;
+import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.utils.LuaSerializationUtils;
 import dev.asdf00.mc.advcomp.utils.SetBiMap;
-import net.minecraft.core.BlockPos;
+import dev.asdf00.mc.advcomp.utils.Tuple;
+import net.minecraft.world.level.LevelAccessor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 public class GpuUD extends BaseAcComponent {
     public final SetBiMap<ScreenBlockEntity, TextBufferUD> screenBufferMap;
@@ -23,6 +29,11 @@ public class GpuUD extends BaseAcComponent {
 
     public GpuUD() {
         super("gpu");
+        screenBufferMap = new SetBiMap<>();
+    }
+
+    private GpuUD(LuaVirtualMachine acVm) {
+        super("gpu", acVm, true);
         screenBufferMap = new SetBiMap<>();
     }
 
@@ -55,7 +66,7 @@ public class GpuUD extends BaseAcComponent {
 
     @LuaCallable
     public void assignBuffer(TextBufferUD buf, ScreenBlockUD screenUD) {
-        ScreenBlockEntity sbe = screenUD.screenBlockEntity;
+        ScreenBlockEntity sbe = screenUD.blockEntity;
         if (sbe == null)
             throw new IllegalStateException("internal error trying to find screen");
 
@@ -64,13 +75,33 @@ public class GpuUD extends BaseAcComponent {
     }
 
     @Override
-    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs) {
-        throw new UnsupportedOperationException("not implemented");
+    public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
+        var bdr = new ByteArrayBuilder();
+        bdr.append(remainingVideoRam);
+        for (var entry : screenBufferMap.entrySet()) {
+            LuaSerializationUtils.appendBlockEntity(bdr, entry.getKey());
+            bdr.append(LuaObject.of(entry.getValue()).serialize(serialData, mappedObjs, additionalData));
+        }
+        return bdr.toArray();
     }
 
     @LuaDeserializer
-    public static GpuUD todoDeserializer(LuaObject[] objs, ByteArrayReader reader) {
-        // TODO actually provide serializaion
-        return null;
+    public static GpuUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
+        LevelAccessor level = ((LuaVirtualMachine) additionalData).computerBlockEntity.getLevel();
+        int remaining = reader.readInt();
+        var wrappers = new ArrayList<Tuple<ScreenBlockEntity, LuaObject>>();
+        while (reader.remaining() > 0) {
+            var be = LuaSerializationUtils.<ScreenBlockEntity>readBlockEntity(reader, level);
+            if (be == null) {
+                throw new IllegalStateException("we did not find some ScreenBlockEntity");
+            }
+            wrappers.add(new Tuple<>(be, objs[reader.readInt()]));
+        }
+        var nu = new GpuUD((LuaVirtualMachine) additionalData);
+        nu.remainingVideoRam = remaining;
+
+        // unwrap UD objects later
+        postActions.add(() -> wrappers.forEach(t -> nu.screenBufferMap.put(t.x(), (TextBufferUD) t.y().refVal)));
+        return nu;
     }
 }
