@@ -38,5 +38,7 @@
 	"item.advancedcomputers.hdd_tier4_item": "Hard Disk Drive (Tier 4)",
 	"item.advancedcomputers.hdd_tier5_item": "Hard Disk Drive (Tier 5)",
 
-	"item_group.advancedcomputers.tab_name": "Advanced Computers"
+	"item_group.advancedcomputers.tab_name": "Advanced Computers",
+	
+	"tooltip.advancedcomputers.shared.notimplemented": "§6This block/item might not be functional yet, even if craftable.§r"
 }
