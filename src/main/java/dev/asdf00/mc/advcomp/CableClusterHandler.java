@@ -52,7 +52,8 @@ public class CableClusterHandler {
     public void tick() {
         while (!rebuildQueue.isEmpty()) {
             var bp = rebuildQueue.remove();
-            CableCluster.onBlockPosChanged(this.level, bp);
+            if (level.isLoaded(bp))
+                CableCluster.onBlockPosChanged(this.level, bp);
         }
     }
 

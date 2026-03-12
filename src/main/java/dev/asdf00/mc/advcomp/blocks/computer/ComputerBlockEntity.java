@@ -272,11 +272,14 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
     //       Lua Interactions     Lua Interactions     Lua Interactions     Lua Interactions     Lua Interactions
     // =================================================================================================================
 
+    // can be triggered before the first tick if, e.g. a screen asks for it
     public LuaVirtualMachine getLvm() {
         if (isServer()) {
             synchronized (lockLVM) {
                 if (lvm == null) {
-                    lvm = new LuaVirtualMachine(this);
+                    lvm = LuaVirtualMachine.deserializeOrNull(this);
+                    if (lvm == null)
+                        lvm = new LuaVirtualMachine(this);
                 }
                 return lvm;
             }
