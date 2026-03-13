@@ -20,14 +20,21 @@ Planned stuff (for deeming the mod fit for Beta):
 - Adding ingame networking (computer to computer)
 - Adding more fun stuff like servers, etc.
 
+## Downloading
+While in alpha, versions can be downloaded via the [github releases section](https://github.com/MidnightMages/AdvancedComputers/releases). Once we reach Beta status we will move to Modrinth and probably CurseForge too (maybe this will also take place while in alpha, if there is high demand).
+
 ## Targeted minecraft versions
-Currently this targets Minecraft 1.20.1 (forge), but we do plan to extend that, once the mod is reaches the Release state (i.e. containing very few bugs and being mostly content complete).
+Currently this targets Minecraft 1.20.1 (forge), but we do plan to extend that once the mod reaches the Release state (i.e. containing very few bugs and being mostly content complete).
 
 ## License & Attribution
-Feel free to include this mod in any modpacks. Though we do ask you not to publicly re-upload *individual* mod builds, reuploading them in the form of a modpack, no matter how small (as long as it contains some other mod or forge/neoforge), is fine. It would be nice if you could send us a message in Discord if you did use this mod as part of a modpack, as we are curious :D.
+Feel free to include this mod in any modpacks without attributing us. 
+It would be nice if you could send us a message in Discord if you use this mod as part of a modpack as we are curious, but this is not required.
 
-As specified in the LICENSE file, the mod's is published under the MIT license. An exception to this are the fonts, which are located in /assetSources/font, for those, the associated license in that folder applies.
+As far as non-modpack usage goes, do *not* reupload mod builds anywhere.
 
+As specified in the LICENSE file, the mod is published under the MIT license. An exception to this are the fonts, which are located in /assetSources/font, for those, the associated license in that folder applies.
+
+Feel free to use JLuaVm for another Minecraft mod too, as that is licensed as MIT as well.
 
 ## Contributing
 Bugfixes are always welcome in the form of Pull-Requests (For the mod and JLuaVm). For adding new features in the form of a PR, please get in touch with us on Discord (see link above) first to avoid doing duplicate work, etc (especially before the mod is content complete).
