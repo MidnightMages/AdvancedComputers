@@ -1,4 +1,4 @@
 [submodule "submodules/JLuaVM"]
 	path = submodules/JLuaVM
-	url = https://git.ghxx.dev/GHXX/JLuaVM.git
+	url = https://github.com/MidnightMages/JLuaVM.git
 	branch = master
