@@ -95,8 +95,11 @@ public class CableCluster {
 
             if (alreadyCheckedPoses.contains(currentBlockPos))
                 continue;
-
             alreadyCheckedPoses.add(currentBlockPos);
+
+            // do not check positions that are not loaded as that would forcefully load the chunk
+            if (!level.isLoaded(currentBlockPos))
+                continue;
 
             var currentBlockEntity = level.getBlockEntity(currentBlockPos);
             if (currentBlockEntity == null) // if there is no tileentity then we can skip this startpoint

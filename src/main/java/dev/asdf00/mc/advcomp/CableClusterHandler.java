@@ -38,14 +38,16 @@ public class CableClusterHandler {
 
     // needs to be called whenever a cable/computer/acConnectible is placed/loaded
     public static void markBlockPosForUpdate(@NotNull Level level, @NotNull BlockPos e) {
-        var handler = getOrMakeNew(level);
-        handler.rebuildQueue.add(e);
+        if (level.isLoaded(e)) {
+            var handler = getOrMakeNew(level);
+            handler.rebuildQueue.add(e);
+        }
     }
 
     // removed/unloaded
     public static void markBlockPosForUpdateIfExists(@NotNull Level level, @NotNull BlockPos e) {
         var handler = handlers.get(level.dimensionType());
-        if (handler != null)
+        if (handler != null && level.isLoaded(e))
             handler.rebuildQueue.add(e);
     }
 
