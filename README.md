@@ -8,10 +8,22 @@ Feel free to join our Discord server for support or any kind of questions: https
 At this point there is still some fundamental content missing (thus the alpha tag) and there might also be a number of bugs present (please open an issue ticket if you find one).
 
 ## Features
-Currently adds programmable computers into Minecraft, along with screens, peripheral cables, real-world-internet-access, and more, all being interactable through Lua 5.4.
+Currently adds programmable computers into Minecraft, along with screens, peripheral cables, real-world-internet-access, and redstone peripheral, all being interactable through Lua 5.4.
 As far as resource usage goes, we are only setting up a lua execution environment per computer and **not** an entire virtual machine (that would then run linux) as other mods do. This means, our computers are much more lightweight in terms of ram and cpu usage.
 
-Planned stuff (for deeming the mod fit for Beta):
+### Finding your way around
+We sincerely want to apologise for the slight lack of usability on the software side; our OS (Advanced OS) is not mega usable right now, but the commands `ls` and `lua` do exist, so you could technically write a text editor using the lua shell and then get going from there.
+
+You can also use the lua code `vm.listUDKeys(components:getFirst("computer"))` to programmatically figure out which fields a userdata object contains (in your current mod version). 'userdata' is a special Lua type that represents a Java object. All components are represented as userdata objects.
+
+A more convenient approach however may however taking a look at the exported userdata variable headers here: https://ac.ghxx.dev/apidocs.txt
+
+This combined with looking at the existing uefi.lua and operating system, both located in `src/main/resources/assets/advancedcomputers/lua/*` should hopefully give a decent point to start out with.
+
+You can also find the current mod and minecraft version in the global `_HOST` variable. E.g `AdvancedComputers 0.1.2-alpha; Minecraft 1.20.1`.
+
+### Planned stuff (for deeming the mod fit for Beta):
+- Make the OS more usable (including rewriting the kernel problably), as currently it is very very bare (though does contain the `ls` and `lua` programs)
 - Finish adding anything that is missing from the Lua standard library (most notably some edgecase features in pattern matching, i.e string.gsub and related functions, though they mostly work)
 - Sending network packets between ingame computers (with some intelligent packet handling to avoid having to write a custom, ingame IP protocol) 
 - Making a wiki that lists & describes all the api functions
