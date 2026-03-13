@@ -1,6 +1,6 @@
 # Advanced Computers
-This is yet another computer mod for Minecraft, including a *custom built LUA runtime*, called [JLuaVm](https://github.com/MidnightMages/JLuaVM), and thus also the ability to *persist computer states* across chunk unloading and even server shutdowns, meaning they wont be forcefully rebooted in such events, similar to OpenComputers' 1.12 behaviour. 
-This is of course inspired by OpenComputers 1.12 and the original ComputerCraft mod.
+This is yet another computer mod for Minecraft, including a *custom built LUA runtime*, called [JLuaVm](https://github.com/MidnightMages/JLuaVM), and thus also the ability to *persist computer states* across chunk unloading and even server shutdowns, meaning they wont be forcefully rebooted in such events. This is similar to the behaviour of OpenComputers-1.12, though we are using a fully-custom lua runtime.
+This is of course inspired by OpenComputers (for Minecraft 1.12) and the original ComputerCraft mod.
 
 Feel free to join our Discord server for support or any kind of questions: https://discord.gg/YBvURmhN9f
 
