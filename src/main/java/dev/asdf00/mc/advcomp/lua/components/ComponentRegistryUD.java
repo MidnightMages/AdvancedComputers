@@ -7,15 +7,13 @@ import dev.asdf00.jluavm.internals.LuaVM_RT;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
+import dev.asdf00.mc.advcomp.items.BaseMassStorageUD;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.types.RuntimeAssert;
 import dev.asdf00.mc.advcomp.utils.Tuple;
 import dev.asdf00.mc.advcomp.utils.TupleArrayListMap;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -35,11 +33,10 @@ public class ComponentRegistryUD implements LuaUserData {
 
     @LuaCallable
     public LuaObject list() {
-        // TODO sort allComponents by inventory-first, then euclidean distance, then by y x and z distances
-        // or more generally, sort first by euclidean distance, then by y x z distances, then by slot index
         LuaObject[] rets;
         synchronized (componentModifyLockObj) {
             rets = Arrays.stream(itemstackAssociationMap.entries())
+                    .sorted(getComponentComparator())
                     .map(Tuple::y)
                     .map(x ->
                             LuaObject.of(LuaObject.of(x.getComponentType()), LuaObject.of(x)) // create ARRAY
@@ -57,12 +54,52 @@ public class ComponentRegistryUD implements LuaUserData {
     public LuaObject getFirst(String componentType) {
         synchronized (componentModifyLockObj) {
             return Arrays.stream(itemstackAssociationMap.entries())
+                    .sorted(getComponentComparator())
                     .map(Tuple::y)
                     .filter(x -> x.getComponentType().equals(componentType))
                     .map(LuaObject::of)
                     .findFirst()
                     .orElse(LuaObject.NIL);
         }
+    }
+
+    Map<String, Integer> massStorageSortOrder = Map.of(
+            "hdd", 0,
+            "floppy", 1
+    );
+
+    // sort first by built-in-ness, then euclidean distance, then by y x z distances, then by slot index
+    private Comparator<? super Tuple<AcComponentSlotInfo, LuaUserDataComponent>> getComponentComparator() {
+        return (a, b) -> { // smallest ones comes first
+            var slotA = a.x();
+            var slotB = b.x();
+            if ((slotA == null) != (slotB == null)) { // if a is a built in component and b is not, rank a it first
+                return slotA == null ? -1 : 1;
+            }
+            // now slotA and slotB are either not null or both null
+            if (slotA == null) { // both are built in
+                if (a.y() instanceof BaseMassStorageUD aStorage && b.y() instanceof BaseMassStorageUD bStorage) {
+                    if (!aStorage.storageApiType.equals(bStorage.storageApiType)) { // rank managed before unmanaged
+                        return aStorage.storageApiType.equals("managed") ? -1 : 1;
+                    }
+
+                    var aPos = massStorageSortOrder.getOrDefault(aStorage.storageFamilyName, 8192);
+                    var bPos = massStorageSortOrder.getOrDefault(bStorage.storageFamilyName, 8192);
+                    return aPos - bPos; // if a is less than b, rank it first
+                }
+
+                return a.y().getComponentType().compareTo(b.y().getComponentType());
+            } // else both slotinfos are nonnull
+
+            var slotAPos = slotA.getInventoryOwnerPos();
+            var slotBPos = slotB.getInventoryOwnerPos();
+            if (!slotAPos.equals(slotBPos)) { // inventory block positions differ
+                // todo compute euclidean distance to computer
+                return 0;
+            } else {
+                return slotA.getSlotIndex() - slotB.getSlotIndex(); // rank first slots first
+            }
+        };
     }
 
     @SuppressWarnings("unchecked")
