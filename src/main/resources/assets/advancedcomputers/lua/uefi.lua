@@ -45,13 +45,15 @@ local ok, rv = xpcall(function()
 	setUpPrinting("print")
 	setUpPrinting("printInline")
 	local computer = components:getFirst("computer")
+	if computer.nvram ~= nil then -- nvram is just a magical table that can only store primitives, but is readwrite and persistent across restarts
+		print("nvram is available")
+	else
+		print("nvram is unavailable")
+	end
+
 	local idx = 1
 	for t, a in components:list() do
 	   print(t, a.componentType)
-	   computer.nvram.test = 123
-	   print(computer.nvram.test)
-	   computer.nvram.test = "bla"
-	   print(computer.nvram.test)
 	   if t == "massStorage" then
 		  --print("has boot file? ", a.fileExists("boot.lua"))
 		  if a:fileExists("boot.lua") then
