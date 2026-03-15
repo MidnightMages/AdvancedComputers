@@ -11,7 +11,13 @@ At this point there is still some fundamental content missing (thus the alpha ta
 
 ## Features
 Currently adds programmable computers into Minecraft, along with screens, peripheral cables, real-world-internet-access, and redstone peripheral, all being interactable through Lua 5.4.
-As far as resource usage goes, we are only setting up a lua execution environment per computer and **not** an entire virtual machine (that would then run linux) as other mods do. This means, our computers are much more lightweight in terms of ram and cpu usage.
+
+**For server owners:**
+As far as resource usage goes, we are only setting up a lua execution environment per computer and **not** an entire virtual machine, meaning these computers have a very minimum low ram and disk space requirement.
+
+Cpu time limiting based on computer tier is implemented, whereas ram & disk usage limiting currently is not.
+
+### Planned stuff (until we label the mod as a Beta):
 
 ### Finding your way around
 We sincerely want to apologise for the slight lack of usability on the software side; our OS (Advanced OS) is not mega usable right now, but the commands `ls` and `lua` do exist, so you could technically write a text editor using the lua shell and then get going from there.
