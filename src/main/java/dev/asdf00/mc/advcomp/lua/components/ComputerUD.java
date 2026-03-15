@@ -7,6 +7,7 @@ import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
+import dev.asdf00.mc.advcomp.items.MainboardItem;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 
 import java.util.Arrays;
@@ -20,17 +21,36 @@ public final class ComputerUD extends BaseAcComponent {
     private final ConcurrentLinkedQueue<LuaObject[]> eventQueue = new ConcurrentLinkedQueue<>();
 
     @LuaExposed(LuaExposed.Policy.READ)
-    public LuaObject nvram;
+    public LuaObject uefi;
 
+    @LuaExposed(LuaExposed.Policy.READ)
+    public LuaObject nvram = LuaObject.nil(); // requires mainboard tier 2 or higher
+
+    @LuaExposed(LuaExposed.Policy.READ)
+    public LuaObject tpm = LuaObject.nil(); // requires mainboard tier 3
+
+    /**
+     * When using this specific constructor, {@link #setupMainboard} must be called before the object is being used in the VM.
+     */
     public ComputerUD() {
         super("computer");
-        nvram = LuaObject.of(new NvramUD());
     }
 
-    private ComputerUD(LuaVirtualMachine acVm, LuaObject nvram) {
+    public void setupMainboard(MainboardItem.MainboardInfo mainboardInfo) {
+        uefi = LuaObject.of(new UefiUD(mainboardInfo.uefiId()));
+        if (mainboardInfo.tier().ordinal() >= MainboardItem.MainboardTier.T2.ordinal())
+            nvram = LuaObject.of(new NvramUD());
+
+//        if(mainboardTier.ordinal() >= MainboardItem.MainboardTier.T3.ordinal()) // TODO add tpm
+//            tpm = LuaObject.of(new TpmUD());
+    }
+
+    private ComputerUD(LuaVirtualMachine acVm, LuaObject uefi, LuaObject nvram, LuaObject tpm) {
         // a computer component is always available
         super("computer", acVm, true);
+        this.uefi = uefi;
         this.nvram = nvram;
+        this.tpm = tpm;
     }
 
     /**
@@ -61,20 +81,34 @@ public final class ComputerUD extends BaseAcComponent {
 
     @Override
     public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
-        int nvrId = nvram.serialize(serialData, mappedObjs, additionalData);
-        return new ByteArrayBuilder(Integer.BYTES).append(nvrId).toArray();
+        int uefiIdx = uefi.serialize(serialData, mappedObjs, additionalData);
+        int nvramIdx = nvram.serialize(serialData, mappedObjs, additionalData);
+        int tmpIdx = tpm.serialize(serialData, mappedObjs, additionalData);
+        return new ByteArrayBuilder(Integer.BYTES)
+                .append(uefiIdx)
+                .append(nvramIdx)
+                .append(tmpIdx)
+                .toArray();
     }
 
     @LuaDeserializer
     public static ComputerUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
-        int nvrIdx = reader.readInt();
+        int uefiIdx = reader.readInt();
+        int nvramIdx = reader.readInt();
+        int tpmIdx = reader.readInt();
         var acVM = (LuaVirtualMachine) additionalData;
-        var nu = new ComputerUD(acVM, objs[nvrIdx]);
+        var nu = new ComputerUD(acVM, objs[uefiIdx], objs[nvramIdx], objs[tpmIdx]);
         acVM.onUdDeserialize(nu);
         postActions.add(() -> {
-            if (!(nu.nvram.refVal instanceof NvramUD)) {
+            if (!(nu.uefi.refVal instanceof UefiUD)) {
+                throw new IllegalStateException(nu + " has no UefiUD after deserialization");
+            }
+            if (!nu.nvram.isNil() && !(nu.nvram.refVal instanceof NvramUD)) {
                 throw new IllegalStateException(nu + " has no NvramUD after deserialization");
             }
+//            if (!nu.tpm.isNil() && !(nu.tpm.refVal instanceof TpmUD)) { // todo add tpm
+//                throw new IllegalStateException(nu + " has no NvramUD after deserialization");
+//            }
         });
         return nu;
     }

@@ -40,5 +40,8 @@
 
 	"item_group.advancedcomputers.tab_name": "Advanced Computers",
 	
-	"tooltip.advancedcomputers.shared.notimplemented": "§6This block/item might not be functional yet, even if craftable.§r"
+	"tooltip.advancedcomputers.shared.notimplemented": "§6This block/item might not be functional yet, even if craftable.§r",
+	"tooltip.advancedcomputers.item.mainboard_t1": "Only comes with a §3UEFI§r.",
+	"tooltip.advancedcomputers.item.mainboard_t2": "Comes with a §3UEFI§r and §3non volatile ram (NVRAM)§r.",
+	"tooltip.advancedcomputers.item.mainboard_t3": "Includes a §3UEFI§r, §3NVRAM§r and a §3trusted platform module (TPM)§r."
 }

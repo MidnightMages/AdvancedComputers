@@ -121,7 +121,8 @@ public class LuaVirtualMachine {
         } catch (Exception e) {
             // on error, give up and return null instead
             vm = null;
-            AdvancedComputers.LOGGER.warn("Failed to deserialize vm, please report this. Original exception:\n%s".formatted(e));
+            var exceptionAsString = e + "\n" + Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
+            AdvancedComputers.LOGGER.warn("Failed to deserialize vm, please report this. Original exception:\n%s".formatted(exceptionAsString));
         }
 
         try {
@@ -201,19 +202,23 @@ public class LuaVirtualMachine {
             componentReg.addComponentInitAndNotify(new GpuUD(), AcComponentSlotInfo.ofBlockComponent(computerBlockEntity));
 
             // set up inventory components
-            String uefiScript = null; // entry code; i.e. uefi
+            MainboardItem.MainboardInfo mainboardInfo = null; // for grabbing the uefi code
             var inv = computerBlockEntity.itemHandler;
             for (int i = 0; i < inv.getSlots(); i++) {
                 var is = onInventorySlotChanged(i);
                 if (is.getItem() instanceof MainboardItem mi) {
-                    uefiScript = mi.readUefiScript(is);
+                    mainboardInfo = mi.getInfo(is);
                 }
             }
-            if (uefiScript == null) {
+            if (mainboardInfo == null) {
                 stopCode = "No uefi installed";
                 state.crash();
                 return;
             }
+
+            // add mainboard userdata objects to computerUD
+            luaComputer.setupMainboard(mainboardInfo);
+            String uefiScript = ((UefiUD) luaComputer.uefi.refVal).getUefiScript();
 
             // set up peripheral devices from IO-net
             computerBlockEntity.connectedNetworks.values().stream()
