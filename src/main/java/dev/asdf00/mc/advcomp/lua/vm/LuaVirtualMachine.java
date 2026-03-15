@@ -203,9 +203,9 @@ public class LuaVirtualMachine {
             stopCode = "";
 
             // add builtin components
-            componentReg.addComponentInitAndNotify(luaComputer, AcComponentSlotInfo.ofBlockComponent(computerBlockEntity));
-            componentReg.addComponentInitAndNotify(new InternetUD(), AcComponentSlotInfo.ofBlockComponent(computerBlockEntity));
-            componentReg.addComponentInitAndNotify(new GpuUD(), AcComponentSlotInfo.ofBlockComponent(computerBlockEntity));
+            componentReg.addComponentInitAndNotify(luaComputer, null);
+            componentReg.addComponentInitAndNotify(new InternetUD(), null);
+            componentReg.addComponentInitAndNotify(new GpuUD(), null);
 
             // set up inventory components
             MainboardItem.MainboardInfo mainboardInfo = null; // for grabbing the uefi code

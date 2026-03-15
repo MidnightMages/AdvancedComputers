@@ -7,6 +7,7 @@ import dev.asdf00.jluavm.internals.LuaVM_RT;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
+import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.items.BaseMassStorageUD;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.types.RuntimeAssert;
@@ -94,8 +95,8 @@ public class ComponentRegistryUD implements LuaUserData {
             var slotAPos = slotA.getInventoryOwnerPos();
             var slotBPos = slotB.getInventoryOwnerPos();
             if (!slotAPos.equals(slotBPos)) { // inventory block positions differ
-                // todo compute euclidean distance to computer
-                return 0;
+                // todo compute euclidean distance to computer instead
+                return slotA.getSlotIndex() != -1 ? -1 : 1;
             } else {
                 return slotA.getSlotIndex() - slotB.getSlotIndex(); // rank first slots first
             }
@@ -122,26 +123,13 @@ public class ComponentRegistryUD implements LuaUserData {
     public void addComponentInitAndNotify(LuaUserDataComponent component, AcComponentSlotInfo sourceInfo) {
         // trigger compilation of this UD binding ahead of time, so we dont have to wait for it later
         triggerUserdataDescriptorCompilation(component.getClass());
-        var slotId = sourceInfo.getSlotIndex();
-        var isComputer = lvm.computerBlockEntity.getBlockPos().equals(sourceInfo.getInventoryOwnerPos());
-        RuntimeAssert.RuntimeAssert(isComputer || slotId == -1, "Only computer supported right now as blocks that contain an inventory of components");
-        component.onVmInit(lvm, (isComputer && slotId != -1) ? lvm.computerBlockEntity.itemHandler.getStackInSlot(slotId) : null);
-
+        component.onVmInit(lvm, (sourceInfo != null && sourceInfo.isItemComponent()) ?
+                lvm.computerBlockEntity.itemHandler.getStackInSlot(sourceInfo.getSlotIndex()) : null);
         synchronized (componentModifyLockObj) {
             // builtin components are represented using identifier=null
-            itemstackAssociationMap.put(isComputer ? null : sourceInfo, component);
+            itemstackAssociationMap.put(sourceInfo, component);
         }
         lvm.triggerMachineEvent("componentAdded", LuaObject.of(component.getComponentType()), LuaObject.of(component));
-    }
-
-    public void removeComponentAndNotify(AcComponentSlotInfo slotInfo) {
-        synchronized (componentModifyLockObj) {
-            var component = itemstackAssociationMap.get(slotInfo);
-            if (component != null) {
-                component.makeObjectInaccessible();
-                lvm.triggerMachineEvent("componentRemoved", LuaObject.of(component));
-            }
-        }
     }
 
     @Override
@@ -217,7 +205,12 @@ public class ComponentRegistryUD implements LuaUserData {
         synchronized (componentModifyLockObj) {
             for (var key : Arrays.stream(itemstackAssociationMap.entries()).filter(x -> filter.apply(x.x())).map(Tuple::x).toArray()) {
                 RuntimeAssert.RuntimeAssert(key != null, "key was null");
-                itemstackAssociationMap.remove((AcComponentSlotInfo) key);
+                var removedComponent = itemstackAssociationMap.remove((AcComponentSlotInfo) key);
+                if (removedComponent != null) {
+                    removedComponent.makeObjectInaccessible();
+                    AdvancedComputers.LOGGER.warn("component was removed! %s".formatted(removedComponent.getComponentType()));
+                    lvm.triggerMachineEvent("componentRemoved", LuaObject.of(removedComponent));
+                }
             }
         }
     }
