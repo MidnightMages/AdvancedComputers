@@ -88,6 +88,12 @@ public class LuaVirtualMachine {
     }
 
     public ItemStack onInventorySlotChanged(int slot) {
+        // if the first slot was modified (mainboard), immediately crash the ocmputer
+        if (slot == 0 && state.getState().equals(State.RUNNING)) {
+            tryKill("mainboard was removed");
+            return null;
+        }
+
         // when we get a new slot item here, remove all existing components that occupy the slot and then add this new one and init it
         componentReg.removeAllComponentsInSlot(x -> x != null && x.getSlotIndex() == slot && x.getInventoryOwnerPos().equals(computerBlockEntity.getBlockPos()));
         // TODO should probs move this into component reg ud somehow to make it convenient to use for block components, but we'll see
