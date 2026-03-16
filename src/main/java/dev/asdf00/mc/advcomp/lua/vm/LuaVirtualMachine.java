@@ -128,7 +128,8 @@ public class LuaVirtualMachine {
             // on error, give up and return null instead
             vm = null;
             var exceptionAsString = e + "\n" + Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
-            AdvancedComputers.LOGGER.warn("Failed to deserialize vm, please report this. Original exception:\n%s".formatted(exceptionAsString));
+            AdvancedComputers.LOGGER.error(("Failed to deserialize vm, please report this unless the mod version changed since last time the world was saved. " +
+                                            "Original exception:\n%s").formatted(exceptionAsString));
         }
 
         try {
