@@ -88,16 +88,17 @@ public class ComputerBlock extends BaseEntityBlock {
                 .setValue(RUN_STATE, ComputerRunState.STOPPED);
     }
 
-
     @Override
-    public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pMovedByPiston) {
-        if (pState.getBlock() != pNewState.getBlock()) {
-            var be = pLevel.getBlockEntity(pPos);
-            if (be instanceof ComputerBlockEntity cbe)
+    public void playerWillDestroy(@NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull BlockState pState, @NotNull Player pPlayer) {
+        super.playerWillDestroy(pLevel, pPos, pState, pPlayer);
+        if (pLevel.isClientSide())
+            return;
+
+        var be = pLevel.getBlockEntity(pPos);
+        if (be instanceof ComputerBlockEntity cbe) {
+            if(cbe.itemHandler.containsAnyItem() || !pPlayer.isCreative())
                 cbe.drops();
         }
-
-        super.onRemove(pState, pLevel, pPos, pNewState, pMovedByPiston);
     }
 
     @Override
@@ -127,12 +128,7 @@ public class ComputerBlock extends BaseEntityBlock {
     }
 
     @Override
-    public void destroy(LevelAccessor pLevel, BlockPos pPos, BlockState pState) {
-        var upPos = pPos.relative(Direction.UP);
-        var upState = pLevel.getBlockState(upPos);
-        if (upState.getBlock() instanceof ScreenBlock screenBlock) {
-            screenBlock.destroy(pLevel, upPos, upState);
-        }
+    public void destroy(@NotNull LevelAccessor pLevel, @NotNull BlockPos pPos, @NotNull BlockState pState) {
         super.destroy(pLevel, pPos, pState);
     }
 

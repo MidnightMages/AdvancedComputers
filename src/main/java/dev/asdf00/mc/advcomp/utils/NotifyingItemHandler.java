@@ -46,4 +46,12 @@ public class NotifyingItemHandler extends ItemStackHandler {
     public void loadContents(@NotNull CompoundTag nbt) {
         super.deserializeNBT(nbt.getCompound("inventory"));
     }
+
+    public boolean containsAnyItem() {
+        for (int i = 0; i < getSlots(); i++) {
+            if (!getStackInSlot(i).isEmpty())
+                return true;
+        }
+        return false;
+    }
 }
