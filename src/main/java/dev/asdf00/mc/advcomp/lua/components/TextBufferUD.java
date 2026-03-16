@@ -63,7 +63,7 @@ public final class TextBufferUD implements LuaUserData {
 
     @LuaCallable
     public void free() {
-        gpuUD.freeBuffer(this);
+        gpuUD.onBufferFreed(this);
         isFreed = true;
         // now we are safe to drop the memory backing this buffer.
         width = height = 0;
