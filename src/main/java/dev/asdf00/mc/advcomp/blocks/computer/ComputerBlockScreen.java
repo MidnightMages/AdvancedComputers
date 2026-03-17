@@ -2,7 +2,6 @@ package dev.asdf00.mc.advcomp.blocks.computer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.types.MultiImageButton;
 import dev.asdf00.mc.advcomp.utils.TriConsumer;
 import net.minecraft.client.gui.GuiGraphics;
@@ -12,13 +11,13 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public class ComputerBlockScreen extends AbstractContainerScreen<ComputerBlockMenu> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(AdvancedComputers.MODID, "textures/gui/computer_gui.png");
-    private static final Component ON_OFF_BUTTON = TranslationMap.GuiButton("computer_block", "onoff");
     private MultiImageButton onOffButton;
 
     public ComputerBlockScreen(ComputerBlockMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
@@ -85,7 +84,7 @@ public class ComputerBlockScreen extends AbstractContainerScreen<ComputerBlockMe
     }
 
     @Override
-    public void render(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    public void render(@NotNull GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         renderBackground(pGuiGraphics);
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         renderTooltip(pGuiGraphics, pMouseX, pMouseY);

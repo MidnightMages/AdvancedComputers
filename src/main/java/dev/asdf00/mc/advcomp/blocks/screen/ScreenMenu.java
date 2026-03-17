@@ -29,7 +29,7 @@ public class ScreenMenu extends AbstractContainerMenu {
     }
 
     @Override
-    public ItemStack quickMoveStack(Player pPlayer, int pIndex) {
+    public @NotNull ItemStack quickMoveStack(@NotNull Player pPlayer, int pIndex) {
         return null;
     }
 

@@ -20,7 +20,7 @@ import org.joml.Matrix4f;
 import java.awt.*;
 
 public class ComputerBlockEntityRenderer implements BlockEntityRenderer<ComputerBlockEntity> {
-    public ComputerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
+    public ComputerBlockEntityRenderer(BlockEntityRendererProvider.Context ignored) {
     }
 
 
@@ -28,11 +28,6 @@ public class ComputerBlockEntityRenderer implements BlockEntityRenderer<Computer
     public boolean shouldRenderOffScreen(@NotNull ComputerBlockEntity pBlockEntity) {
         return false;
     }
-
-//    @Override
-//    public boolean shouldRender(ComputerBlockEntity pBlockEntity, Vec3 pCameraPos) {
-//        return true;
-//    }
 
     private static ComputerBlock.ComputerRunState getRunstate(ComputerBlockEntity be) {
         return be.getBlockState().getValue(ComputerBlock.RUN_STATE);

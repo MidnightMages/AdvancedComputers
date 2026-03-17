@@ -93,7 +93,7 @@ public class ComputerBlockMenu extends AbstractContainerMenu {
     public @NotNull ItemStack quickMoveStack(@NotNull Player playerIn, int pIndex) {
         var tier = blockEntity.getTier();
         Slot sourceSlot = slots.get(pIndex);
-        if (sourceSlot == null || !sourceSlot.hasItem()) return ItemStack.EMPTY;  //EMPTY_ITEM
+        if (!sourceSlot.hasItem()) return ItemStack.EMPTY;  //EMPTY_ITEM
         ItemStack sourceStack = sourceSlot.getItem();
         ItemStack copyOfSourceStack = sourceStack.copy();
 

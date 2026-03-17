@@ -38,7 +38,7 @@ public class WanRouterBlockLowTier extends WanRouterBlock {
 
     @Nullable
     @Override
-    public BlockState getStateForPlacement(BlockPlaceContext pContext) {
+    public BlockState getStateForPlacement(@NotNull BlockPlaceContext pContext) {
         var ply = pContext.getPlayer();
         var dir =  Direction.NORTH;
         if(ply != null){
@@ -54,7 +54,7 @@ public class WanRouterBlockLowTier extends WanRouterBlock {
     }
 
     @Override
-    public void onRemove(BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, BlockState pNewState, boolean pMovedByPiston) {
+    public void onRemove(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull BlockState pNewState, boolean pMovedByPiston) {
         super.onRemove(pState, pLevel, pPos, pNewState, pMovedByPiston);
     }
 

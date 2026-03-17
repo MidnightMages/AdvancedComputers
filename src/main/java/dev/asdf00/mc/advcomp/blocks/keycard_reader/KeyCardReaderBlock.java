@@ -65,7 +65,7 @@ public class KeyCardReaderBlock extends BaseEntityBlock {
     }
 
     @Override
-    public InteractionResult use(@NotNull BlockState pState, Level pLevel, @NotNull BlockPos pPos, @NotNull Player pPlayer, @NotNull InteractionHand pHand, @NotNull BlockHitResult pHit) {
+    public @NotNull InteractionResult use(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull Player pPlayer, @NotNull InteractionHand pHand, @NotNull BlockHitResult pHit) {
         var handItem = pPlayer.getItemInHand(pHand).getItem();
         if (!(handItem instanceof BaseKeycardItem bki)) // fail if player doesnt swipe with a keycard
             return InteractionResult.FAIL;
