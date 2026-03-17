@@ -2,9 +2,6 @@ package dev.asdf00.mc.advcomp.items;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
-import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
-import dev.asdf00.mc.advcomp.lua.components.NvramUD;
-import dev.asdf00.mc.advcomp.lua.components.UefiUD;
 import dev.asdf00.mc.advcomp.types.RuntimeAssert;
 import dev.asdf00.mc.advcomp.utils.AcPaths;
 import net.minecraft.network.chat.Component;
@@ -17,7 +14,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.List;
 
 import static dev.asdf00.mc.advcomp.utils.ResourceUtil.loadLuaScript;

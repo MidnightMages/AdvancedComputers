@@ -1,12 +1,9 @@
 package dev.asdf00.mc.advcomp.lua.components.fs;
 
-import dev.asdf00.mc.advcomp.types.RuntimeAssert;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
 public class DirectoryNode {
     final String nameOrPath;

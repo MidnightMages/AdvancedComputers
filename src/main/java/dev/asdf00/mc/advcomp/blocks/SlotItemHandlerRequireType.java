@@ -5,7 +5,6 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.function.Function;
 
 public class SlotItemHandlerRequireType extends SlotItemHandler {

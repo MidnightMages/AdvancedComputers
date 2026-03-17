@@ -7,7 +7,6 @@ import dev.asdf00.mc.advcomp.items.DiskItem;
 import dev.asdf00.mc.advcomp.items.FloppyDiskItem;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
 import dev.asdf00.mc.advcomp.lua.components.AcItemComponent;
-import dev.asdf00.mc.advcomp.utils.Tuple;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -19,8 +18,6 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
 
 public class ComputerBlockMenu extends AbstractContainerMenu {
     public final ComputerBlockEntity blockEntity;

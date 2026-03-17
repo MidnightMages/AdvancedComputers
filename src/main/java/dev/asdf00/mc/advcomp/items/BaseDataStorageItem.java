@@ -4,7 +4,6 @@ import dev.asdf00.mc.advcomp.lua.components.AcComponentSlotInfo;
 import dev.asdf00.mc.advcomp.lua.components.AcItemComponent;
 import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 
 public class BaseDataStorageItem extends Item implements AcItemComponent {
     protected final int totalCapacityBytes;

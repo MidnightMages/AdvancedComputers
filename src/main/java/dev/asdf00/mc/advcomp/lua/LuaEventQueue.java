@@ -2,7 +2,6 @@ package dev.asdf00.mc.advcomp.lua;
 
 import dev.asdf00.jluavm.api.userdata.LuaUserData;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
-import dev.asdf00.mc.advcomp.lua.components.ComponentRegistryUD;
 import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 
 import java.awt.event.KeyEvent;
