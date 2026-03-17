@@ -167,7 +167,7 @@ tasks.named('processResources', ProcessResources).configure {
 
 // Example for how to get properties into the manifest for reading at runtime.
 tasks.named('jar').configure {
-    jar.archiveClassifier.set('slim')
+    jar.archiveClassifier.set('')
 
     var gitStatus = "git status -s".execute().text
     boolean mainIsDirty = gitStatus.replace("\r\n","\n").replace("\r","\n").split("\n").any {
@@ -192,21 +192,6 @@ tasks.named('jar').configure {
     }
     // This is the preferred method to reobfuscate your jar file
     finalizedBy 'reobfJar'
-}
-
-shadowJar {
-    archiveClassifier.set('')
-    configurations = [project.configurations.shade]
-    //relocation of the party namespace seems to break everything?
-    //relocate 'party.iroiro.luajava', "${project.group}.repack.party.iroiro.luajava"
-    //relocate 'com.badlogic.gdx', "${project.group}.repack.com.badlogic.gdx"
-    finalizedBy 'reobfShadowJar'
-}
-
-assemble.dependsOn shadowJar
-
-reobf {
-    shadowJar {}
 }
 
 // However if you are in a multi-project build, dev time needs unobfed jar files, so you can delay the obfuscation until publishing by doing:
