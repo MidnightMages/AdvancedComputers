@@ -10,15 +10,14 @@ import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Stream;
 
 public final class ComputerUD extends BaseAcComponent {
     private final ConcurrentLinkedQueue<LuaObject[]> eventQueue = new ConcurrentLinkedQueue<>();
+    private long bootTimeMillis = System.currentTimeMillis();
 
     @LuaExposed(LuaExposed.Policy.READ)
     public LuaObject uefi;
@@ -79,6 +78,26 @@ public final class ComputerUD extends BaseAcComponent {
         return e == null ? new LuaObject[]{LuaObject.NIL} : e;
     }
 
+    @LuaCallable
+    public double getEpoch() {
+        return System.currentTimeMillis() / 1000d;
+    }
+
+    @LuaCallable
+    public long getEpochMs() {
+        return System.currentTimeMillis();
+    }
+
+    @LuaCallable
+    public String getDate() {
+        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXX").format(new Date());
+    }
+
+    @LuaCallable
+    public double getUptime() {
+        return (System.currentTimeMillis() - bootTimeMillis) / 1000d;
+    }
+
     @Override
     public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
         int uefiIdx = uefi.serialize(serialData, mappedObjs, additionalData);
@@ -88,6 +107,7 @@ public final class ComputerUD extends BaseAcComponent {
                 .append(uefiIdx)
                 .append(nvramIdx)
                 .append(tmpIdx)
+                .append(bootTimeMillis)
                 .toArray();
     }
 
@@ -98,6 +118,7 @@ public final class ComputerUD extends BaseAcComponent {
         int tpmIdx = reader.readInt();
         var acVM = (LuaVirtualMachine) additionalData;
         var nu = new ComputerUD(acVM, objs[uefiIdx], objs[nvramIdx], objs[tpmIdx]);
+        nu.bootTimeMillis = reader.readLong();
         acVM.onUdDeserialize(nu);
         postActions.add(() -> {
             if (!(nu.uefi.refVal instanceof UefiUD)) {
