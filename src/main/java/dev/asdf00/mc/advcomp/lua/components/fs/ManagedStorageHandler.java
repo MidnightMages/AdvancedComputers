@@ -14,13 +14,12 @@ import java.util.Comparator;
 import java.util.stream.Stream;
 
 public class ManagedStorageHandler implements StorageHandler {
-    private final int diskId;
     private final DirectoryNode root;
     boolean isReadOnly = false;
 
     @Override
     public void DeleteAllData() {
-
+        throw new IllegalStateException("not implemented");
     }
 
     public static String encodeFilename(String filename) {
@@ -80,7 +79,6 @@ public class ManagedStorageHandler implements StorageHandler {
     }
 
     public ManagedStorageHandler(int diskId) {
-        this.diskId = diskId;
         root = new DirectoryNode(AcPaths.getManagedDiskFolderPath(diskId).toString(), null, isReadOnly);
         try {
             var rootPath =root.getRealDiskPath();

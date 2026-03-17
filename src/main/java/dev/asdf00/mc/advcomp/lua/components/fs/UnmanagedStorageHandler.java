@@ -2,7 +2,6 @@ package dev.asdf00.mc.advcomp.lua.components.fs;
 
 import com.mojang.logging.LogUtils;
 import dev.asdf00.mc.advcomp.utils.AcPaths;
-import dev.asdf00.mc.advcomp.api.AcLuaFunction;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -26,7 +25,6 @@ public class UnmanagedStorageHandler implements StorageHandler {
         return AcPaths.getUnmanagedDiskFilePath(storageId);
     }
 
-    @AcLuaFunction(functionName = "writeToPosition", doc = "function(int position, int length):byte[] data; Reads the specified range of bytes from this storage medium.")
     public void writeToPosition(int position, byte[] data) {
         try {
             var f = new RandomAccessFile(getSaveFilePath().toFile(), "rw");
@@ -38,7 +36,6 @@ public class UnmanagedStorageHandler implements StorageHandler {
         }
     }
 
-    @AcLuaFunction(functionName = "readFromPosition", doc = "function(int position, int length):byte[] data; Reads the specified range of bytes from this storage medium.")
     public byte[] readFromPosition(int position, int length) {
         try {
             var f = new RandomAccessFile(getSaveFilePath().toFile(), "r");
@@ -54,12 +51,10 @@ public class UnmanagedStorageHandler implements StorageHandler {
         return null;
     }
 
-    @AcLuaFunction(functionName = "fill", doc = "function(int:startPosition, int:size, byte:value):void; Fills the entire storage medium with the specified value.")
     public void fill(int startPosition, int size, byte value) {
 
     }
 
-    @AcLuaFunction(functionName = "erase", doc = "function():void; Erases all data on the storage medium.")
     public void erase() {
         fill(0, this.capacity, (byte) 0);
     }
