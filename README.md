@@ -34,7 +34,7 @@ You can also find the current mod and minecraft version in the global `_HOST` va
 - Make the OS more usable (including rewriting the kernel problably), as currently it is very very bare (though does contain the `ls` and `lua` programs)
 - Finish adding anything that is missing from the Lua standard library (most notably some edgecase features in pattern matching, i.e string.gsub and related functions, though they mostly work)
 - Sending network packets between ingame computers (with some intelligent packet handling to avoid having to write a custom, ingame IP protocol) 
-- Making a wiki that lists & describes all the api functions
+- Making a wiki on https://ac.ghxx.dev/ that lists & describes all the api functions
 - Interaction with more minecraft blocks
 - Make disk space limited and add a soft computer ram limit
 - Adding ingame networking (computer to computer)
