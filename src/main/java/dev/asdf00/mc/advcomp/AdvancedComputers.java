@@ -19,10 +19,7 @@ import dev.asdf00.mc.advcomp.blocks.net_router.NetRouterBlock;
 import dev.asdf00.mc.advcomp.blocks.net_router.NetRouterBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.redstone_io.RedstoneIoBlock;
 import dev.asdf00.mc.advcomp.blocks.redstone_io.RedstoneIoBlockEntity;
-import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlock;
-import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
-import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockScreen;
-import dev.asdf00.mc.advcomp.blocks.screen.ScreenMenu;
+import dev.asdf00.mc.advcomp.blocks.screen.*;
 import dev.asdf00.mc.advcomp.blocks.wan_router.*;
 import dev.asdf00.mc.advcomp.datagen.*;
 import dev.asdf00.mc.advcomp.items.*;
@@ -391,6 +388,7 @@ public class AdvancedComputers {
         @SubscribeEvent
         public static void registerBER(EntityRenderersEvent.RegisterRenderers event) {
             event.registerBlockEntityRenderer(AdvancedComputers.COMPUTER_BE.get(), ComputerBlockEntityRenderer::new);
+            event.registerBlockEntityRenderer(AdvancedComputers.SCREEN_BE.get(), ScreenBlockEntityRenderer::new);
             event.registerBlockEntityRenderer(AdvancedComputers.WAN_ROUTER_BE.get(), WanRouterBlockEntityRenderer::new);
             event.registerBlockEntityRenderer(AdvancedComputers.WAN_ROUTER_BE_LOWTIER.get(), WanRouterBlockEntityRendererLowTier::new);
         }
