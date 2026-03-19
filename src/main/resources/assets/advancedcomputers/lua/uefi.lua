@@ -2,7 +2,7 @@ local ok, rv = xpcall(function()
 
 	local gpu = components:getFirst("gpu")
 	local textBuffer = nil
-	local screenSizeX, screenSizeY = 128, 25
+	local screenSizeX, screenSizeY = 110, 44
 	local cursorX, cursorY = 0, 0
 	if gpu ~= nil then
 		textBuffer = gpu:newBuffer(screenSizeX, screenSizeY)

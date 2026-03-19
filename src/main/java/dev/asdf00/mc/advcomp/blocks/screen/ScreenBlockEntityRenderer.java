@@ -60,17 +60,17 @@ public class ScreenBlockEntityRenderer implements BlockEntityRenderer<ScreenBloc
             int lineCount = lines.length;//textToRender.length() - textToRender.replace("\n", "").length() + 1;
             var font = AdvancedComputers.getMonoFont();
             float charWidth = font.width("a");
-            int maxCharsWidth = 128; // 128 by 25 roughly
-            int maxCharsHeight = 25;
+            int maxCharsWidth = 110; // 110 by 40 roughly
+            int maxCharsHeight = 40;
             float screenScale = (14 / 16f) / ((1 /*=padding*/ + maxCharsWidth) * charWidth);// 0.002f;
             float expectedTextHeight = font.lineHeight * lineCount;
             float offsetToCenterTheTextVertically = expectedTextHeight / 2f;
 
-            float paddingTop = (7 / 16f - expectedTextHeight* screenScale/ 2f)  ;
+            float paddingTop = (8 / 16f - expectedTextHeight * screenScale / 2f);
             float paddingLeft = charWidth * 0.5f * screenScale;
 
             pPoseStack.pushPose();
-            pPoseStack.translate(1, 1 - paddingTop, 1 - 1 / 16f - paddingLeft);
+            pPoseStack.translate(1, 1 - paddingTop - 0.0015f, 1 - 1 / 16f - paddingLeft);
             pPoseStack.mulPose(new Quaternionf().rotateY((float) (-Math.PI / 2d)));
             pPoseStack.mulPose(new Quaternionf().rotateZ((float) (Math.PI)));
             pPoseStack.mulPose(new Quaternionf().scale(screenScale));
