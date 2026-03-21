@@ -48,7 +48,7 @@ public class BlockStateGenerator extends BlockStateProvider {
         orientedModel6(AdvancedComputers.NET_ROUTER_BLOCK);
         simpleModel(AdvancedComputers.REDSTONE_IO_BLOCK);
 
-        simpleBlock(AdvancedComputers.CONVEYOR_BLOCK.block().get());
+        simpleBlock(AdvancedComputers.ITEM_INTERFACE_BLOCK.block().get());
     }
 
     private void cable(RegistryBlockItemPair<Block> cableRegDef, String variantName) {

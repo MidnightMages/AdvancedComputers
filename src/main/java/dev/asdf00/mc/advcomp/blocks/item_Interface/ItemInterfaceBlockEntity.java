@@ -1,4 +1,4 @@
-package dev.asdf00.mc.advcomp.blocks.conveyor;
+package dev.asdf00.mc.advcomp.blocks.item_Interface;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
@@ -16,15 +16,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class ConveyorBlockEntity extends BaseAcCableConnectableBlockEntity {
+public class ItemInterfaceBlockEntity extends BaseAcCableConnectableBlockEntity {
     private final LazyOptional<AcDevCableConnectableEntity> lazyCableConnectable;
 
     public void tick(Level pLevel, BlockPos pPos, BlockState pState) {
         // todo add logic
     }
 
-    public ConveyorBlockEntity(BlockPos pPos, BlockState pBlockState) {
-        super(AdvancedComputers.MAINBOARD_PROGRAMMER_BE.get(), pPos, pBlockState, List.of(AdvancedComputers.CLUSTER_TYPE_DEVICE));
+    public ItemInterfaceBlockEntity(BlockPos pPos, BlockState pBlockState) {
+        super(AdvancedComputers.ITEM_INTERFACE_BE.get(), pPos, pBlockState, List.of(AdvancedComputers.CLUSTER_TYPE_DEVICE));
         this.lazyCableConnectable = LazyOptional.of(() -> this);
     }
 

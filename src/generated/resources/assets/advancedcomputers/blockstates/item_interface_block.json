@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "advancedcomputers:block/item_interface_block"
+    }
+  }
+}

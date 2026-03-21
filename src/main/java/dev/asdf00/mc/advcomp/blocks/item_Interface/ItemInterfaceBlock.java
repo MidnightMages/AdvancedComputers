@@ -1,13 +1,7 @@
-package dev.asdf00.mc.advcomp.blocks.conveyor;
+package dev.asdf00.mc.advcomp.blocks.item_Interface;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
@@ -17,15 +11,12 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ConveyorBlock extends BaseEntityBlock {
+public class ItemInterfaceBlock extends BaseEntityBlock {
 
-    public ConveyorBlock(Properties pProperties) {
+    public ItemInterfaceBlock(Properties pProperties) {
         super(pProperties);
         registerDefaultState(this.stateDefinition.any());
     }
@@ -38,7 +29,7 @@ public class ConveyorBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public BlockEntity newBlockEntity(@NotNull BlockPos pPos, @NotNull BlockState pState) {
-        return new ConveyorBlockEntity(pPos, pState);
+        return new ItemInterfaceBlockEntity(pPos, pState);
     }
 
     @Override
@@ -50,7 +41,7 @@ public class ConveyorBlock extends BaseEntityBlock {
     public void onRemove(BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, BlockState pNewState, boolean pMovedByPiston) {
         if (pState.getBlock() != pNewState.getBlock()) {
             var be = pLevel.getBlockEntity(pPos);
-            if (be instanceof ConveyorBlockEntity cbe) {
+            if (be instanceof ItemInterfaceBlockEntity cbe) {
 
             }
         }
@@ -64,7 +55,7 @@ public class ConveyorBlock extends BaseEntityBlock {
         if (pLevel.isClientSide())
             return null;
 
-        return createTickerHelper(pBlockEntityType, AdvancedComputers.CONVEYOR_BE.get(),
+        return createTickerHelper(pBlockEntityType, AdvancedComputers.ITEM_INTERFACE_BE.get(),
                 (pLevel1, pPos, pState1, pBlockEntity) -> pBlockEntity.tick(pLevel1, pPos, pState1));
     }
 }
