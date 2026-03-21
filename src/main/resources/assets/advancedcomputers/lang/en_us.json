@@ -13,9 +13,10 @@
 
 
 	"block.advancedcomputers.mainboard_programmer_block": "Mainboard Programmer",
-	"gui.advancedcomputers.mainboard_programmer_block.title": "Mainboard Programmer",	
+	"gui.advancedcomputers.mainboard_programmer_block.title": "Mainboard Programmer",
 	
-	"block.advancedcomputers.redstone_io_block": "Redstone I/O Block",
+	"block.advancedcomputers.item_interface_block": "Item Interface",
+	"block.advancedcomputers.redstone_io_block": "Redstone I/O",
 	"block.advancedcomputers.keycard_reader_block": "Keycard Reader",
 	
 	"block.advancedcomputers.wan_router": "WAN Router",

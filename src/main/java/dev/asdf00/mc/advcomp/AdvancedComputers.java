@@ -9,6 +9,8 @@ import dev.asdf00.mc.advcomp.blocks.cables.device.DeviceCableBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.network.NetworkCableBlock;
 import dev.asdf00.mc.advcomp.blocks.cables.network.NetworkCableBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.computer.*;
+import dev.asdf00.mc.advcomp.blocks.item_Interface.ItemInterfaceBlock;
+import dev.asdf00.mc.advcomp.blocks.item_Interface.ItemInterfaceBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.keycard_reader.KeyCardReaderBlock;
 import dev.asdf00.mc.advcomp.blocks.keycard_reader.KeyCardReaderBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.mainboard_programmer.MainboardProgrammerBlock;
@@ -150,6 +152,9 @@ public class AdvancedComputers {
     public static final RegistryBlockItemPair<Block> MAINBOARD_PROGRAMMER_BLOCK = registerBlockWithItem("mainboard_programmer_block",
             () -> new MainboardProgrammerBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
 
+    public static final RegistryBlockItemPair<Block> ITEM_INTERFACE_BLOCK = registerBlockWithItem("item_interface_block",
+            () -> new ItemInterfaceBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
+
     public static final RegistryBlockItemPair<Block> REDSTONE_IO_BLOCK = registerBlockWithItem("redstone_io_block",
             () -> new RedstoneIoBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
 
@@ -182,6 +187,9 @@ public class AdvancedComputers {
 
     public static final RegistryObject<BlockEntityType<MainboardProgrammerBlockEntity>> MAINBOARD_PROGRAMMER_BE = BLOCK_ENTITY_TYPES.register("mainboard_programmer_be",
             () -> BlockEntityType.Builder.of(MainboardProgrammerBlockEntity::new, MAINBOARD_PROGRAMMER_BLOCK.block().get()).build(null));
+
+    public static final RegistryObject<BlockEntityType<ItemInterfaceBlockEntity>> ITEM_INTERFACE_BE = BLOCK_ENTITY_TYPES.register("item_interface_be",
+            () -> BlockEntityType.Builder.of(ItemInterfaceBlockEntity::new, ITEM_INTERFACE_BLOCK.block().get()).build(null));
 
     public static final RegistryObject<BlockEntityType<RedstoneIoBlockEntity>> REDSTONE_IO_BE = BLOCK_ENTITY_TYPES.register("redstone_io_be",
             () -> BlockEntityType.Builder.of(RedstoneIoBlockEntity::new, REDSTONE_IO_BLOCK.block().get()).build(null));
