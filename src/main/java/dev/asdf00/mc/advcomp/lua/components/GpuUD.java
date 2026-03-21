@@ -23,7 +23,7 @@ public class GpuUD extends BaseAcComponent {
     private final HashSet<TextBufferUD> allocatedBuffers;
 
     @LuaExposed(LuaExposed.Policy.READ)
-    public volatile int remainingVideoRam = 128 * 25 * 4; // TODO figure out a proper size
+    public volatile int remainingVideoRam = 110 * 44 * 4; // TODO figure out a proper size
     private final Object remainingVideoRamLockObj = new Object();
 
     public GpuUD() {
