@@ -53,6 +53,12 @@ public class ItemInterfaceBlockEntityUD extends BaseAcBlockEntityComponent<ItemI
                     .formatted(argumentIndex + 1, argument, minInclusive, maxInclusive));
     }
 
+    private void argcheckMin(int argument, int argumentIndex, int minInclusive) {
+        if (argument < minInclusive)
+            throw new LuaJavaError("argument (#%s) is out of range: %s. Expected integer larger than, or equal to %s."
+                    .formatted(argumentIndex + 1, argument, minInclusive));
+    }
+
     private <T> T runOnTickThread(Supplier<T> toExecute) {
         //noinspection unchecked
         T[] result = (T[]) new Object[1];
@@ -101,13 +107,15 @@ public class ItemInterfaceBlockEntityUD extends BaseAcBlockEntityComponent<ItemI
 
     @LuaCallable // returns how many items were moved, on success
     public int moveItemStackFromTo(int sideSource, int slotSource, int sideDest, int slotDest) {
-        return moveItemStackFromTo(sideSource, slotSource, sideDest, slotDest, 64);
+        return moveItemStackFromTo(sideSource, slotSource, sideDest, slotDest, Integer.MAX_VALUE);
     }
 
     @LuaCallable // returns how many items were moved, on success
     public int moveItemStackFromTo(int sideSource, int slotSource, int sideDest, int slotDest, int maxAmount) {
         if ((sideSource == sideDest) && (slotSource == slotDest))
             throw new LuaJavaError("sides and slots were each equal. At least one must be different.");
+
+        argcheckMin(maxAmount, 4, 1);
 
         // RUN ON TICK THERAD
         return runOnTickThread(() -> {
@@ -119,7 +127,6 @@ public class ItemInterfaceBlockEntityUD extends BaseAcBlockEntityComponent<ItemI
             if (destCap == null)
                 throw new LuaJavaError("source inventory on side %s was not found".formatted(sideDest));
 
-            argcheckRange(maxAmount, 4, 1, 64);
             argcheckSlotArgument(sourceCap, slotSource, 1);
             argcheckSlotArgument(destCap, slotDest, 3);
 
