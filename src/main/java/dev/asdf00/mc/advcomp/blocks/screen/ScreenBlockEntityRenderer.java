@@ -43,15 +43,16 @@ public class ScreenBlockEntityRenderer implements BlockEntityRenderer<ScreenBloc
         pPoseStack.translate(0.5f, 0.5f, 0.5f);
         poseStack_mulFacing(pPoseStack, facing);
         pPoseStack.translate(-0.5f, -0.5f, -0.5f);
+
+        if (false) {
             var buf = pBuffer.getBuffer(rt);
             var x = 1.0001f;
 
-        var zStart = 1 - 14 / 16f;
-        var zEnd = 1 - 2 / 16f;
-        var yEnd = 1 - 2 / 16f;
-        var yStart = 1 - 14 / 16f;
-
-        if (false) {
+            var padding = -0.0025f; // padding to remove black outline
+            var zStart = 1 - 15 / 16f + padding;
+            var zEnd = 1 - 1 / 16f - padding;
+            var yEnd = 1 - 3 / 16f - padding;
+            var yStart = 1 - 13 / 16f + padding;
             //quad(buf, pPoseStack.last(), v(x, yEnd, zStart), v(x, yStart, zStart), v(x, yStart, zEnd), v(x, yEnd, zEnd), color);
             quad(buf, pPoseStack.last(), v(x, yEnd, zEnd), v(x, yStart, zEnd), v(x, yStart, zStart), v(x, yEnd, zStart), Color.BLUE);
         } else {
