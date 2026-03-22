@@ -107,6 +107,9 @@ public class ItemInterfaceBlockEntityUD extends BaseAcBlockEntityComponent<ItemI
 
     @LuaCallable // returns how many items were moved, on success
     public int moveItemStackFromTo(int sideSource, int slotSource, int sideDest, int slotDest, int maxAmount) {
+        if ((sideSource == sideDest) && (slotSource == slotDest))
+            throw new LuaJavaError("sides and slots were each equal. At least one must be different.");
+
         // RUN ON TICK THERAD
         return runOnTickThread(() -> {
             var sourceCap = getItemHandlerOnSideOrNull(sideSource, 0);
