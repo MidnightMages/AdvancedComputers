@@ -1,6 +1,6 @@
 package dev.asdf00.mc.advcomp.lua.vm;
 
-enum State {
+public enum State {
     UNINITIALIZED(true, false, false),
     STARTING(false, true, true),
     RUNNING(false, true, false),

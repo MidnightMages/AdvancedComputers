@@ -70,6 +70,12 @@ public class LuaVirtualMachine {
         }
     }
 
+    public State getState() {
+        synchronized (state) {
+            return state.getState();
+        }
+    }
+
     // =================================================================================================================
     //    TICK THREAD     TICK THREAD     TICK THREAD     TICK THREAD     TICK THREAD     TICK THREAD     TICK THREAD
     // =================================================================================================================

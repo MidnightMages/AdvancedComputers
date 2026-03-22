@@ -8,6 +8,7 @@ import dev.asdf00.mc.advcomp.api.AcClusterHostEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.exceptions.ACError;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.lua.vm.State;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
 import dev.asdf00.mc.advcomp.types.AcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
@@ -38,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity implements MenuProvider, AcClusterHostEntity {
     public final NotifyingItemHandler itemHandler;
@@ -61,8 +63,16 @@ public class ComputerBlockEntity extends BaseAcCableConnectableBlockEntity imple
 
     void itemHandler_onSlotChanged(int slot) {
         if (!isServer()) return;
-        if (lvm != null) // TODO maybe not make this check true if the computer is shut down currently
-            lvm.onInventorySlotChanged(slot);
+        try {
+            if (lvm != null && lvm.getState() == State.RUNNING) { // only notify the running vm
+                lvm.onInventorySlotChanged(slot);
+            }
+        } catch (RuntimeException e) {
+            var exceptionAsString = e + "\n" + Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
+            AdvancedComputers.LOGGER.error(("An exception occurred during inventory change handling in computer at position %s. " +
+                                            "To avoid items being destroyed, the following exception has been swallowed. Please report this." +
+                                            "Original exception:\n%s").formatted(getBlockPos(), exceptionAsString));
+        }
     }
 
     public void tick(Level pLevel, BlockPos pPos, BlockState pState) {
