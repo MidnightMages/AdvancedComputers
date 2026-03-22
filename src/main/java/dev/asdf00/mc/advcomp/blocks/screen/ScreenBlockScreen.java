@@ -66,7 +66,7 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
                 256, 256,
                 256, 256);
         pose.mulPoseMatrix(new Matrix4f().scale(1f / smallestDividerSoScreenFits));
-        renderStdOut(pGuiGraphics, (int) smallestDividerSoScreenFits, 0);
+        renderStdOut(pGuiGraphics);
         pose.popPose();
 
 
@@ -74,12 +74,12 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
         renderTooltip(pGuiGraphics, pMouseX, pMouseY);
     }
 
-    private void renderStdOut(GuiGraphics pGuiGraphics, int startX, int startY) {
+    private void renderStdOut(GuiGraphics pGuiGraphics) {
         var lines = this.getScreenEntity().guiContent.replace("\t", "    ").lines().toArray(String[]::new); // TODO handle tabs properly
         int y = 0;
         for (int i = 0; i < lines.length; i++) {
             var l = lines[i];
-            pGuiGraphics.drawString(AdvancedComputers.getMonoFont(), l, -1, (y / startX) * startX + 1, -1, false);
+            pGuiGraphics.drawString(AdvancedComputers.getMonoFont(), l, -1, y + 1, -1, false);
             y += 9;
         }
     }
