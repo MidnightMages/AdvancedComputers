@@ -14,7 +14,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Objects;
 import java.util.Queue;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 public class ItemInterfaceBlockEntityUD extends BaseAcBlockEntityComponent<ItemInterfaceBlockEntity> {
@@ -57,33 +56,33 @@ public class ItemInterfaceBlockEntityUD extends BaseAcBlockEntityComponent<ItemI
     private <T> T runOnTickThread(Supplier<T> toExecute) {
         //noinspection unchecked
         T[] result = (T[]) new Object[1];
-        RuntimeException[] resultException = new RuntimeException[1];
-        AtomicBoolean complete = new AtomicBoolean(false);
-        blockEntity.tickThreadQueue.add(() -> {
-            try {
-                result[0] = toExecute.get();
-            } catch (RuntimeException exception) {
-                resultException[0] = exception;
-            }
-            synchronized (result) {
-                complete.set(true);
-                result.notifyAll();
-            }
-        });
-
-        while (true) {
-            synchronized (result) {
+        Throwable[] resultException = new Throwable[1];
+        synchronized (result) {
+            blockEntity.tickThreadQueue.add(() -> {
                 try {
-                    result.wait();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                    result[0] = toExecute.get();
+                } catch (Throwable exception) {
+                    resultException[0] = exception;
                 }
-                if (complete.get()) {
-                    if (resultException[0] != null)
-                        throw resultException[0];
-                    return result[0];
+                synchronized (result) {
+                    result.notifyAll();
+                }
+            });
+            try {
+                result.wait();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new LuaJavaError("operation was interrupted and may or may not have been executed");
+            }
+            if (resultException[0] != null) {
+                if (resultException[0] instanceof Error e)
+                    throw new Error(e);
+                else {
+                    assert resultException[0] instanceof RuntimeException : resultException[0];
+                    throw new RuntimeException(resultException[0]);
                 }
             }
+            return result[0];
         }
     }
 
