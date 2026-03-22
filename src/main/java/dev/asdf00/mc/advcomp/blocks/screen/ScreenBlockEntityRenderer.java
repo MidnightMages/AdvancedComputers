@@ -43,8 +43,8 @@ public class ScreenBlockEntityRenderer implements BlockEntityRenderer<ScreenBloc
         pPoseStack.translate(0.5f, 0.5f, 0.5f);
         poseStack_mulFacing(pPoseStack, facing);
         pPoseStack.translate(-0.5f, -0.5f, -0.5f);
-        var buf = pBuffer.getBuffer(rt);
-        var x = 1.0001f;
+            var buf = pBuffer.getBuffer(rt);
+            var x = 1.0001f;
 
         var zStart = 1 - 14 / 16f;
         var zEnd = 1 - 2 / 16f;
@@ -56,8 +56,8 @@ public class ScreenBlockEntityRenderer implements BlockEntityRenderer<ScreenBloc
             quad(buf, pPoseStack.last(), v(x, yEnd, zEnd), v(x, yStart, zEnd), v(x, yStart, zStart), v(x, yEnd, zStart), Color.BLUE);
         } else {
             String textToRender = pBlockEntity.guiContent;//"Some \ntext \nthat \nwe \nwant \nto \nrender :)";
-            var lines = textToRender.split("\n");
-            int lineCount = lines.length;//textToRender.length() - textToRender.replace("\n", "").length() + 1;
+            var lines = textToRender.split("\n", -1);
+            int lineCount = lines.length - 1;//textToRender.length() - textToRender.replace("\n", "").length() + 1;
             var font = AdvancedComputers.getMonoFont();
             float charWidth = font.width("a");
             int maxCharsWidth = 110; // 110 by 40 roughly
