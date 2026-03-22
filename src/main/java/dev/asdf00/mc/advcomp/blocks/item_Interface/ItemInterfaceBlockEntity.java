@@ -1,6 +1,8 @@
 package dev.asdf00.mc.advcomp.blocks.item_Interface;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.lua.components.AcBlockEntityComponent;
+import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 import dev.asdf00.mc.advcomp.types.AcCapabilities;
 import dev.asdf00.mc.advcomp.types.AcDevCableConnectableEntity;
 import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;
@@ -15,12 +17,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class ItemInterfaceBlockEntity extends BaseAcCableConnectableBlockEntity {
+public class ItemInterfaceBlockEntity extends BaseAcCableConnectableBlockEntity implements AcBlockEntityComponent {
     private final LazyOptional<AcDevCableConnectableEntity> lazyCableConnectable;
 
+    ConcurrentLinkedQueue<Runnable> tickThreadQueue = new ConcurrentLinkedQueue<>();
     public void tick(Level pLevel, BlockPos pPos, BlockState pState) {
-        // todo add logic
+        while (true) {
+            var newItem = tickThreadQueue.poll();
+            if (newItem == null)
+                return;
+            newItem.run();
+        }
     }
 
     public ItemInterfaceBlockEntity(BlockPos pPos, BlockState pBlockState) {
@@ -51,5 +60,10 @@ public class ItemInterfaceBlockEntity extends BaseAcCableConnectableBlockEntity 
     @Override
     public void onLoad() {
         super.onLoad();
+    }
+
+    @Override
+    public LuaUserDataComponent CreateUserdata() {
+        return new ItemInterfaceBlockEntityUD(this);
     }
 }
