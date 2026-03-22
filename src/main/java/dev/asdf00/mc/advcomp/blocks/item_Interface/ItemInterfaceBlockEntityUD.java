@@ -134,6 +134,31 @@ public class ItemInterfaceBlockEntityUD extends BaseAcBlockEntityComponent<ItemI
         });
     }
 
+    @LuaCallable // returns how many items were moved, on success
+    public LuaObject getStackInSlot(int side, int slot) {
+        // RUN ON TICK THERAD
+        var itemStack = runOnTickThread(() -> {
+            var sourceCap = getItemHandlerOnSideOrNull(side, 0);
+
+            if (sourceCap == null)
+                throw new LuaJavaError("source inventory on side %s was not found".formatted(side));
+
+            argcheckSlotArgument(sourceCap, slot, 1);
+
+            return sourceCap.getStackInSlot(slot);
+        });
+        String itemName = Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(itemStack.getItem())).toString();
+        return LuaObject.table(
+                LuaObject.of("name"), LuaObject.of(itemName),
+                LuaObject.of("stackSize"), LuaObject.of(itemStack.getCount()),
+                LuaObject.of("maxStackSize"), LuaObject.of(itemStack.getMaxStackSize()),
+                LuaObject.of("damage"), LuaObject.of(itemStack.getDamageValue()),
+                LuaObject.of("maxDamage"), LuaObject.of(itemStack.getMaxDamage()),
+                LuaObject.of("hasNbt"), LuaObject.of(itemStack.hasTag()),
+                LuaObject.of("isEdible"), LuaObject.of(itemStack.isEdible())
+        );
+    }
+
     @LuaDeserializer
     public static ItemInterfaceBlockEntityUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
         return genericDeserialize(ItemInterfaceBlockEntity.class, ItemInterfaceBlockEntityUD::new, objs, reader, postActions, additionalData);
