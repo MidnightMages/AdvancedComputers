@@ -3,10 +3,10 @@ package dev.asdf00.mc.advcomp.datagen;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraftforge.client.model.generators.ItemModelBuilder;
-import net.minecraftforge.client.model.generators.ItemModelProvider;
-import net.minecraftforge.client.model.generators.ModelFile;
-import net.minecraftforge.common.data.ExistingFileHelper;
+import net.neoforged.client.model.generators.ItemModelBuilder;
+import net.neoforged.client.model.generators.ItemModelProvider;
+import net.neoforged.client.model.generators.ModelFile;
+import net.neoforged.common.data.ExistingFileHelper;
 
 public class ItemModelGenerator extends ItemModelProvider {
     public ItemModelGenerator(PackOutput output, String modid, ExistingFileHelper existingFileHelper) {

@@ -9,7 +9,7 @@ import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.lua.components.GpuUD;
 import dev.asdf00.mc.advcomp.lua.components.TextBufferUD;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.network.PacketDistributor;
 
 import java.util.List;
 import java.util.Map;

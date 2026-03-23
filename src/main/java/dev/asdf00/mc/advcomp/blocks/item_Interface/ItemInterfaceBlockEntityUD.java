@@ -8,9 +8,9 @@ import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.lua.LuaHelpers;
 import dev.asdf00.mc.advcomp.lua.components.BaseAcBlockEntityComponent;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.common.capabilities.ForgeCapabilities;
+import net.neoforged.items.IItemHandler;
+import net.neoforged.registries.ForgeRegistries;
 
 import java.util.Objects;
 import java.util.Queue;

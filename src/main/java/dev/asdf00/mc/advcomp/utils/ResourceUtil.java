@@ -2,7 +2,7 @@ package dev.asdf00.mc.advcomp.utils;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModList;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

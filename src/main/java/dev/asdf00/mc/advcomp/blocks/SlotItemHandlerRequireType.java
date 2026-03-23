@@ -1,8 +1,8 @@
 package dev.asdf00.mc.advcomp.blocks;
 
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.SlotItemHandler;
+import net.neoforged.items.IItemHandler;
+import net.neoforged.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;

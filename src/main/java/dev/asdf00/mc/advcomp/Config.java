@@ -1,10 +1,10 @@
 package dev.asdf00.mc.advcomp;
 
 import dev.asdf00.mc.advcomp.utils.AcConfigBuilder;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.neoforged.common.ForgeConfigSpec;
+import net.neoforged.eventbus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.config.ModConfigEvent;
 
 @Mod.EventBusSubscriber(modid = AdvancedComputers.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Config {

@@ -8,7 +8,7 @@ import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.server.ServerLifecycleHooks;
 
 import java.util.Collections;
 

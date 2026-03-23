@@ -1,8 +1,8 @@
 package dev.asdf00.mc.advcomp.datagen;
 
 import net.minecraft.data.PackOutput;
-import net.minecraftforge.client.model.generators.BlockModelProvider;
-import net.minecraftforge.common.data.ExistingFileHelper;
+import net.neoforged.client.model.generators.BlockModelProvider;
+import net.neoforged.common.data.ExistingFileHelper;
 
 import static dev.asdf00.mc.advcomp.datagen.ItemModelGenerator.rl;
 

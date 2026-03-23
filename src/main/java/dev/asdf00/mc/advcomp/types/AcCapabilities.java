@@ -1,8 +1,8 @@
 package dev.asdf00.mc.advcomp.types;
 
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.common.capabilities.CapabilityToken;
+import net.neoforged.common.capabilities.Capability;
+import net.neoforged.common.capabilities.CapabilityManager;
+import net.neoforged.common.capabilities.CapabilityToken;
 
 public class AcCapabilities {
     public static final Capability<AcDevCableConnectableEntity> CABLE_CONNECTABLE = CapabilityManager.get(new CapabilityToken<>() {

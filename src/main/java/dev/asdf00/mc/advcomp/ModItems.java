@@ -2,40 +2,35 @@ package dev.asdf00.mc.advcomp;
 
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredItem;
+import net.neoforged.registries.RegistryObject;
 
 import java.util.ArrayList;
 import java.util.function.Supplier;
 
 public class ModItems {
 
-    private static final ArrayList<RegistryObject<BlockItem>> registeredBlockItems = new ArrayList<>();
-    private static final ArrayList<RegistryObject<Item>> registeredItems = new ArrayList<>();
+    private static final ArrayList<DeferredItem<BlockItem>> registeredBlockItems = new ArrayList<>();
+    private static final ArrayList<DeferredItem<Item>> registeredItems = new ArrayList<>();
 
-    static <T extends BlockItem> RegistryObject<BlockItem> registerBlockItem(String name, Supplier<BlockItem> itemSupplier) {
+    static DeferredItem<BlockItem> registerBlockItem(String name, Supplier<BlockItem> itemSupplier) {
         var r = AdvancedComputers.ITEMS.register(name, itemSupplier);
         registeredBlockItems.add(r);
         return r;
     }
 
-    static void registerItem(RegistryObject<Item> il) {
+    static void registerItem(DeferredItem<Item>  il) {
         registeredItems.add(il);
     }
 
-    public static void registerCreativeTabItems(BuildCreativeModeTabContentsEvent event) {
-        for (var i : registeredBlockItems)
-            event.accept(i);
-
-        for (var i : registeredItems)
-            event.accept(i);
-    }
-
-    public static ArrayList<RegistryObject<BlockItem>> getRegisteredBlockItems() {
+    public static ArrayList<DeferredHolder<Item, BlockItem>> getRegisteredBlockItems() {
         return registeredBlockItems;
     }
 
-    public static ArrayList<RegistryObject<Item>> getRegisteredItems() {
+    public static ArrayList<DeferredHolder<Item, Item>> getRegisteredItems() {
         return registeredItems;
     }
 }

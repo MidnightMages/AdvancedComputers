@@ -15,7 +15,7 @@ import dev.asdf00.mc.advcomp.lua.components.*;
 import dev.asdf00.mc.advcomp.utils.AcPaths;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.network.PacketDistributor;
 
 import java.io.IOException;
 import java.nio.file.Files;

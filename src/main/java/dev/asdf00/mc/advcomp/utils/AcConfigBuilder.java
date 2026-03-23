@@ -1,6 +1,6 @@
 package dev.asdf00.mc.advcomp.utils;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.common.ForgeConfigSpec;
 
 import java.util.List;
 import java.util.function.Predicate;

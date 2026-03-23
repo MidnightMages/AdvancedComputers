@@ -10,8 +10,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.Property;
-import net.minecraftforge.client.model.generators.*;
-import net.minecraftforge.common.data.ExistingFileHelper;
+import net.neoforged.client.model.generators.*;
+import net.neoforged.common.data.ExistingFileHelper;
 
 import static dev.asdf00.mc.advcomp.datagen.ItemModelGenerator.rl;
 import static dev.asdf00.mc.advcomp.datagen.ItemModelGenerator.rl_mc;

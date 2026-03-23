@@ -3,7 +3,7 @@ package dev.asdf00.mc.advcomp.utils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;

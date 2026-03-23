@@ -14,9 +14,10 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.common.capabilities.ForgeCapabilities;
+import net.neoforged.items.IItemHandler;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
 
 public class ComputerBlockMenu extends AbstractContainerMenu {
@@ -43,7 +44,7 @@ public class ComputerBlockMenu extends AbstractContainerMenu {
 
         addPlayerInventory(playerInv);
         addPlayerHotbar(playerInv);
-        this.blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(iItemHandler -> {
+        this.blockEntity.getCapability(Capabilities.ItemHandler.ITEM).ifPresent(iItemHandler -> {
             int currSlotIndex = 0;
             this.addSlot(new SlotItemHandlerRequireType(iItemHandler, currSlotIndex++, 78, 10,
                     MainboardItem.class));
