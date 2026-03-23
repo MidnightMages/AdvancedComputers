@@ -52,6 +52,10 @@ public final class ComputerUD extends BaseAcComponent {
         this.tpm = tpm;
     }
 
+    public LuaVirtualMachine getAcVm() {
+        return acVm;
+    }
+
     /**
      * This method may be called from outside the LUA thread and enqueues a custom machine event to be read by the host
      * LUA program.

@@ -20,7 +20,7 @@ import java.util.Queue;
 public class UefiUD extends BaseAcComponent {
     private int uefiId = -1;
     @SuppressWarnings("FieldCanBeLocal")
-    private final int MAX_UEFI_LENGTH = 4096;
+    private final int MAX_UEFI_LENGTH = 8192;
 
     @LuaExposed(LuaExposed.Policy.READWRITE)
     public final LuaProperty data = LuaProperty.ofString(this::getUefiScript, this::setUefiScript);

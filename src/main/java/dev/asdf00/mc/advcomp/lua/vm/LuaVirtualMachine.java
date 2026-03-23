@@ -4,6 +4,7 @@ import dev.asdf00.jluavm.LuaVM;
 import dev.asdf00.jluavm.api.functions.AtomicLuaFunction;
 import dev.asdf00.jluavm.api.functions.MixedStateFunctionRegistry;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
+import dev.asdf00.jluavm.runtime.utils.RTUtils;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
@@ -45,6 +46,7 @@ public class LuaVirtualMachine {
     final LinkedHashSet<TextBufferUD> dirtyBuffers = new LinkedHashSet<>();
     final ConcurrentLinkedQueue<ScreenBlockEntity> dirtyScreenBlockEntities = new ConcurrentLinkedQueue<>();
     private boolean suppressDeviceNetworkUpdate = false;
+    public volatile boolean rebootRequested = false; // TODO: serialize
 
     public LuaVirtualMachine(ComputerBlockEntity computerBlockEntity) {
         this.computerBlockEntity = computerBlockEntity;
@@ -294,12 +296,13 @@ public class LuaVirtualMachine {
             // build lua virtual machine
             vm = LuaVM.builder().withApiRegistry(BUILTIN_FUNCTIONS).modifyEnv(_G -> {
                 // add custom builtins
-                _G.set("components", LuaObject.of(componentReg));
                 _G.set("_HOST", LuaObject.of("AdvancedComputers %s; Minecraft %s".formatted(
                         AdvancedComputers.getModVersion(), AdvancedComputers.getMinecraftVersion())));
+                _G.set("components", LuaObject.of(componentReg));
                 _G.set("print", LuaObject.of(BUILTIN_FUNCTIONS.getFunction("print")));
                 _G.set("printInline", LuaObject.of(BUILTIN_FUNCTIONS.getFunction("printInline")));
                 _G.set("sleep", LuaObject.of(BUILTIN_FUNCTIONS.getFunction("sleep", LuaObject.of(timeTracker))));
+                _G.set("setReboot", LuaObject.of(BUILTIN_FUNCTIONS.getFunction("setReboot", LuaObject.of(luaComputer))));
 
                 // remove _G.vm.pause
                 _G.get("vm").set("pause", LuaObject.nil());
@@ -420,6 +423,10 @@ public class LuaVirtualMachine {
         // general purpose iterator that returns one set of values after another
         BUILTIN_FUNCTIONS.register("$internal.unpacking_iterator", LuaUnpackingIteratorFunction.class,
                 (tableToIterateOver, closures) -> new LuaUnpackingIteratorFunction(BUILTIN_FUNCTIONS, tableToIterateOver, closures));
+        BUILTIN_FUNCTIONS.register("setReboot", LuaAcVmFieldSetter.class,
+                computerUD -> new LuaAcVmFieldSetter(BUILTIN_FUNCTIONS, computerUD, (vm, value) -> {
+                    vm.rebootRequested = RTUtils.isTruthy(value);
+                }));
     }
 
     // TODO remove
