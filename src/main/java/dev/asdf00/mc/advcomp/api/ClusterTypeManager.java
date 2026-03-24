@@ -1,22 +1,20 @@
 package dev.asdf00.mc.advcomp.api;
 
-import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
+import dev.asdf00.mc.advcomp.types.cluster.ClusterType;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class AcClusterTypeManager {
-    private final HashMap<String, AcClusterType> clusterTypesByName = new HashMap<>();
+public final class ClusterTypeManager {
+    private static final ClusterTypeManager SINGLETON = new ClusterTypeManager();
+
+    private final HashMap<String, ClusterType> clusterTypesByName = new HashMap<>();
     private boolean isClosed = false;
-
-    public void closeRegistration() {
-        isClosed = true;
-    }
-
     private final Object lockObj = new Object();
 
-    public AcClusterType RegisterNewClusterType(String name) {
+
+    public ClusterType registerNewClusterType(String name) {
         synchronized (lockObj) {
             if (isClosed)
                 throw new IllegalStateException("Attempted to register a network type too late!");
@@ -24,19 +22,22 @@ public final class AcClusterTypeManager {
             if (clusterTypesByName.containsKey(name))
                 throw new IllegalStateException("Network type '%s' has already been registered!".formatted(name));
 
-            var n = new AcClusterType(name);
+            var n = new ClusterType(name);
             clusterTypesByName.put(name, n);
             return n;
         }
     }
 
-    public Map<String, AcClusterType> GetNetworkTypes() {
+    public void closeRegistration() {
+        isClosed = true;
+    }
+
+    public Map<String, ClusterType> getNetworkTypes() {
         return Collections.unmodifiableMap(clusterTypesByName);
     }
 
-    private static final AcClusterTypeManager SINGLETON = new AcClusterTypeManager();
     
-    public static AcClusterTypeManager getInstance() {
+    public static ClusterTypeManager getInstance() {
         return SINGLETON;
     }
 }

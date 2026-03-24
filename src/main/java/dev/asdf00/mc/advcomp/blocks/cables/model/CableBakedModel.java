@@ -1,9 +1,10 @@
-package dev.asdf00.mc.advcomp.blocks.cables;
+package dev.asdf00.mc.advcomp.blocks.cables.model;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.blocks.cables.CablePatterns.Pattern;
-import dev.asdf00.mc.advcomp.blocks.cables.CablePatterns.QuadSetting;
-import dev.asdf00.mc.advcomp.blocks.cables.base.BaseCableBlock;
+import dev.asdf00.mc.advcomp.blocks.cables.model.CablePatterns.Pattern;
+import dev.asdf00.mc.advcomp.blocks.cables.model.CablePatterns.QuadSetting;
+import dev.asdf00.mc.advcomp.blocks.cables.types.BaseCableBlock;
+import dev.asdf00.mc.advcomp.blocks.cables.types.ConnectionDir;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -27,18 +28,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
 
-import static dev.asdf00.mc.advcomp.blocks.cables.BakedModelHelper.quad;
-import static dev.asdf00.mc.advcomp.blocks.cables.BakedModelHelper.v;
-import static dev.asdf00.mc.advcomp.blocks.cables.CablePatterns.SpriteIdx.*;
-import static dev.asdf00.mc.advcomp.blocks.cables.ConnectionDir.BLOCK;
-import static dev.asdf00.mc.advcomp.blocks.cables.ConnectionDir.CABLE;
+import static dev.asdf00.mc.advcomp.blocks.cables.model.BakedModelHelper.quad;
+import static dev.asdf00.mc.advcomp.blocks.cables.model.BakedModelHelper.v;
+import static dev.asdf00.mc.advcomp.blocks.cables.model.CablePatterns.SpriteIdx.*;
+import static dev.asdf00.mc.advcomp.blocks.cables.types.ConnectionDir.BLOCK;
+import static dev.asdf00.mc.advcomp.blocks.cables.types.ConnectionDir.CABLE;
 
 // a lot of stuff taken from https://www.mcjty.eu/docs/1.20/ep5; Thank you :)
 public class CableBakedModel implements IDynamicBakedModel {
 
     private final IGeometryBakingContext context;
     private final String cableVariant;
-    private final boolean facade;
 
     static {
         // For all possible patterns we define the sprite to use and the rotation. Note that each
@@ -62,10 +62,9 @@ public class CableBakedModel implements IDynamicBakedModel {
         CablePatterns.PATTERNS.put(Pattern.of(true, true, true, true), QuadSetting.of(SPRITE_CROSS, 0));
     }
 
-    public CableBakedModel(IGeometryBakingContext context, String cableVariant, boolean facade) {
+    public CableBakedModel(IGeometryBakingContext context, String cableVariant) {
         this.context = context;
         this.cableVariant = cableVariant;
-        this.facade = facade;
     }
 
     private final HashMap<String, TextureAtlasSprite> getTexture_cache = new HashMap<>();

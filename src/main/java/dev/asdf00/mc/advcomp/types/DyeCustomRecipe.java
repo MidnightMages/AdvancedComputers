@@ -33,7 +33,7 @@ public class DyeCustomRecipe extends CustomRecipe {
 
             var item = is.getItem();
 
-            if (item instanceof AcDyableItem) {
+            if (item instanceof DyableItem) {
                 if (hasOurItem)
                     return false;
                 hasOurItem = true;
@@ -59,7 +59,7 @@ public class DyeCustomRecipe extends CustomRecipe {
 
             var item = is.getItem();
 
-            if (item instanceof AcDyableItem) {
+            if (item instanceof DyableItem) {
                 if (itemToDye != null)
                     return ItemStack.EMPTY;
                 itemToDye = is;

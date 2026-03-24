@@ -63,7 +63,7 @@ public class WanRouterBlockEntityRenderer implements BlockEntityRenderer<WanRout
     static RenderType rt = RenderType.endGateway();
 
 
-    public static void quad(VertexConsumer v, PoseStack.Pose pose, Vec3 v1, Vec3 v2, Vec3 v3, Vec3 v4) {
+    static void quad(VertexConsumer v, PoseStack.Pose pose, Vec3 v1, Vec3 v2, Vec3 v3, Vec3 v4) {
         Matrix4f m4 = pose.pose();
 
         putVertex(v, m4, v1.x, v1.y, v1.z);
@@ -72,11 +72,11 @@ public class WanRouterBlockEntityRenderer implements BlockEntityRenderer<WanRout
         putVertex(v, m4, v4.x, v4.y, v4.z);
     }
 
-    private static void putVertex(VertexConsumer builder, Matrix4f pose, double x, double y, double z) {
+    static void putVertex(VertexConsumer builder, Matrix4f pose, double x, double y, double z) {
         builder.vertex(pose, (float) x, (float) y, (float) z).endVertex();
     }
 
-    public static Vec3 v(double x, double y, double z) {
+    static Vec3 v(double x, double y, double z) {
         return new Vec3(x, y, z);
     }
 }

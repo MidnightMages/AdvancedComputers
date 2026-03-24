@@ -1,4 +1,4 @@
-package dev.asdf00.mc.advcomp.blocks.cables;
+package dev.asdf00.mc.advcomp.blocks.cables.model;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
@@ -31,22 +31,19 @@ public class CableModelLoader implements IGeometryLoader<CableModelLoader.CableM
     public CableModelGeometry read(JsonObject jsonObject, JsonDeserializationContext deserializationContext) throws JsonParseException {
 //        boolean facade = jsonObject.has("facade") && jsonObject.get("facade").getAsBoolean();
         String cableVariant = jsonObject.get("cableVariant").getAsString();
-        return new CableModelGeometry(cableVariant, false);
+        return new CableModelGeometry(cableVariant);
     }
 
     public static class CableModelGeometry implements IUnbakedGeometry<CableModelGeometry> {
-
-        private final boolean facade;
         private final String cableVariant;
 
-        public CableModelGeometry(String cableVariant, boolean facade) {
-            this.facade = facade;
+        public CableModelGeometry(String cableVariant) {
             this.cableVariant = cableVariant;
         }
 
         @Override
         public BakedModel bake(IGeometryBakingContext context, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelState, ItemOverrides overrides, ResourceLocation modelLocation) {
-            return new CableBakedModel(context, cableVariant, facade);
+            return new CableBakedModel(context, cableVariant);
         }
     }
 }

@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class AcGlobalDataStorage extends SavedData {
+public class GlobalDataStorage extends SavedData {
 
     private final AtomicInteger nextUniqueStorageId = new AtomicInteger(0);
     private final AtomicInteger nextUefiId = new AtomicInteger(0);
@@ -22,10 +22,10 @@ public class AcGlobalDataStorage extends SavedData {
         return rv;
     }
 
-    public AcGlobalDataStorage() {
+    public GlobalDataStorage() {
         setDirty();
     }
-    public AcGlobalDataStorage(CompoundTag tag) {
+    public GlobalDataStorage(CompoundTag tag) {
         nextUniqueStorageId.set(tag.getInt("nextManagedDiskId")); // TODO before release? maybe rename this to nextUniqueStorageId
         nextUefiId.set(tag.getInt("nextUefiId"));
     }
@@ -37,7 +37,7 @@ public class AcGlobalDataStorage extends SavedData {
         return compoundTag;
     }
 
-    public static AcGlobalDataStorage loadOrCreate(DimensionDataStorage dds) {
-        return dds.computeIfAbsent(AcGlobalDataStorage::new, AcGlobalDataStorage::new, "advancedComputers");
+    public static GlobalDataStorage loadOrCreate(DimensionDataStorage dds) {
+        return dds.computeIfAbsent(GlobalDataStorage::new, GlobalDataStorage::new, "advancedComputers");
     }
 }

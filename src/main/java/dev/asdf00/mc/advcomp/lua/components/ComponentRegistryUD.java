@@ -10,7 +10,7 @@ import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.items.BaseMassStorageUD;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
-import dev.asdf00.mc.advcomp.types.RuntimeAssert;
+import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
 import dev.asdf00.mc.advcomp.utils.Tuple;
 import dev.asdf00.mc.advcomp.utils.TupleArrayListMap;
 
@@ -201,7 +201,7 @@ public class ComponentRegistryUD implements LuaUserData {
         );
     }
 
-    public void removeAllComponentsInSlot(Function<AcComponentSlotInfo, Boolean> filter) {
+    public void removeAllMatchingComponents(Function<AcComponentSlotInfo, Boolean> filter) {
         synchronized (componentModifyLockObj) {
             for (var key : Arrays.stream(itemstackAssociationMap.entries()).filter(x -> filter.apply(x.x())).map(Tuple::x).toArray()) {
                 RuntimeAssert.RuntimeAssert(key != null, "key was null");

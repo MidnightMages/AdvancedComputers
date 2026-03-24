@@ -4,12 +4,12 @@ import dev.asdf00.jluavm.api.userdata.LuaCallable;
 import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
+import dev.asdf00.mc.advcomp.lua.components.BaseAcBlockEntityComponentUD;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
-import dev.asdf00.mc.advcomp.lua.components.BaseAcBlockEntityComponent;
 
 import java.util.Queue;
 
-public class KeyCardReaderBlockEntityUD extends BaseAcBlockEntityComponent<KeyCardReaderBlockEntity> {
+public class KeyCardReaderBlockEntityUD extends BaseAcBlockEntityComponentUD<KeyCardReaderBlockEntity> {
 
     public KeyCardReaderBlockEntityUD(KeyCardReaderBlockEntity keyCardReaderBlockEntity) {
         super("keycardReader", keyCardReaderBlockEntity);

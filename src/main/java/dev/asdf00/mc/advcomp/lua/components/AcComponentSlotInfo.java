@@ -1,6 +1,6 @@
 package dev.asdf00.mc.advcomp.lua.components;
 
-import dev.asdf00.mc.advcomp.types.RuntimeAssert;
+import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;

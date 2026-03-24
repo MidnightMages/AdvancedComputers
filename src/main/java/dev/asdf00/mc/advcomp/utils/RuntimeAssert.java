@@ -1,4 +1,4 @@
-package dev.asdf00.mc.advcomp.types;
+package dev.asdf00.mc.advcomp.utils;
 
 public class RuntimeAssert {
     public static void RuntimeAssert(boolean ok, String message) {

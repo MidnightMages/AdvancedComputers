@@ -2,13 +2,13 @@ package dev.asdf00.mc.advcomp.types.cluster;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public final class AcClusterType {
+public final class ClusterType {
     private static final AtomicInteger nextId = new AtomicInteger(0);
 
     private final int id;
     private final String clusterName;
 
-    public AcClusterType(String clusterName) {
+    public ClusterType(String clusterName) {
         this.id = nextId.getAndIncrement();
         this.clusterName = clusterName;
     }
@@ -23,6 +23,6 @@ public final class AcClusterType {
 
     @Override
     public boolean equals(Object obj) {
-        return (obj instanceof AcClusterType act) && (act.id == this.id);
+        return (obj instanceof ClusterType act) && (act.id == this.id);
     }
 }

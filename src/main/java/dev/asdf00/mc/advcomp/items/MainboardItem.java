@@ -2,8 +2,8 @@ package dev.asdf00.mc.advcomp.items;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
-import dev.asdf00.mc.advcomp.types.RuntimeAssert;
 import dev.asdf00.mc.advcomp.utils.AcPaths;
+import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -28,7 +28,7 @@ public class MainboardItem extends Item implements ItemCanBeInitialized {
     }
 
     @Override
-    public void Initialize(ItemStack is) {
+    public void initialize(ItemStack is) {
         // writes the default uefi onto it, if it is currently empty
         RuntimeAssert.RuntimeAssert(is.getItem() instanceof MainboardItem,
                 "Passed item stack was of type: %s".formatted(is));

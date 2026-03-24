@@ -12,23 +12,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-public abstract class BaseAcBlockEntityComponent<BE extends BlockEntity> extends BaseAcComponent {
+public abstract class BaseAcBlockEntityComponentUD<BE extends BlockEntity> extends BaseAcComponent {
     protected final BE blockEntity;
 
-    protected BaseAcBlockEntityComponent(String componentType, BE blockEntity) {
+    protected BaseAcBlockEntityComponentUD(String componentType, BE blockEntity) {
         super(componentType);
         this.blockEntity = blockEntity;
     }
 
-    protected BaseAcBlockEntityComponent(String componentType, LuaVirtualMachine acVm, boolean isAccessible, BE blockEntity) {
+    protected BaseAcBlockEntityComponentUD(String componentType, LuaVirtualMachine acVm, boolean isAccessible, BE blockEntity) {
         super(componentType, acVm, isAccessible);
         this.blockEntity = blockEntity;
     }
 
+    public BE getBlockEntity() {
+        return blockEntity;
+    }
+
     @Override
     public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
-        return LuaSerializationUtils.appendBlockEntity(
-                new ByteArrayBuilder(Integer.BYTES * 3 + 1).append(isAccessible), blockEntity).toArray();
+        var byteArrayBuilder = new ByteArrayBuilder(Integer.BYTES * 3 + 1).append(isAccessible);
+        return LuaSerializationUtils.appendBlockEntity(byteArrayBuilder, blockEntity).toArray();
     }
 
     protected static <T extends BaseAcComponent, BE extends BlockEntity> T genericDeserialize(

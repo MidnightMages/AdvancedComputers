@@ -6,7 +6,7 @@ import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.lua.LuaHelpers;
-import dev.asdf00.mc.advcomp.lua.components.BaseAcBlockEntityComponent;
+import dev.asdf00.mc.advcomp.lua.components.BaseAcBlockEntityComponentUD;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.items.IItemHandler;
@@ -16,7 +16,7 @@ import java.util.Objects;
 import java.util.Queue;
 import java.util.function.Supplier;
 
-public class ItemInterfaceBlockEntityUD extends BaseAcBlockEntityComponent<ItemInterfaceBlockEntity> {
+public class ItemInterfaceBlockEntityUD extends BaseAcBlockEntityComponentUD<ItemInterfaceBlockEntity> {
 
     public ItemInterfaceBlockEntityUD(ItemInterfaceBlockEntity itemInterfaceBlockEntity) {
         super("itemInterface", itemInterfaceBlockEntity);

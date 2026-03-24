@@ -1,9 +1,11 @@
-package dev.asdf00.mc.advcomp.blocks.cables;
+package dev.asdf00.mc.advcomp.blocks.cables.model;
+
+import dev.asdf00.mc.advcomp.blocks.cables.types.ConnectionDir;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static dev.asdf00.mc.advcomp.blocks.cables.ConnectionDir.NONE;
+import static dev.asdf00.mc.advcomp.blocks.cables.types.ConnectionDir.NONE;
 
 // a lot of stuff taken from https://www.mcjty.eu/docs/1.20/ep5; Thank you :)
 public class CablePatterns {
