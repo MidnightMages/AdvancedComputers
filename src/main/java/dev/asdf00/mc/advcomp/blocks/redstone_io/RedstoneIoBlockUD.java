@@ -5,13 +5,13 @@ import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
+import dev.asdf00.mc.advcomp.lua.components.BaseAcBlockEntityComponentUD;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
-import dev.asdf00.mc.advcomp.lua.components.BaseAcBlockEntityComponent;
 import net.minecraft.core.Direction;
 
 import java.util.Queue;
 
-public class RedstoneIoBlockUD extends BaseAcBlockEntityComponent<RedstoneIoBlockEntity> {
+public class RedstoneIoBlockUD extends BaseAcBlockEntityComponentUD<RedstoneIoBlockEntity> {
 
     public RedstoneIoBlockUD(RedstoneIoBlockEntity redstoneIoBlockEntity) {
         super("redstone", redstoneIoBlockEntity);

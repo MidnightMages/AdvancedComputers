@@ -1,7 +1,5 @@
 package dev.asdf00.mc.advcomp.utils;
 
-import dev.asdf00.mc.advcomp.types.RuntimeAssert;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;

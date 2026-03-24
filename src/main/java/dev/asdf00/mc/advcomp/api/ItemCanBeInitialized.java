@@ -3,5 +3,5 @@ package dev.asdf00.mc.advcomp.api;
 import net.minecraft.world.item.ItemStack;
 
 public interface ItemCanBeInitialized {
-    void Initialize(ItemStack is);
+    void initialize(ItemStack is);
 }

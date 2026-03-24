@@ -1,13 +1,13 @@
 package dev.asdf00.mc.advcomp.items;
 
-import dev.asdf00.mc.advcomp.types.AcDyableItem;
+import dev.asdf00.mc.advcomp.types.DyableItem;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class BaseAcDyableItem extends Item implements AcDyableItem {
+public abstract class BaseAcDyableItem extends Item implements DyableItem {
     public BaseAcDyableItem(Properties pProperties) {
         super(pProperties);
     }

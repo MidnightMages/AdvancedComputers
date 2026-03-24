@@ -12,15 +12,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-public abstract class BaseAcBlockEntityComponent<BE extends BlockEntity> extends BaseAcComponent {
+public abstract class BaseAcBlockEntityComponentUD<BE extends BlockEntity> extends BaseAcComponent {
     protected final BE blockEntity;
 
-    protected BaseAcBlockEntityComponent(String componentType, BE blockEntity) {
+    protected BaseAcBlockEntityComponentUD(String componentType, BE blockEntity) {
         super(componentType);
         this.blockEntity = blockEntity;
     }
 
-    protected BaseAcBlockEntityComponent(String componentType, LuaVirtualMachine acVm, boolean isAccessible, BE blockEntity) {
+    protected BaseAcBlockEntityComponentUD(String componentType, LuaVirtualMachine acVm, boolean isAccessible, BE blockEntity) {
         super(componentType, acVm, isAccessible);
         this.blockEntity = blockEntity;
     }

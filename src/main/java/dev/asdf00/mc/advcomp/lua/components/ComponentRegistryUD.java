@@ -10,7 +10,7 @@ import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.items.BaseMassStorageUD;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
-import dev.asdf00.mc.advcomp.types.RuntimeAssert;
+import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
 import dev.asdf00.mc.advcomp.utils.Tuple;
 import dev.asdf00.mc.advcomp.utils.TupleArrayListMap;
 

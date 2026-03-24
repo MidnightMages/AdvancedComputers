@@ -1,6 +1,6 @@
 package dev.asdf00.mc.advcomp.blocks.mainboard_programmer;
 
-import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.blocks.BasePeripheralOrHostBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
@@ -9,12 +9,8 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
@@ -23,7 +19,7 @@ import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MainboardProgrammerBlock extends BaseEntityBlock {
+public class MainboardProgrammerBlock extends BasePeripheralOrHostBlock {
     public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
 
     public MainboardProgrammerBlock(Properties pProperties) {
@@ -42,11 +38,6 @@ public class MainboardProgrammerBlock extends BaseEntityBlock {
     @Override
     public BlockEntity newBlockEntity(@NotNull BlockPos pPos, @NotNull BlockState pState) {
         return new MainboardProgrammerBlockEntity(pPos, pState);
-    }
-
-    @Override
-    public @NotNull RenderShape getRenderShape(@NotNull BlockState pState) {
-        return RenderShape.MODEL;
     }
 
     @Nullable
@@ -78,15 +69,5 @@ public class MainboardProgrammerBlock extends BaseEntityBlock {
         }
 
         return InteractionResult.sidedSuccess(pLevel.isClientSide());
-    }
-
-    @Nullable
-    @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level pLevel, @NotNull BlockState pState, @NotNull BlockEntityType<T> pBlockEntityType) {
-        if (pLevel.isClientSide())
-            return null;
-
-        return createTickerHelper(pBlockEntityType, AdvancedComputers.MAINBOARD_PROGRAMMER_BE.get(),
-                (pLevel1, pPos, pState1, pBlockEntity) -> pBlockEntity.tick(pLevel1, pPos, pState1));
     }
 }

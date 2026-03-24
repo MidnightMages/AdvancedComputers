@@ -1,4 +1,4 @@
-package dev.asdf00.mc.advcomp.blocks.cables;
+package dev.asdf00.mc.advcomp.blocks.cables.model;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.block.model.BakedQuad;

@@ -1,6 +1,7 @@
 package dev.asdf00.mc.advcomp.blocks.computer;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.blocks.BasePeripheralOrHostBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,7 +14,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
-public class ComputerBlock extends BaseEntityBlock {
+public class ComputerBlock extends BasePeripheralOrHostBlock {
 
     public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
     public static final EnumProperty<ComputerRunState> RUN_STATE = EnumProperty.create("runstate", ComputerRunState.class);

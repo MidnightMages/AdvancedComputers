@@ -1,12 +1,11 @@
 package dev.asdf00.mc.advcomp.blocks.cables;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.api.AcBaseCableConnectableBlockEntity;
-import dev.asdf00.mc.advcomp.api.AcClusterHostEntity;
-import dev.asdf00.mc.advcomp.blocks.cables.base.BaseCableBlock;
-import dev.asdf00.mc.advcomp.blocks.cables.base.BaseCableBlockEntity;
-import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
-import dev.asdf00.mc.advcomp.types.cluster.IAcBaseCableConnectableEntity;
+import dev.asdf00.mc.advcomp.api.ClusterHostEntity;
+import dev.asdf00.mc.advcomp.blocks.BaseCableConnectableBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.cables.types.BaseCableBlock;
+import dev.asdf00.mc.advcomp.types.cluster.CableConnectableBlockOrEntity;
+import dev.asdf00.mc.advcomp.types.cluster.ClusterType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -15,14 +14,14 @@ import java.util.*;
 import java.util.function.Consumer;
 
 public class CableCluster {
-    public final AcBaseCableConnectableBlockEntity[] connectedEntities; // contains all connected devices
-    private final AcClusterHostEntity[] connectedHostEntities; // contains all connected devices that implement the interface AcClusterHostEntity
-    public final AcClusterType clusterType;
+    public final BaseCableConnectableBlockEntity[] connectedEntities; // contains all connected devices
+    private final ClusterHostEntity[] connectedHostEntities; // contains all connected devices that implement the interface ClusterHostEntity
+    public final ClusterType clusterType;
 
     /**
      * Gets the host of this cluster if this cluster is valid. Otherwise, this method returns {@code null}.
      */
-    public AcClusterHostEntity getHost() {
+    public ClusterHostEntity getHost() {
         if (connectedHostEntities.length != 1) {
             return null;
         }
@@ -37,15 +36,15 @@ public class CableCluster {
         return connectedEntities.length;
     }
 
-    public AcClusterType getClusterType() {
+    public ClusterType getClusterType() {
         return this.clusterType;
     }
 
-    public AcBaseCableConnectableBlockEntity getEntity(int index) {
+    public BaseCableConnectableBlockEntity getEntity(int index) {
         return connectedEntities[index];
     }
 
-    private CableCluster(AcBaseCableConnectableBlockEntity[] connectedEntities, AcClusterHostEntity[] connectedHostEntities, AcClusterType clusterType) {
+    private CableCluster(BaseCableConnectableBlockEntity[] connectedEntities, ClusterHostEntity[] connectedHostEntities, ClusterType clusterType) {
         Objects.requireNonNull(connectedEntities);
         Objects.requireNonNull(connectedHostEntities);
         this.connectedEntities = connectedEntities;
@@ -55,7 +54,7 @@ public class CableCluster {
 
 
     public static void onBlockPosChanged(Level level, BlockPos initialBp) {
-        var clusterTypes = AdvancedComputers.AC_CLUSTER_TYPE_MANAGER.GetNetworkTypes();
+        var clusterTypes = AdvancedComputers.AC_CLUSTER_TYPE_MANAGER.getNetworkTypes();
         boolean blockWasRemoved = level.getBlockState(initialBp).isAir();
 
         Consumer<BlockPos> rebuildBp = (BlockPos bp) -> {
@@ -71,10 +70,10 @@ public class CableCluster {
         }
     }
 
-    public static void onBlockPosChangedInternal(Level level, BlockPos initialBp, AcClusterType clusterType) {
+    public static void onBlockPosChangedInternal(Level level, BlockPos initialBp, ClusterType clusterType) {
         // what this does is:
         // assume the given blockpos initialBp has been changing, meaining one of the following:
-        // computer, cable or IAcBaseCableConnectableEntity was added, removed or somehow replaced
+        // computer, cable or CableConnectableBlockOrEntity was added, removed or somehow replaced
         // approach:
         //    (not implemented yet) if added: simply rebuild network from current initialBp
         //    otherwise: this network and let the host know that it has changed
@@ -89,7 +88,7 @@ public class CableCluster {
         HashSet<BlockPos> alreadyCheckedPoses = new HashSet<>();
         HashSet<BlockPos> foundActualCableBlocksOfThisType = new HashSet<>();
         HashSet<BlockPos> foundCableLikeBlocksOfThisType = new HashSet<>();
-        HashMap<AcBaseCableConnectableBlockEntity, BlockPos> foundEntities = new HashMap<>();
+        HashMap<BaseCableConnectableBlockEntity, BlockPos> foundEntities = new HashMap<>();
         while (!blockPosesToCheck.isEmpty()) {
             var currentBlockPos = blockPosesToCheck.remove(); // startpoint for an initial rebuild
 
@@ -101,12 +100,24 @@ public class CableCluster {
             if (!level.isLoaded(currentBlockPos))
                 continue;
 
+            var block = level.getBlockState(currentBlockPos).getBlock();
+            if (block instanceof BaseCableBlock cableBlock) { // if this is an actual cable
+                if (!cableBlock.clusterType.equals(clusterType)) { // if wrong type, ignore it
+                    continue;
+                }
+                foundActualCableBlocksOfThisType.add(currentBlockPos);
+                addNeighbors.accept(currentBlockPos);
+                foundCableLikeBlocksOfThisType.add(currentBlockPos); // for keeping track of which faces of a block we are connecting to
+
+                continue; // if this is a cable, it cannot be a computer or peripheral, etc.
+            }
+
             var currentBlockEntity = level.getBlockEntity(currentBlockPos);
             if (currentBlockEntity == null) // if there is no tileentity then we can skip this startpoint
                 continue;
 
-            // if this startpoint does not support interact with cables then we are done
-            if (!(currentBlockEntity instanceof IAcBaseCableConnectableEntity baseCableConnectableEntity))
+            // if this block does not support interacting with cables then we are done
+            if (!(currentBlockEntity instanceof CableConnectableBlockOrEntity baseCableConnectableEntity))
                 continue;
 
             // if this startpoint does not support this cluster type then we are done
@@ -115,12 +126,8 @@ public class CableCluster {
 
             foundCableLikeBlocksOfThisType.add(currentBlockPos); // for keeping track of which faces of a block we are connecting to
 
-            if (baseCableConnectableEntity instanceof BaseCableBlockEntity) {
-                foundActualCableBlocksOfThisType.add(currentBlockPos);
-                addNeighbors.accept(currentBlockPos);
-            }
 
-            if (baseCableConnectableEntity instanceof AcBaseCableConnectableBlockEntity cableConnectableBe) {
+            if (baseCableConnectableEntity instanceof BaseCableConnectableBlockEntity cableConnectableBe) {
                 // TODO TODO postpone this via foundEntities
                 //cableConnectableBe.getNetworkList().clear(); // TODO let the block know if a face was cleared and not actually re-discovered and restored
                 foundEntities.put(cableConnectableBe, currentBlockPos);
@@ -131,20 +138,27 @@ public class CableCluster {
             }
         }
 
-        var newCluster = new CableCluster(foundEntities.keySet().toArray(AcBaseCableConnectableBlockEntity[]::new),
+        var newCluster = new CableCluster(foundEntities.keySet().toArray(BaseCableConnectableBlockEntity[]::new),
                 foundEntities.keySet().stream()
-                        .filter(x -> x instanceof AcClusterHostEntity host && host.isHostForNetwork(clusterType))
-                        .map(x -> ((AcClusterHostEntity) x)).toArray(AcClusterHostEntity[]::new),
+                        .filter(x -> x instanceof ClusterHostEntity host && host.isHostForNetwork(clusterType))
+                        .map(x -> ((ClusterHostEntity) x)).toArray(ClusterHostEntity[]::new),
                 clusterType);
 
         for (var foundBlockEntity : foundEntities.keySet()) {
             var entityBlockPos = foundEntities.get(foundBlockEntity);
             var netList = foundBlockEntity.getNetworkList();
-            netList.clear();
-            for (var dir : Direction.values()) {
-                if (foundCableLikeBlocksOfThisType.contains(entityBlockPos.relative(dir)))
-                    netList.put(dir, newCluster);
+            if (foundBlockEntity.actsAsCable()) { // if this acts as a cable then we can simply clear all networks
+                netList.clear();
+            } else { // otherwise we need to clear networks as they disconnect
+                throw new IllegalStateException("not implemented yet");
             }
+
+            for (var dir : Direction.values()) {
+                if (foundCableLikeBlocksOfThisType.contains(entityBlockPos.relative(dir))) {
+                    netList.put(dir, newCluster);
+                }
+            }
+            foundBlockEntity.onNetworkUpdated();
         }
 
         UpdateCableBlockStates(new ArrayList<>(List.of(foundActualCableBlocksOfThisType.toArray(BlockPos[]::new))), newCluster.getHostCount() <= 1, level);

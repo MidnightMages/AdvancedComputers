@@ -2,12 +2,10 @@ package dev.asdf00.mc.advcomp;
 
 import com.mojang.logging.LogUtils;
 import dev.asdf00.jluavm.internals.javac.PersistentJavaCompilationCache;
-import dev.asdf00.mc.advcomp.api.AcClusterTypeManager;
-import dev.asdf00.mc.advcomp.blocks.cables.CableModelLoader;
-import dev.asdf00.mc.advcomp.blocks.cables.device.DeviceCableBlock;
-import dev.asdf00.mc.advcomp.blocks.cables.device.DeviceCableBlockEntity;
-import dev.asdf00.mc.advcomp.blocks.cables.network.NetworkCableBlock;
-import dev.asdf00.mc.advcomp.blocks.cables.network.NetworkCableBlockEntity;
+import dev.asdf00.mc.advcomp.api.ClusterTypeManager;
+import dev.asdf00.mc.advcomp.blocks.cables.DeviceCableBlock;
+import dev.asdf00.mc.advcomp.blocks.cables.NetworkCableBlock;
+import dev.asdf00.mc.advcomp.blocks.cables.model.CableModelLoader;
 import dev.asdf00.mc.advcomp.blocks.computer.*;
 import dev.asdf00.mc.advcomp.blocks.item_Interface.ItemInterfaceBlock;
 import dev.asdf00.mc.advcomp.blocks.item_Interface.ItemInterfaceBlockEntity;
@@ -25,10 +23,10 @@ import dev.asdf00.mc.advcomp.blocks.screen.*;
 import dev.asdf00.mc.advcomp.blocks.wan_router.*;
 import dev.asdf00.mc.advcomp.datagen.*;
 import dev.asdf00.mc.advcomp.items.*;
-import dev.asdf00.mc.advcomp.types.AcGlobalDataStorage;
 import dev.asdf00.mc.advcomp.types.DualLayerItemColorHandler;
 import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
-import dev.asdf00.mc.advcomp.types.cluster.AcClusterType;
+import dev.asdf00.mc.advcomp.types.GlobalDataStorage;
+import dev.asdf00.mc.advcomp.types.cluster.ClusterType;
 import dev.asdf00.mc.advcomp.utils.AcPaths;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -86,7 +84,7 @@ public class AdvancedComputers {
     public static final String MODID = "advancedcomputers";
     // Directly reference a slf4j logger
     public static final Logger LOGGER = LogUtils.getLogger();
-    public static final AcClusterTypeManager AC_CLUSTER_TYPE_MANAGER = AcClusterTypeManager.getInstance();
+    public static final ClusterTypeManager AC_CLUSTER_TYPE_MANAGER = ClusterTypeManager.getInstance();
     // Create a Deferred Register to hold Blocks which will all be registered under the "examplemod" namespace
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MODID);
@@ -108,10 +106,10 @@ public class AdvancedComputers {
         return MINECRAFT_VERSION;
     }
 
-    public static AcGlobalDataStorage globalDataStorage;
+    public static GlobalDataStorage globalDataStorage;
 
-    public static final AcClusterType CLUSTER_TYPE_DEVICE = AdvancedComputers.AC_CLUSTER_TYPE_MANAGER.RegisterNewClusterType("device");
-    public static final AcClusterType CLUSTER_TYPE_NETWORK = AdvancedComputers.AC_CLUSTER_TYPE_MANAGER.RegisterNewClusterType("network");
+    public static final ClusterType CLUSTER_TYPE_DEVICE = AdvancedComputers.AC_CLUSTER_TYPE_MANAGER.registerNewClusterType("device");
+    public static final ClusterType CLUSTER_TYPE_NETWORK = AdvancedComputers.AC_CLUSTER_TYPE_MANAGER.registerNewClusterType("network");
     private static Font monoFont = null;
     private static FontSet fontSet = null;
 
@@ -202,12 +200,6 @@ public class AdvancedComputers {
 
     public static final RegistryObject<BlockEntityType<NetRouterBlockEntity>> NET_ROUTER_BE = BLOCK_ENTITY_TYPES.register("net_router_be",
             () -> BlockEntityType.Builder.of(NetRouterBlockEntity::new, NET_ROUTER_BLOCK.block().get()).build(null));
-
-    public static final RegistryObject<BlockEntityType<DeviceCableBlockEntity>> DEV_CABLE_BE = BLOCK_ENTITY_TYPES.register("device_cable_be",
-            () -> BlockEntityType.Builder.of(DeviceCableBlockEntity::new, DEVICE_CABLE_BLOCK.block().get()).build(null));
-
-    public static final RegistryObject<BlockEntityType<NetworkCableBlockEntity>> NET_CABLE_BE = BLOCK_ENTITY_TYPES.register("network_cable_be",
-            () -> BlockEntityType.Builder.of(NetworkCableBlockEntity::new, NETWORK_CABLE_BLOCK.block().get()).build(null));
 
     public static final RegistryObject<MenuType<ComputerBlockMenu>> COMPUTER_MENU =
             registerMenuType("computer_menu", ComputerBlockMenu::new);
@@ -357,7 +349,7 @@ public class AdvancedComputers {
     public void onServerStarting(ServerStartingEvent event) {
         // Do something when the server starts
         serverReference = event.getServer();
-        globalDataStorage = AcGlobalDataStorage.loadOrCreate(serverReference.overworld().getDataStorage());
+        globalDataStorage = GlobalDataStorage.loadOrCreate(serverReference.overworld().getDataStorage());
 
         AcPaths.createPathsIfNecessary();
 

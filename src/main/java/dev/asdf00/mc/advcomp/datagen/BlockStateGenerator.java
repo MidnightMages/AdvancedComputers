@@ -3,7 +3,7 @@ package dev.asdf00.mc.advcomp.datagen;
 import com.google.gson.JsonObject;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.RegistryBlockItemPair;
-import dev.asdf00.mc.advcomp.blocks.cables.CableModelLoader;
+import dev.asdf00.mc.advcomp.blocks.cables.model.CableModelLoader;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlock;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;

@@ -1,15 +1,15 @@
 package dev.asdf00.mc.advcomp.blocks.wan_router;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Matrix4f;
+
+import static dev.asdf00.mc.advcomp.blocks.wan_router.WanRouterBlockEntityRenderer.quad;
+import static dev.asdf00.mc.advcomp.blocks.wan_router.WanRouterBlockEntityRenderer.v;
 
 public class WanRouterBlockEntityRendererLowTier implements BlockEntityRenderer<WanRouterBlockEntityLowTier> {
     public WanRouterBlockEntityRendererLowTier(BlockEntityRendererProvider.Context context) {
@@ -63,22 +63,4 @@ public class WanRouterBlockEntityRendererLowTier implements BlockEntityRenderer<
     }
 
     static RenderType rt = RenderType.endGateway();
-
-
-    public static void quad(VertexConsumer v, PoseStack.Pose pose, Vec3 v1, Vec3 v2, Vec3 v3, Vec3 v4) {
-        Matrix4f m4 = pose.pose();
-
-        putVertex(v, m4, v1.x, v1.y, v1.z);
-        putVertex(v, m4, v2.x, v2.y, v2.z);
-        putVertex(v, m4, v3.x, v3.y, v3.z);
-        putVertex(v, m4, v4.x, v4.y, v4.z);
-    }
-
-    private static void putVertex(VertexConsumer builder, Matrix4f pose, double x, double y, double z) {
-        builder.vertex(pose, (float) x, (float) y, (float) z).endVertex();
-    }
-
-    public static Vec3 v(double x, double y, double z) {
-        return new Vec3(x, y, z);
-    }
 }

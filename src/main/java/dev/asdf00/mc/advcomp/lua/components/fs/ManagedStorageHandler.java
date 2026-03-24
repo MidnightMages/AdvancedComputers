@@ -2,8 +2,8 @@ package dev.asdf00.mc.advcomp.lua.components.fs;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.Config;
-import dev.asdf00.mc.advcomp.types.RuntimeAssert;
 import dev.asdf00.mc.advcomp.utils.AcPaths;
+import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
 
 import java.io.IOException;
 import java.nio.file.Files;

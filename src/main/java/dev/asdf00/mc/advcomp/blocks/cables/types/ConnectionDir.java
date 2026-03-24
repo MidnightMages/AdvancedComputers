@@ -1,4 +1,4 @@
-package dev.asdf00.mc.advcomp.blocks.cables;
+package dev.asdf00.mc.advcomp.blocks.cables.types;
 
 import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;

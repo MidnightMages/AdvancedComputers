@@ -11,7 +11,7 @@ import dev.asdf00.mc.advcomp.lua.components.fs.LuaFsFileUD;
 import dev.asdf00.mc.advcomp.lua.components.fs.ManagedStorageHandler;
 import dev.asdf00.mc.advcomp.lua.components.fs.VirtualFile;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
-import dev.asdf00.mc.advcomp.types.RuntimeAssert;
+import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.List;

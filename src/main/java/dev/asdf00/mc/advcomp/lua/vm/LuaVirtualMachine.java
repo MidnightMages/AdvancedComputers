@@ -107,7 +107,7 @@ public class LuaVirtualMachine {
         var newItemStack = computerBlockEntity.itemHandler.getStackInSlot(slot);
         var item = newItemStack.getItem();
         if (item instanceof ItemCanBeInitialized icbi) {
-            icbi.Initialize(newItemStack);
+            icbi.initialize(newItemStack);
         }
 
         if (item instanceof AcItemComponent ud) {
@@ -193,6 +193,24 @@ public class LuaVirtualMachine {
         }
     }
 
+    private boolean tooManyComputersConnected() {
+        CableCluster deviceCluster = null;
+        for (var cluster : computerBlockEntity.connectedNetworks.values()) {
+            if (cluster.getClusterType().equals(AdvancedComputers.CLUSTER_TYPE_DEVICE)) {
+                if (cluster == deviceCluster)
+                    continue;
+
+                if (deviceCluster != null)
+                    throw new IllegalStateException("somehow there were multiple device clusters, even though this block is supposed to act as a cable");
+
+                deviceCluster = cluster;
+            }
+        }
+
+        // there are too many clusters if we found a cluster and it has too many hosts
+        return deviceCluster != null && (deviceCluster.getHostCount() > 1);
+    }
+
     private void coldInitialize() {
         synchronized (state) {
             if (!state.getState().resting) {
@@ -202,6 +220,11 @@ public class LuaVirtualMachine {
 
             // rebuild device cable cluster just in case
             CableCluster.onBlockPosChangedInternal(computerBlockEntity.getLevel(), computerBlockEntity.getBlockPos(), AdvancedComputers.CLUSTER_TYPE_DEVICE);
+            if (tooManyComputersConnected()) {
+                stopCode = "More than one computer in device network";
+                state.crash();
+                return;
+            }
 
             // initialize state of 'this'
             timeTracker = new LuaSafepointHandler(this, computerBlockEntity.getTier().threadExecutionSleepFactor);

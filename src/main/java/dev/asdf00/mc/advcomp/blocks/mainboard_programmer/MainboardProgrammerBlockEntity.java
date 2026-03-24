@@ -3,9 +3,6 @@ package dev.asdf00.mc.advcomp.blocks.mainboard_programmer;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
-import dev.asdf00.mc.advcomp.types.AcCapabilities;
-import dev.asdf00.mc.advcomp.types.AcDevCableConnectableEntity;
-import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.utils.NotifyingItemHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -18,7 +15,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
@@ -27,20 +24,13 @@ import net.minecraftforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
-public class MainboardProgrammerBlockEntity extends BaseAcCableConnectableBlockEntity implements MenuProvider {
+public class MainboardProgrammerBlockEntity extends BlockEntity implements MenuProvider {
     public final NotifyingItemHandler itemHandler = new NotifyingItemHandler(this, MainboardProgrammerBlockMenu.TE_INVENTORY_SLOT_COUNT, this::itemHandler_onSlotChanged);
     private LazyOptional<IItemHandler> lazyItemHandler = LazyOptional.empty();
-    private final LazyOptional<AcDevCableConnectableEntity> lazyCableConnectable;
     protected final ContainerData data;
 
-    public void tick(Level pLevel, BlockPos pPos, BlockState pState) {
-        // todo add logic
-    }
-
     public MainboardProgrammerBlockEntity(BlockPos pPos, BlockState pBlockState) {
-        super(AdvancedComputers.MAINBOARD_PROGRAMMER_BE.get(), pPos, pBlockState, List.of(AdvancedComputers.CLUSTER_TYPE_DEVICE));
+        super(AdvancedComputers.MAINBOARD_PROGRAMMER_BE.get(), pPos, pBlockState);
         this.data = new ContainerData() {
             @Override
             public int get(int pIndex) {
@@ -60,7 +50,6 @@ public class MainboardProgrammerBlockEntity extends BaseAcCableConnectableBlockE
                 return 0;
             }
         };
-        this.lazyCableConnectable = LazyOptional.of(() -> this);
     }
 
     void itemHandler_onSlotChanged(int slot) {
@@ -68,7 +57,7 @@ public class MainboardProgrammerBlockEntity extends BaseAcCableConnectableBlockE
 
         var is = itemHandler.getStackInSlot(slot);
         if (is.getItem() instanceof ItemCanBeInitialized cbi) {
-            cbi.Initialize(is);
+            cbi.initialize(is);
         }
     }
 
@@ -82,9 +71,6 @@ public class MainboardProgrammerBlockEntity extends BaseAcCableConnectableBlockE
         if (cap == ForgeCapabilities.ITEM_HANDLER)
             return lazyItemHandler.cast();
 
-        if (cap == AcCapabilities.CABLE_CONNECTABLE)
-            return lazyCableConnectable.cast();
-
         return super.getCapability(cap, side);
     }
 
@@ -92,7 +78,6 @@ public class MainboardProgrammerBlockEntity extends BaseAcCableConnectableBlockE
     public void invalidateCaps() {
         super.invalidateCaps();
         lazyItemHandler.invalidate();
-        lazyCableConnectable.invalidate();
     }
 
     public void drops() {

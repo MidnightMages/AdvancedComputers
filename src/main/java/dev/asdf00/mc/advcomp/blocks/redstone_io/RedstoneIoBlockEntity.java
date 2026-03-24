@@ -1,10 +1,10 @@
 package dev.asdf00.mc.advcomp.blocks.redstone_io;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.blocks.BaseCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.lua.components.AcBlockEntityComponent;
 import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
-import dev.asdf00.mc.advcomp.types.RuntimeAssert;
-import dev.asdf00.mc.advcomp.types.cluster.BaseAcCableConnectableBlockEntity;
+import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
@@ -12,7 +12,7 @@ import net.minecraftforge.server.ServerLifecycleHooks;
 
 import java.util.Collections;
 
-public class RedstoneIoBlockEntity extends BaseAcCableConnectableBlockEntity implements AcBlockEntityComponent {
+public class RedstoneIoBlockEntity extends BaseCableConnectableBlockEntity implements AcBlockEntityComponent {
     // TODO save this array when saving the world
     private final int[] outputStrengths = new int[]{0, 0, 0, 0, 0, 0}; // DOWN UP NORTH SOUTH WEST EAST
 

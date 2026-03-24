@@ -1,9 +1,8 @@
-package dev.asdf00.mc.advcomp.blocks.cables.base;
+package dev.asdf00.mc.advcomp.blocks.cables.types;
 
-import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.blocks.cables.ConnectionDir;
-import dev.asdf00.mc.advcomp.types.AcDevCableConnectableEntity;
-import dev.asdf00.mc.advcomp.types.cluster.IAcBaseCableConnectableEntity;
+import dev.asdf00.mc.advcomp.CableClusterHandler;
+import dev.asdf00.mc.advcomp.types.cluster.CableConnectableBlockOrEntity;
+import dev.asdf00.mc.advcomp.types.cluster.ClusterType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
@@ -16,8 +15,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -30,7 +27,6 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.ticks.ScheduledTick;
-import net.minecraftforge.common.capabilities.Capability;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,7 +58,7 @@ public abstract class BaseCableBlock extends Block implements SimpleWaterloggedB
     private static final VoxelShape SHAPE_BLOCK_EAST = Shapes.box(.9, .2, .2, 1, .8, .8);
     private static final VoxelShape SHAPE_BLOCK_UP = Shapes.box(.2, .9, .2, .8, 1, .8);
     private static final VoxelShape SHAPE_BLOCK_DOWN = Shapes.box(.2, 0, .2, .8, .1, .8);
-    private final Capability<AcDevCableConnectableEntity> cableConnectableCapability; // TODO split caps among derived classes
+    public final ClusterType clusterType;
 
     private int calculateShapeIndex(ConnectionDir north, ConnectionDir south, ConnectionDir west, ConnectionDir east, ConnectionDir up, ConnectionDir down) {
         int l = ConnectionDir.values().length;
@@ -133,40 +129,26 @@ public abstract class BaseCableBlock extends Block implements SimpleWaterloggedB
         return calculateState(world, current, state);
     }
 
-    public BaseCableBlock(Capability<AcDevCableConnectableEntity> cableConnectableCapability, Properties pProperties) {
+    public BaseCableBlock(ClusterType clusterType, Properties pProperties) {
         super(pProperties);
-        this.cableConnectableCapability = cableConnectableCapability;
+        this.clusterType = clusterType;
 
         makeShapes();
         registerDefaultState(defaultBlockState().setValue(WATERLOGGED, false).setValue(NETWORK_ERROR, false));
     }
 
     @Override
-    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> type) {
-        if (level.isClientSide) {
-            return null;
-        } else {
-            return (lvl, pos, st, be) -> {
-                if (be instanceof BaseCableBlockEntity cable) {
-                    cable.tickServer();
-                }
-            };
-        }
-    }
-
-    @Override
-    public void neighborChanged(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Block block, @NotNull BlockPos fromPos, boolean isMoving) {
-        super.neighborChanged(state, level, pos, block, fromPos, isMoving);
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof BaseCableBlockEntity cable) {
-            cable.markDirty();
-        }
+    public void onRemove(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull BlockState pNewState, boolean pMovedByPiston) {
+        super.onRemove(pState, pLevel, pPos, pNewState, pMovedByPiston);
+        if (!pLevel.isClientSide())
+            CableClusterHandler.markBlockPosForUpdateIfExists(pLevel, pPos);
     }
 
     @Override
     public void setPlacedBy(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState state, @Nullable LivingEntity placer, @NotNull ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof BaseCableBlockEntity cable) {
-            cable.markDirty();
+        if (!level.isClientSide) {
+            CableClusterHandler.markBlockPosForUpdate(level, pos);
         }
         BlockState blockState = calculateState(level, pos, state);
         if (state != blockState) {
@@ -181,30 +163,24 @@ public abstract class BaseCableBlock extends Block implements SimpleWaterloggedB
         Block block = state.getBlock();
         if (block.getDescriptionId().equals(this.getDescriptionId())) {
             return ConnectionDir.CABLE;
-        } else if (!(block instanceof BaseCableBlock) && isConnectable(world, connectorPos, facing)) {
+        } else if (!(block instanceof BaseCableBlock) && isConnectableToBE(world, connectorPos, facing)) {
             return ConnectionDir.BLOCK;
         } else {
             return ConnectionDir.NONE;
         }
     }
 
-    // Return true if the block at the given position is connectable to a cable. This is the
-    // case if the block supports forge energy
-    public boolean isConnectable(BlockGetter world, BlockPos connectorPos, Direction facing) {
-        BlockPos pos = connectorPos.relative(facing);
-        BlockState state = world.getBlockState(pos);
-        if (state.isAir()) {
+    // Return true if the block at the given position is connectable to a cable.
+    public boolean isConnectableToBE(BlockGetter world, BlockPos thisPos, Direction facing) {
+        BlockPos otherPos = thisPos.relative(facing);
+        BlockState otherState = world.getBlockState(otherPos);
+        if (otherState.isAir()) {
             return false;
         }
-        BlockEntity te = world.getBlockEntity(pos);
-        if (!(te instanceof IAcBaseCableConnectableEntity bcce)) {
-            return false;
+        BlockEntity otherTe = world.getBlockEntity(otherPos);
+        if (otherTe instanceof CableConnectableBlockOrEntity otherCableBe) { // if this is a block entity that cables can connect to
+            return otherCableBe.canConnectTo(clusterType, facing.getOpposite());
         }
-        var thisTe = world.getBlockEntity(connectorPos);
-        if (thisTe instanceof BaseCableBlockEntity bcbe) {
-            return bcce.canConnectTo(bcbe, facing.getOpposite());
-        }
-        AdvancedComputers.LOGGER.warn("BaseCableBlock has no tile entity? %s".formatted(connectorPos));
         return false;
     }
 
@@ -245,6 +221,11 @@ public abstract class BaseCableBlock extends Block implements SimpleWaterloggedB
     @Override
     public @NotNull FluidState getFluidState(BlockState state) {
         return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
+    }
+
+    @Override
+    public @Nullable BlockEntity newBlockEntity(@NotNull BlockPos blockPos, @NotNull BlockState blockState) {
+        return null;
     }
 }
 

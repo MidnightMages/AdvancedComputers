@@ -1,10 +1,9 @@
 package dev.asdf00.mc.advcomp.blocks.redstone_io;
 
+import dev.asdf00.mc.advcomp.blocks.BasePeripheralOrHostBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.block.BaseEntityBlock;
-import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
@@ -12,16 +11,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public class RedstoneIoBlock extends BaseEntityBlock {
+public class RedstoneIoBlock extends BasePeripheralOrHostBlock {
 
     public RedstoneIoBlock(Properties pProperties) {
         super(pProperties);
 
-    }
-
-    @Override
-    public @NotNull RenderShape getRenderShape(@NotNull BlockState pState) {
-        return RenderShape.MODEL;
     }
 
     @Nullable

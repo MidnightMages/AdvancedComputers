@@ -8,8 +8,8 @@ import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
-import dev.asdf00.mc.advcomp.types.RuntimeAssert;
 import dev.asdf00.mc.advcomp.utils.AcPaths;
+import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
 
 import java.io.IOException;
 import java.nio.file.Files;

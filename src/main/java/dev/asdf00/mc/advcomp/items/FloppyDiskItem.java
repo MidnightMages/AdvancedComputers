@@ -47,7 +47,7 @@ public class FloppyDiskItem extends BaseAcDyableItem implements ItemCanBeInitial
 
 
     @Override
-    public void Initialize(ItemStack is) {
+    public void initialize(ItemStack is) {
         init(is, true);
     }
 
