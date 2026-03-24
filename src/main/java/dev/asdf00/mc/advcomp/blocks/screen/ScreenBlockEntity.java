@@ -58,7 +58,7 @@ public class ScreenBlockEntity extends BaseCableConnectableBlockEntity implement
     }
 
     @Override
-    public LuaUserDataComponent CreateUserdata() {
+    public LuaUserDataComponent createUserdata() {
         return new ScreenBlockUD(this);
     }
 

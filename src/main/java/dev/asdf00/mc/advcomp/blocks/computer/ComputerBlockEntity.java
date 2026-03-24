@@ -8,6 +8,7 @@ import dev.asdf00.mc.advcomp.api.ClusterHostEntity;
 import dev.asdf00.mc.advcomp.blocks.BaseCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.exceptions.ACError;
+import dev.asdf00.mc.advcomp.lua.components.AcBlockEntityComponent;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.lua.vm.State;
 import dev.asdf00.mc.advcomp.types.cluster.ClusterType;
@@ -25,6 +26,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
@@ -36,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -219,6 +222,7 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
         return type.equals(AdvancedComputers.CLUSTER_TYPE_DEVICE);
     }
 
+    private Set<BaseCableConnectableBlockEntity> existingBlockComponents = new HashSet<>();
     @Override
     public void onNetworkUpdated() {
         CableCluster deviceCluster = null;
@@ -232,22 +236,42 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
                 if (deviceCluster != null)
                     throw new IllegalStateException("somehow there were multiple device clusters??");
                 deviceCluster = cluster;
-                var hostCount = cluster.getHostCount();
-                if (hostCount > 1) {
-                    if (lvm != null)
-                        lvm.tryKill("Too many computers connected to this network"); // TODO make sure lvm checks how many computers are part of this net when lvm is started, as lvm is null on world load
 
-                    AdvancedComputers.LOGGER.info("invalid network for computer at bp %s. Computer count: %s"
-                            .formatted(this.getBlockPos(), hostCount));
-                } else {
-                    AdvancedComputers.LOGGER.info("valid network for computer at bp %s. Peripheral count: %s"
-                            .formatted(this.getBlockPos(), cluster.getEntityCount()));
-                }
             }
             if (cluster.clusterType == AdvancedComputers.CLUSTER_TYPE_NETWORK) {
                 if (networkCluster != null)
                     throw new IllegalStateException("somehow there were multiple network clusters??");
                 networkCluster = cluster;
+            }
+        }
+
+        if (deviceCluster != null && lvm != null) {
+            var hostCount = deviceCluster.getHostCount();
+            if (hostCount > 1) {
+                lvm.tryKill("Too many computers connected to this network");
+
+                AdvancedComputers.LOGGER.info("invalid network for computer at bp %s. Computer count: %s"
+                        .formatted(this.getBlockPos(), hostCount));
+            } else {
+                AdvancedComputers.LOGGER.info("valid network for computer at bp %s. Peripheral count: %s"
+                        .formatted(this.getBlockPos(), deviceCluster.getEntityCount()));
+            }
+
+            if (lvm != null) {
+                var newComponents = deviceCluster.connectedEntities.clone();
+                Set<BaseCableConnectableBlockEntity> newComponentsSet = Arrays.stream(newComponents).collect(Collectors.toSet());
+                for (BaseCableConnectableBlockEntity x : existingBlockComponents.stream().filter(x -> !newComponentsSet.contains(x))
+                        .toArray(BaseCableConnectableBlockEntity[]::new))
+                    lvm.onBlockComponentRemoved(x);
+
+                for (BaseCableConnectableBlockEntity x : newComponentsSet.stream().filter(x -> !existingBlockComponents.contains(x))
+                        .toArray(BaseCableConnectableBlockEntity[]::new)) {
+                    if (x instanceof AcBlockEntityComponent acBlockEntityComponent) {
+                        lvm.onBlockComponentAdded((BlockEntity & AcBlockEntityComponent) acBlockEntityComponent);
+                    }
+                }
+
+                existingBlockComponents = newComponentsSet;
             }
         }
     }

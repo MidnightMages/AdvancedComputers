@@ -26,7 +26,7 @@ public class ItemInterfaceBlockEntity extends BasePeripheralComponentBlockEntity
     }
 
     @Override
-    public LuaUserDataComponent CreateUserdata() {
+    public LuaUserDataComponent createUserdata() {
         return new ItemInterfaceBlockEntityUD(this);
     }
 }

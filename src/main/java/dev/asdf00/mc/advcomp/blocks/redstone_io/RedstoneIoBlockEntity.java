@@ -21,7 +21,7 @@ public class RedstoneIoBlockEntity extends BaseCableConnectableBlockEntity imple
     }
 
     @Override
-    public LuaUserDataComponent CreateUserdata() {
+    public LuaUserDataComponent createUserdata() {
         return new RedstoneIoBlockUD(this);
     }
 

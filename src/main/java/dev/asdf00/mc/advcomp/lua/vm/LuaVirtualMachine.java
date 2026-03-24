@@ -7,6 +7,7 @@ import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
+import dev.asdf00.mc.advcomp.blocks.BaseCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
@@ -101,8 +102,7 @@ public class LuaVirtualMachine {
         }
 
         // when we get a new slot item here, remove all existing components that occupy the slot and then add this new one and init it
-        componentReg.removeAllComponentsInSlot(x -> x != null && x.getSlotIndex() == slot && x.getInventoryOwnerPos().equals(computerBlockEntity.getBlockPos()));
-        // TODO should probs move this into component reg ud somehow to make it convenient to use for block components, but we'll see
+        componentReg.removeAllMatchingComponents(x -> x != null && x.getSlotIndex() == slot && x.getInventoryOwnerPos().equals(computerBlockEntity.getBlockPos()));
 
         var newItemStack = computerBlockEntity.itemHandler.getStackInSlot(slot);
         var item = newItemStack.getItem();
@@ -116,6 +116,21 @@ public class LuaVirtualMachine {
         }
 
         return newItemStack;
+    }
+
+    public <T extends BlockEntity> void onBlockComponentRemoved(BaseCableConnectableBlockEntity blockEntity) {
+        if (suppressDeviceNetworkUpdate)
+            return;
+        AdvancedComputers.LOGGER.warn("Removing block component %s".formatted(blockEntity.toString()));
+        componentReg.removeAllMatchingComponents(x -> x != null && x.getInventoryOwnerPos().equals(blockEntity.getBlockPos()));
+    }
+
+    public <T extends BlockEntity & AcBlockEntityComponent> void onBlockComponentAdded(T blockEntity) {
+        if (suppressDeviceNetworkUpdate)
+            return;
+        AdvancedComputers.LOGGER.warn("Adding block component %s".formatted(blockEntity.toString()));
+        var blockEntityUD = blockEntity.createUserdata();
+        componentReg.addComponentInitAndNotify(blockEntityUD, AcComponentSlotInfo.ofBlockComponent(blockEntity));
     }
 
     public static LuaVirtualMachine deserializeOrNull(ComputerBlockEntity computerBlockEntity) {
@@ -211,6 +226,7 @@ public class LuaVirtualMachine {
         return deviceCluster != null && (deviceCluster.getHostCount() > 1);
     }
 
+    private boolean suppressDeviceNetworkUpdate = false;
     private void coldInitialize() {
         synchronized (state) {
             if (!state.getState().resting) {
@@ -219,7 +235,10 @@ public class LuaVirtualMachine {
             AdvancedComputers.LOGGER.info("Trying to start LVM");
 
             // rebuild device cable cluster just in case
+            suppressDeviceNetworkUpdate = true;
             CableCluster.onBlockPosChangedInternal(computerBlockEntity.getLevel(), computerBlockEntity.getBlockPos(), AdvancedComputers.CLUSTER_TYPE_DEVICE);
+            suppressDeviceNetworkUpdate = false;
+
             if (tooManyComputersConnected()) {
                 stopCode = "More than one computer in device network";
                 state.crash();
@@ -264,8 +283,7 @@ public class LuaVirtualMachine {
                     .forEach(be -> {
                         // add peripheral device to registry
                         if (be instanceof AcBlockEntityComponent bec) {
-                            componentReg.addComponentInitAndNotify(bec.CreateUserdata(),
-                                    AcComponentSlotInfo.ofBlockComponent((BlockEntity) be));
+                            onBlockComponentAdded((BlockEntity & AcBlockEntityComponent) bec);
                         }
                         // clear all found screens
                         if (be instanceof ScreenBlockEntity sbe) {

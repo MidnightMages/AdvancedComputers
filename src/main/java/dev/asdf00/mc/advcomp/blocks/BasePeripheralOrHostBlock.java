@@ -1,6 +1,5 @@
 package dev.asdf00.mc.advcomp.blocks;
 
-import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.CableClusterHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;
@@ -27,12 +26,8 @@ public abstract class BasePeripheralOrHostBlock extends BaseEntityBlock {
 
     @Override
     public void onRemove(BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, BlockState pNewState, boolean pMovedByPiston) {
-        if (pState.getBlock() != pNewState.getBlock()) {
-            var be = pLevel.getBlockEntity(pPos);
-            if (be instanceof BasePeripheralComponentBlockEntity be2) {
-                AdvancedComputers.LOGGER.info("onRemove");
-            }
-        }
+        if (!pLevel.isClientSide)
+            CableClusterHandler.markBlockPosForUpdateIfExists(pLevel, pPos);
 
         super.onRemove(pState, pLevel, pPos, pNewState, pMovedByPiston);
     }

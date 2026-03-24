@@ -5,5 +5,5 @@ import net.minecraftforge.common.extensions.IForgeBlockEntity;
 
 // extends IForgeBlockEntity to force implementers to only use this on a blockentity
 public interface AcBlockEntityComponent extends IForgeBlockEntity, DeviceCableConnectableEntity {
-    LuaUserDataComponent CreateUserdata();
+    LuaUserDataComponent createUserdata();
 }

@@ -201,7 +201,7 @@ public class ComponentRegistryUD implements LuaUserData {
         );
     }
 
-    public void removeAllComponentsInSlot(Function<AcComponentSlotInfo, Boolean> filter) {
+    public void removeAllMatchingComponents(Function<AcComponentSlotInfo, Boolean> filter) {
         synchronized (componentModifyLockObj) {
             for (var key : Arrays.stream(itemstackAssociationMap.entries()).filter(x -> filter.apply(x.x())).map(Tuple::x).toArray()) {
                 RuntimeAssert.RuntimeAssert(key != null, "key was null");

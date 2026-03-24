@@ -25,10 +25,14 @@ public abstract class BaseAcBlockEntityComponentUD<BE extends BlockEntity> exten
         this.blockEntity = blockEntity;
     }
 
+    public BE getBlockEntity() {
+        return blockEntity;
+    }
+
     @Override
     public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
-        return LuaSerializationUtils.appendBlockEntity(
-                new ByteArrayBuilder(Integer.BYTES * 3 + 1).append(isAccessible), blockEntity).toArray();
+        var byteArrayBuilder = new ByteArrayBuilder(Integer.BYTES * 3 + 1).append(isAccessible);
+        return LuaSerializationUtils.appendBlockEntity(byteArrayBuilder, blockEntity).toArray();
     }
 
     protected static <T extends BaseAcComponent, BE extends BlockEntity> T genericDeserialize(

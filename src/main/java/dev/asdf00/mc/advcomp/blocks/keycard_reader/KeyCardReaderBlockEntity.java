@@ -19,7 +19,7 @@ public class KeyCardReaderBlockEntity extends BasePeripheralComponentBlockEntity
     }
 
     @Override
-    public LuaUserDataComponent CreateUserdata() {
+    public LuaUserDataComponent createUserdata() {
         return new KeyCardReaderBlockEntityUD(this);
     }
 }
