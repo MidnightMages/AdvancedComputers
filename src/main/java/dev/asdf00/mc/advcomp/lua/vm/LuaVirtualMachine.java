@@ -44,6 +44,7 @@ public class LuaVirtualMachine {
     public String stopCode;
     final LinkedHashSet<TextBufferUD> dirtyBuffers = new LinkedHashSet<>();
     final ConcurrentLinkedQueue<ScreenBlockEntity> dirtyScreenBlockEntities = new ConcurrentLinkedQueue<>();
+    private boolean suppressDeviceNetworkUpdate = false;
 
     public LuaVirtualMachine(ComputerBlockEntity computerBlockEntity) {
         this.computerBlockEntity = computerBlockEntity;
@@ -118,16 +119,16 @@ public class LuaVirtualMachine {
         return newItemStack;
     }
 
-    public <T extends BlockEntity> void onBlockComponentRemoved(BaseCableConnectableBlockEntity blockEntity) {
-        if (suppressDeviceNetworkUpdate)
-            return;
+    public void onBlockComponentRemoved(BaseCableConnectableBlockEntity blockEntity) {
+        if (suppressDeviceNetworkUpdate) return;
+
         AdvancedComputers.LOGGER.warn("Removing block component %s".formatted(blockEntity.toString()));
         componentReg.removeAllMatchingComponents(x -> x != null && x.getInventoryOwnerPos().equals(blockEntity.getBlockPos()));
     }
 
     public <T extends BlockEntity & AcBlockEntityComponent> void onBlockComponentAdded(T blockEntity) {
-        if (suppressDeviceNetworkUpdate)
-            return;
+        if (suppressDeviceNetworkUpdate) return;
+
         AdvancedComputers.LOGGER.warn("Adding block component %s".formatted(blockEntity.toString()));
         var blockEntityUD = blockEntity.createUserdata();
         componentReg.addComponentInitAndNotify(blockEntityUD, AcComponentSlotInfo.ofBlockComponent(blockEntity));
@@ -136,8 +137,7 @@ public class LuaVirtualMachine {
     public static LuaVirtualMachine deserializeOrNull(ComputerBlockEntity computerBlockEntity) {
         var serializedVmPath = AcPaths.getVmStatesPath(computerBlockEntity);
         var vmExists = Files.exists(serializedVmPath);
-        if (!vmExists)
-            return null;
+        if (!vmExists) return null;
 
         // deserialize
         var vm = new LuaVirtualMachine(computerBlockEntity);
@@ -226,7 +226,6 @@ public class LuaVirtualMachine {
         return deviceCluster != null && (deviceCluster.getHostCount() > 1);
     }
 
-    private boolean suppressDeviceNetworkUpdate = false;
     private void coldInitialize() {
         synchronized (state) {
             if (!state.getState().resting) {
