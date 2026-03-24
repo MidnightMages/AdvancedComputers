@@ -144,18 +144,18 @@ public final class TextBufferUD implements LuaUserData {
 
     @LuaCallable
     public LuaObject[] pasteText(int x, int y, PasteMode mode, String uText) {
-        luaGuarantee(x < width && x >= -width, "x out of bounds");
+        // we allow instant line spilling
+        luaGuarantee(x <= width && x >= -width, "x out of bounds");
         luaGuarantee(y < height && y >= -height, "y out of bounds");
         x = x < 0 ? width - x : x;
         y = y < 0 ? height - y : y;
 
         int printed = 0;
         while (printed < uText.length()) {
-
             // paste as much text into the current line as there is space in the buffer
             boolean endedOnNewLine = false;
             lineLoop:
-            while (printed < uText.length() && x < width) {
+            while (printed < uText.length() && x <= width) {
                 char toPrint = uText.charAt(printed++);
                 switch (toPrint) {
                     case '\n' -> {
@@ -172,18 +172,28 @@ public final class TextBufferUD implements LuaUserData {
                         // carriage return jumps back to the start of the line
                         x = 0;
                     }
-                    case '\t' -> {
-                        text[rawCalcIdx(x++, y)] = ' ';
-                        while (x % 4 != 0 && x < width) {
-                            text[rawCalcIdx(x++, y)] = ' ';
-                        }
-                    }
                     case '\b' -> {
                         if (x > 0) {
                             text[rawCalcIdx(--x, y)] = '\0';
                         }
                     }
+                    case '\t' -> {
+                        // line is possibly full
+                        if (x == width) {
+                            printed--;
+                            break lineLoop;
+                        }
+                        text[rawCalcIdx(x++, y)] = ' ';
+                        while (x % 4 != 0 && x < width) {
+                            text[rawCalcIdx(x++, y)] = ' ';
+                        }
+                    }
                     default -> {
+                        // line is possibly full
+                        if (x == width) {
+                            printed--;
+                            break lineLoop;
+                        }
                         text[rawCalcIdx(x++, y)] = toPrint;
                     }
                 }
