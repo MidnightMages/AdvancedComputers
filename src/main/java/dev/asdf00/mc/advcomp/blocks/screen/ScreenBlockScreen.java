@@ -1,6 +1,7 @@
 package dev.asdf00.mc.advcomp.blocks.screen;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.ClientStatics;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -79,7 +80,7 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
         int y = 0;
         for (int i = 0; i < lines.length; i++) {
             var l = lines[i];
-            pGuiGraphics.drawString(AdvancedComputers.getMonoFont(), l, -1, y + 1, -1, false);
+            pGuiGraphics.drawString(ClientStatics.getMonoFont(), l, -1, y + 1, -1, false);
             y += 9;
         }
     }

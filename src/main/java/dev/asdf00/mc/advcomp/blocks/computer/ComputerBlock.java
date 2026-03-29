@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.function.Supplier;
 
 public class ComputerBlock extends BasePeripheralOrHostBlock {
 
@@ -132,16 +133,17 @@ public class ComputerBlock extends BasePeripheralOrHostBlock {
     }
 
     public enum ComputerRunState implements StringRepresentable {
-        STOPPED (new Color(0x8D0000), false, false),
-        CRASHED (new Color(0x8D0000), true, false),
-        RUNNING (new Color(0x008D19), false, true),
-        WORKING (new Color(0x008D19), true, true);
+        // wrapping Color() into a supplier so that the server doesnt load it as the class doesnt exist there
+        STOPPED(() -> new Color(0x8D0000), false, false),
+        CRASHED(() -> new Color(0x8D0000), true, false),
+        RUNNING(() -> new Color(0x008D19), false, true),
+        WORKING(() -> new Color(0x008D19), true, true);
 
-        final Color color;
+        final Supplier<Color> color;
         final boolean blinking;
         final boolean isRunning;
 
-        ComputerRunState(Color color, boolean blinking, boolean isRunning) {
+        ComputerRunState(Supplier<Color> color, boolean blinking, boolean isRunning) {
 
             this.color = color;
             this.blinking = blinking;

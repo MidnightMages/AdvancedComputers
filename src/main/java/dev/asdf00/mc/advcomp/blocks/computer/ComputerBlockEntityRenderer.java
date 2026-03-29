@@ -43,7 +43,7 @@ public class ComputerBlockEntityRenderer implements BlockEntityRenderer<Computer
         pPoseStack.pushPose();
         var facing = pBlockEntity.getBlockState().getValue(ComputerBlock.FACING);
         var rs = getRunstate(pBlockEntity);
-        var color = rs.color;
+        var color = rs.color.get();
 
 
         if (rs.blinking) {

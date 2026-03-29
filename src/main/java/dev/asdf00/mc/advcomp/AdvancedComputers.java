@@ -110,16 +110,6 @@ public class AdvancedComputers {
 
     public static final ClusterType CLUSTER_TYPE_DEVICE = AdvancedComputers.AC_CLUSTER_TYPE_MANAGER.registerNewClusterType("device");
     public static final ClusterType CLUSTER_TYPE_NETWORK = AdvancedComputers.AC_CLUSTER_TYPE_MANAGER.registerNewClusterType("network");
-    private static Font monoFont = null;
-    private static FontSet fontSet = null;
-
-    public static Font getMonoFont() {
-        if (monoFont == null || fontSet.providers.isEmpty()) {
-            fontSet = Minecraft.getInstance().fontManager.fontSets.get(new ResourceLocation(AdvancedComputers.MODID, "acfont-firacode-regular"));
-            monoFont = new Font((p_284586_) -> fontSet, false);
-        }
-        return monoFont;
-    }
 
     // Creates a new Block with the id "examplemod:example_block", combining the namespace and path
 //    public static final RegistryObject<Block> EXAMPLE_BLOCK = BLOCKS.register("example_block", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.STONE)));
@@ -296,7 +286,6 @@ public class AdvancedComputers {
 
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
-        modEventBus.addListener(this::registerColorHandlers);
         modEventBus.addListener(this::registerDatagen);
 
         // Register our mod's ForgeConfigSpec so that Forge can create and load the config file for us
@@ -313,12 +302,6 @@ public class AdvancedComputers {
 
     private void commonSetup(final FMLCommonSetupEvent event) {
         // Some common setup code
-    }
-
-    private void registerColorHandlers(final RegisterColorHandlersEvent.Item event) {
-        event.register(new DualLayerItemColorHandler(), KEYCARD_BASIC_ITEM.get());
-        event.register(new DualLayerItemColorHandler(), KEYCARD_ADVANCED_ITEM.get());
-        event.register(new DualLayerItemColorHandler(), FLOPPY_DISK_ITEM.get());
     }
 
     private void registerDatagen(final GatherDataEvent event) {
@@ -391,6 +374,13 @@ public class AdvancedComputers {
             event.registerBlockEntityRenderer(AdvancedComputers.SCREEN_BE.get(), ScreenBlockEntityRenderer::new);
             event.registerBlockEntityRenderer(AdvancedComputers.WAN_ROUTER_BE.get(), WanRouterBlockEntityRenderer::new);
             event.registerBlockEntityRenderer(AdvancedComputers.WAN_ROUTER_BE_LOWTIER.get(), WanRouterBlockEntityRendererLowTier::new);
+        }
+
+        @SubscribeEvent
+        public static void registerItemColors(RegisterColorHandlersEvent.Item event) {
+            event.register(new DualLayerItemColorHandler(), KEYCARD_BASIC_ITEM.get());
+            event.register(new DualLayerItemColorHandler(), KEYCARD_ADVANCED_ITEM.get());
+            event.register(new DualLayerItemColorHandler(), FLOPPY_DISK_ITEM.get());
         }
     }
 }

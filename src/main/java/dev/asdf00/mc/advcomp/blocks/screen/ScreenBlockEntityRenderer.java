@@ -6,6 +6,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Axis;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.ClientStatics;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlock;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.GameRenderer;
@@ -59,7 +60,7 @@ public class ScreenBlockEntityRenderer implements BlockEntityRenderer<ScreenBloc
             String textToRender = pBlockEntity.guiContent;//"Some \ntext \nthat \nwe \nwant \nto \nrender :)";
             var lines = textToRender.split("\n", -1);
             int lineCount = lines.length - 1;//textToRender.length() - textToRender.replace("\n", "").length() + 1;
-            var font = AdvancedComputers.getMonoFont();
+            var font = ClientStatics.getMonoFont();
             float charWidth = font.width("a");
             int maxCharsWidth = 110; // 110 by 40 roughly
             int maxCharsHeight = 40;
