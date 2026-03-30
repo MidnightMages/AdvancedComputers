@@ -18,7 +18,7 @@ public class RedstoneIoBlockUD extends BaseAcBlockEntityComponentUD<RedstoneIoBl
     }
 
     private RedstoneIoBlockUD(LuaVirtualMachine acVm, boolean isAccessible, RedstoneIoBlockEntity redstoneIoBlockEntity) {
-        super("screen", acVm, isAccessible, redstoneIoBlockEntity);
+        super("redstone", acVm, isAccessible, redstoneIoBlockEntity);
     }
 
     @LuaCallable
