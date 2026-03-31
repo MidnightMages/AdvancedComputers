@@ -98,6 +98,16 @@ function fs:createDirectory(filePath)
     drive:makeDirectory(drivePath)
 end
 
+function fs:deleteDirectory(filePath)
+    local drive, drivePath = findDriveAndDrivePath(filePath)
+    drive:deleteDirectory(drivePath)
+end
+
+function fs:delete(filePath)
+    local drive, drivePath = findDriveAndDrivePath(filePath)
+    drive:delete(drivePath)
+end
+
 function fs:list(filePath)
     local drive, drivePath = findDriveAndDrivePath(filePath)
     local res = drive:list(drivePath)

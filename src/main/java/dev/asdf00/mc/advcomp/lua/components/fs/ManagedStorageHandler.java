@@ -172,4 +172,36 @@ public class ManagedStorageHandler implements StorageHandler {
         }
         return false;
     }
+
+    public boolean tryDeleteDirectoryRecursively(String s) {
+        var d = root.getDirectory(trimPath(s));
+        if (d != null) {
+            var pathToDelete = d.getRealDiskPath();
+            var prefix = d.getFsRootPath();
+            deletePathRelativeToFsRecursively(prefix.relativize(pathToDelete));
+            return true;
+        }
+        return false;
+    }
+
+    private void deletePathRelativeToFsRecursively(Path relativePath) {
+        var rootPath = root.getFsRootPath();
+        var failAssert = rootPath == null || rootPath.toString().length() <= 5 || rootPath.toString().contains("../") || rootPath.toString().contains("..\\") ||
+                         relativePath == null || relativePath.toString().contains("../") || relativePath.toString().contains("..\\");
+        RuntimeAssert.RuntimeAssert(!failAssert, "Folder deletion received no proper fs root path. Please report this!!!! Extra info: '%s', '%s'"
+                .formatted(rootPath == null ? "<NULL>" : rootPath.toString(), relativePath == null ? "<NULL>" : relativePath.toString()));
+
+
+        var path = rootPath.resolve(relativePath);
+        try (Stream<Path> paths = Files.walk(path)) {
+            paths.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(x -> {
+                if (!x.toPath().equals(rootPath)) {
+                    //noinspection ResultOfMethodCallIgnored
+                    x.delete();
+                }
+            });
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

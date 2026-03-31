@@ -19,6 +19,10 @@ public class DirectoryNode {
         this.isPhysReadOnly = isPhysReadOnly;
     }
 
+    public DirectoryNode getParent() {
+        return parentFolder;
+    }
+
     private DirectoryNode getLocalChildDirOrNull(String dirName) {
         var p = getRealDiskPath().resolve(dirName);
         if (Files.isDirectory(p)) {
