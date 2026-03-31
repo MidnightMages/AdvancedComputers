@@ -10,6 +10,7 @@ import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.exceptions.ACError;
 import dev.asdf00.mc.advcomp.lua.components.AcBlockEntityComponent;
 import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
+import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -62,23 +63,20 @@ public class ScreenBlockEntity extends BaseCableConnectableBlockEntity implement
         return new ScreenBlockUD(this);
     }
 
-    public static final Set<String> KNOWN_EVENT_NAMES = Set.of("keyTyped", "textPasted");
+    public static final Set<String> KNOWN_EVENT_NAMES = Set.of("keyPressed", "keyReleased", "textPasted", "charTyped");
 
-    public void triggerMachineEvent(String name, String content) {
-        if (getLevel().isClientSide()) {
-            NetCodeUtils.sendToServer(new ScreenInputToServerEvent(this, name, content));
-        } else {
-            if (!KNOWN_EVENT_NAMES.contains(name)) {
-                AdvancedComputers.LOGGER.error("Server received unknown Screen event");
-                return;
-            }
-
-            ComputerBlockEntity cbe = getComputerBlockEntityOrNull();
-            if(cbe != null) {
-                cbe.getLvm().triggerMachineEvent(name, LuaObject.of(content));
-            }
-            // just drop event if no computer is connected
+    private void triggerMachineEvent_server(String name, LuaObject... content) {
+        RuntimeAssert.RuntimeAssert(!getLevel().isClientSide(), "this is a serverside method");
+        if (!KNOWN_EVENT_NAMES.contains(name)) {
+            AdvancedComputers.LOGGER.error("Server received unknown Screen event");
+            return;
         }
+
+        ComputerBlockEntity cbe = getComputerBlockEntityOrNull();
+        if (cbe != null) {
+            cbe.getLvm().triggerMachineEvent(name, content);
+        }
+        // just drop event if no computer is connected
     }
 
     // =================================================================================================================
@@ -242,7 +240,18 @@ public class ScreenBlockEntity extends BaseCableConnectableBlockEntity implement
                         sbe.getComputerBlockEntity().getLvm().requestScreenContents(sbe);
                         return;
                     }
-                    sbe.triggerMachineEvent(eventName, content);
+
+                    if (eventName.equals("keyPressed") || eventName.equals("keyReleased")) { // that one contains modifiers too, in the format INT_MODIFIERS;STRING_LETTER
+                        var splitted = content.split(";", 4);
+                        sbe.triggerMachineEvent_server(eventName,
+                                LuaObject.of(splitted[3]), // string representation
+                                LuaObject.of(Integer.parseInt(splitted[0])), // keyCode
+                                LuaObject.of(Integer.parseInt(splitted[1])), // scanCode
+                                LuaObject.of(Integer.parseInt(splitted[2])) // modifiers (flags)
+                        );
+                    } else {
+                        sbe.triggerMachineEvent_server(eventName, LuaObject.of(content));
+                    }
                 } else {
                     AdvancedComputers.LOGGER.warn("Received invalid packet for Screen event");
                 }

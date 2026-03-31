@@ -2,6 +2,7 @@ package dev.asdf00.mc.advcomp.blocks.screen;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.ClientStatics;
+import dev.asdf00.mc.advcomp.NetCodeUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -10,6 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
+import org.lwjgl.glfw.GLFW;
 
 public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(AdvancedComputers.MODID, "textures/gui/screen_gui.png");
@@ -85,39 +87,138 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
         }
     }
 
+    public void triggerRawScreenEvent(String type, String content) {
+        NetCodeUtils.sendToServer(new ScreenBlockEntity.ScreenInputToServerEvent(getScreenEntity(), type, content));
+    }
+
+    public void triggerKeyPressedEvent(String type, int keyCode, int scanCode, int modifiers, String stringRepresentation) {
+        String content = "%d;%d;%d;%s".formatted(keyCode, scanCode, modifiers, stringRepresentation);
+        triggerRawScreenEvent(type, content);
+    }
+
+    public void emitGeneralKeyEvent(String type, int pKeyCode, int pScanCode, int pModifiers) {
+        // pmodifiers:
+        // 1=shift, 2=ctrl and r_ctrl, 4=alt, 6=alt_gr
+        boolean isPressEvent = type.equals("keyPressed");
+        switch (pKeyCode) {
+            case 256 -> { // ESC
+                onClose();
+            }
+            // 335 is the numpad enter, 257 is the regular one
+            case 258 -> {
+                triggerKeyPressedEvent(type, pKeyCode, pScanCode, pModifiers, "\t");
+                if (isPressEvent)
+                    charTyped('\t', pModifiers);
+            }
+            case 257, 335 -> {
+                triggerKeyPressedEvent(type, pKeyCode, pScanCode, pModifiers, "\n");
+                if (isPressEvent)
+                    charTyped('\n', pModifiers);
+            } // enter, numpad_enter
+            case 259 -> {
+                triggerKeyPressedEvent(type, pKeyCode, pScanCode, pModifiers, "\b");
+                if (isPressEvent)
+                    charTyped('\b', pModifiers);
+            }
+            case 260, // insert
+                 261, // del
+                 262, // rightarrow
+                 263, // leftarrow
+                 264, // downarrow
+                 265, // uparrow
+                 266, // pgup
+                 267, // pgdown
+                 268, // home
+                 269, // end
+
+                 280, // capslock
+                 281, // scroll lock
+                 282, // numlock
+                 283, // print
+                 284, // pause
+
+                 290, // F1 to
+                 291, 292, 293, 294, 295, 296, 297, 298, 299, 300,
+                 301, // F12
+
+                 340, // shift
+                 341, // ctrl
+                 342, // alt
+                 343, // win
+                 344, // shift
+                 345, // rctrl
+                 346 // alt gr
+                    -> triggerKeyPressedEvent(type, pKeyCode, pScanCode, pModifiers, "");
+
+
+            // -- numpad: we cannot properly track numlock --> always use numlock=on
+            case 320, // numpad_0
+                 321, // numpad_1
+                 322, // numpad_2
+                 323, // numpad_3
+                 324, // numpad_4
+                 325, // numpad_5
+                 326, // numpad_6
+                 327, // numpad_7
+                 328, // numpad_8
+                 329 // numpad_9
+                    -> triggerKeyPressedEvent(type, pKeyCode, pScanCode, pModifiers, String.valueOf(pKeyCode - 320));
+
+            case 330 ->
+                    triggerKeyPressedEvent(type, pKeyCode, pScanCode, pModifiers, GLFW.glfwGetKeyName(pKeyCode, pScanCode)); // numpad_period
+            default -> {
+                var chr = GLFW.glfwGetKeyName(pKeyCode, pScanCode);
+                if (chr == null || chr.isEmpty()) {
+                    triggerKeyPressedEvent(type, pKeyCode, pScanCode, pModifiers, "");
+                } else {
+                    String casedChar;
+                    if ((pModifiers & 1) != 0) // shift pressed
+                        casedChar = chr.toUpperCase();
+                    else
+                        casedChar = chr.toLowerCase();
+
+                    triggerKeyPressedEvent(type, pKeyCode, pScanCode, pModifiers, casedChar);
+                }
+            }
+        }
+    }
+
     private ScreenBlockEntity getScreenEntity() {
         return getMenu().blockEntity;
     }
 
+    // pModifiers:
+    // 1=shift, 2=ctrl and r_ctrl, 4=alt, 6=alt_gr
     @Override
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
-        switch (pKeyCode) {
-            case 256 -> onClose();
-            case 257 -> getScreenEntity().triggerMachineEvent("keyTyped", "\n");
-            case 259 -> getScreenEntity().triggerMachineEvent("keyTyped", "\b");
-            default -> {
-                return false;
-            }
-        }
+        //AdvancedComputers.LOGGER.warn("keyPressed %s;%s;%s;%s".formatted(pKeyCode, pScanCode, pModifiers, GLFW.glfwGetKeyName(pKeyCode, pScanCode)));
+        emitGeneralKeyEvent("keyPressed", pKeyCode, pScanCode, pModifiers);
+
+        return true;
+    }
+
+    @Override
+    public boolean keyReleased(int pKeyCode, int pScanCode, int pModifiers) {
+        //AdvancedComputers.LOGGER.warn("keyReleased %s;%s;%s;%s".formatted(pKeyCode, pScanCode, pModifiers, GLFW.glfwGetKeyName(pKeyCode, pScanCode)));
+        emitGeneralKeyEvent("keyReleased", pKeyCode, pScanCode, pModifiers);
         return true;
     }
 
     @Override
     public boolean charTyped(char pCodePoint, int pModifiers) {
-        if (super.charTyped(pCodePoint, pModifiers)) {
-            return true;
-        }
-        getScreenEntity().triggerMachineEvent("keyTyped", String.valueOf(pCodePoint));
+        //AdvancedComputers.LOGGER.warn("charTyped %s;%s".formatted(pCodePoint, pModifiers));
+
+        triggerRawScreenEvent("charTyped", String.valueOf(pCodePoint));
         return true;
     }
 
     @Override
     public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
-        if (pButton == 1) {
-            // right-click to paste
+        if (pButton == 2) {
+            // middle-click to paste
             String clip = Minecraft.getInstance().keyboardHandler.getClipboard();
-            if (clip != null && clip.length() > 0) {
-                getScreenEntity().triggerMachineEvent("textPasted", clip);
+            if (!clip.isEmpty()) {
+                triggerRawScreenEvent("textPasted", clip);
             }
         }
         return super.mouseClicked(pMouseX, pMouseY, pButton);

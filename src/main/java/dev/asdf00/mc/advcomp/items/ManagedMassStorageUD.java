@@ -161,6 +161,14 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
     }
 
     @LuaCallable
+    public boolean deleteDirectory(String path) {
+        if (!fs.directoryExists(path)) {
+            throw new LuaJavaError("Directory '%s' does not exist".formatted(path));
+        }
+        return fs.tryDeleteDirectoryRecursively(path);
+    }
+
+    @LuaCallable
     public boolean delete(String path) {
         if (!fs.fileExists(path)) {
             throw new LuaJavaError("File '%s' does not exist".formatted(path));
