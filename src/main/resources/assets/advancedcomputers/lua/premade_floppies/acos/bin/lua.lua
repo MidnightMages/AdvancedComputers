@@ -1,7 +1,7 @@
 local kernel = require("kernel")
 
 local stringBuffer = ""
-local function keyTyped(key) -- return whether to exit
+local function charTyped(key) -- return whether to exit
     if key == "\b" then
         if #stringBuffer > 0 then
             printInline(key)
@@ -42,7 +42,7 @@ end
 
 printInline(">> ")
 local keepRunning = true
-kernel:registerEventCallback("keyTyped", function(...)
-    if keyTyped(select(2,...)) then keepRunning = false end
+kernel:registerEventCallback("charTyped", function(...)
+    if charTyped(select(2,...)) then keepRunning = false end
 end)
 while keepRunning do sleep(1) end

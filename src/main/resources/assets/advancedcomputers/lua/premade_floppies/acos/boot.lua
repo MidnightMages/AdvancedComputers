@@ -164,7 +164,7 @@ local function readPrimitiveInput()
         local nextEvent = table.pack(components:getFirst("computer"):getMachineEvent())
         if nextEvent[1] == nil then
             sleep(0.1)
-        elseif nextEvent[1] == "keyTyped" then
+        elseif nextEvent[1] == "charTyped" then
             local chr = nextEvent[2]
             if chr == "\n" then print() return readInput end
             if chr == "\b" then
