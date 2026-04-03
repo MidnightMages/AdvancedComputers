@@ -41,16 +41,26 @@ public class Config {
             .worldRestart()
             .defineInRange("lua.vm.cache2_max_files", 1000, 5, Integer.MAX_VALUE);
 
+    private static final ForgeConfigSpec.BooleanValue DEBUG_LUA_PRINT_TO_SERVER_CONSOLE = BUILDER
+            .comment("""
+                    If this is set to true, the default UEFI will also print to the server console. This is useful for debugging, but it may look confusing in the server console.
+                    If you are unsure, keep it turned off.
+                    """)
+            .worldRestart()
+            .define("debug.lua.print_to_server_console", false);
+
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
     public static boolean escapeUppercaseCharactersOnHost;
     public static boolean luaVmCache2Enabled;
     public static int luaVmCache2MaxFiles;
+    public static boolean debugLuaPrintToServerConsole;
 
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
         escapeUppercaseCharactersOnHost = LUA_FS_ESCAPE_UPPERCASE_CHARS_IN_HOST_FS.get();
         luaVmCache2Enabled = LUA_VM_CACHE2_ENABLED.get();
         luaVmCache2MaxFiles = LUA_VM_CACHE2_MAX_FILES.get();
+        debugLuaPrintToServerConsole = DEBUG_LUA_PRINT_TO_SERVER_CONSOLE.get();
     }
 }

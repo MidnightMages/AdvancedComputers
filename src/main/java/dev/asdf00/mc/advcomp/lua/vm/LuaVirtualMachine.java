@@ -5,6 +5,7 @@ import dev.asdf00.jluavm.api.functions.AtomicLuaFunction;
 import dev.asdf00.jluavm.api.functions.MixedStateFunctionRegistry;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.Config;
 import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
 import dev.asdf00.mc.advcomp.blocks.BaseCableConnectableBlockEntity;
@@ -422,17 +423,14 @@ public class LuaVirtualMachine {
                 (tableToIterateOver, closures) -> new LuaUnpackingIteratorFunction(BUILTIN_FUNCTIONS, tableToIterateOver, closures));
     }
 
-    // TODO remove
-    private static void println(String s) {
-        System.out.println(s);
-    }
-
     private static void printlnLUA(String s) {
-        println(s);
+        if(Config.debugLuaPrintToServerConsole)
+            System.out.println(s);
     }
 
     private static void printInlineLUA(String s) {
-        System.out.print(s);
+        if(Config.debugLuaPrintToServerConsole)
+            System.out.print(s);
     }
     // ------------
 }
