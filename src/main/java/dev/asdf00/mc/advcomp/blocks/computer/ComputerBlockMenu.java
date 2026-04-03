@@ -60,9 +60,9 @@ public class ComputerBlockMenu extends AbstractContainerMenu {
     void addSlotRow(IItemHandler iItemHandler, int indexStart, int xPos, int yPos, int count) {
         for (int i = 0; i < count; i++) {
             this.addSlot(SlotItemHandlerRequireType.fromTypeConstraints(iItemHandler, indexStart + i, xPos + 18 * i, yPos,
-                    AcItemComponent.class, new Class[]{
+                    MainboardItem.class, new Class[]{
                             MainboardItem.class, BaseDataStorageItem.class
-                    }));
+                    })); // prevent putting anything in the bottom slots for now
         }
     }
 
