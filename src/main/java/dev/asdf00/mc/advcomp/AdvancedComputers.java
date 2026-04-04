@@ -28,13 +28,10 @@ import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
 import dev.asdf00.mc.advcomp.types.GlobalDataStorage;
 import dev.asdf00.mc.advcomp.types.cluster.ClusterType;
 import dev.asdf00.mc.advcomp.utils.AcPaths;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.font.FontSet;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
@@ -49,6 +46,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.storage.LevelResource;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.ModelEvent;
@@ -75,6 +73,8 @@ import net.minecraftforge.registries.RegistryObject;
 import org.slf4j.Logger;
 
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -313,6 +313,9 @@ public class AdvancedComputers {
         gen.addProvider(event.includeClient(), new BlockModelGenerator(packOut, MODID, event.getExistingFileHelper()));
         gen.addProvider(event.includeClient(), new ItemModelGenerator(packOut, MODID, event.getExistingFileHelper()));
         gen.addProvider(event.includeClient(), new BlockStateGenerator(packOut, MODID, event.getExistingFileHelper()));
+        gen.addProvider(event.includeClient(), new LootTableProvider(packOut, Set.of(),
+                List.of(new LootTableProvider.SubProviderEntry(AcLootTableProvider::new, LootContextParamSets.BLOCK))
+        ));
 
         gen.addProvider(event.includeServer(), new BlockTagGenerator(packOut, lookupProvider, MODID, event.getExistingFileHelper()));
     }
