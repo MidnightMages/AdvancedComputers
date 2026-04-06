@@ -18,7 +18,7 @@ if filePath:endsWith("/") then
         print("Directory '"..tostring(filePath).."' does not exist, thus cannot remove it.")
         return 1
     end
-    fs:deleteDirectory(filePath)
+    fs:delete(filePath)
 else
     if not fs:fileExists(filePath) then
         print("File '"..tostring(filePath).."' does not exist, thus cannot remove it.")

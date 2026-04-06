@@ -70,17 +70,24 @@ end
 
 function fs:readAllText(filePath)
     local drive, drivePath = findDriveAndDrivePath(filePath)
-    return drive:open(drivePath):read()
+	local fileHandle = drive:open(drivePath)
+	local rv = fileHandle:read(-1) or "" -- if the file is empty we get nil (end of line), in that case just return an empty string
+	fileHandle:close()
+    return rv
 end
 
 function fs:writeAllText(filePath, content)
     local drive, drivePath = findDriveAndDrivePath(filePath)
-    return drive:open(drivePath, true):write(content)
+	local handle = drive:open(drivePath, "w")
+    handle:write(content)
+	handle:close()
 end
 
 function fs:appendAllText(filePath, content)
     local drive, drivePath = findDriveAndDrivePath(filePath)
-    return drive:open(drivePath):append(content)
+	local handle = drive:open(drivePath, "a")
+    handle:write(content)
+	handle:close()
 end
 
 function fs:fileExists(filePath)
