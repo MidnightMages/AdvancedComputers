@@ -117,7 +117,7 @@ public class AdvancedComputers {
 //    public static final RegistryObject<Item> EXAMPLE_BLOCK_ITEM = ITEMS.register("example_block", () -> new BlockItem(EXAMPLE_BLOCK.get(), new Item.Properties()));
 
     public static final RegistryBlockItemPair<Block> COMPUTER_BLOCK_WOOD = registerBlockWithItem("computer_block_wood",
-            () -> new ComputerBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK), ComputerTier.Wood));
+            () -> new ComputerBlock(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS), ComputerTier.Wood));
     public static final RegistryBlockItemPair<Block> COMPUTER_BLOCK = registerBlockWithItem("computer_block",
             () -> new ComputerBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK), ComputerTier.Iron));
     public static final RegistryBlockItemPair<Block> COMPUTER_BLOCK_DIAMOND = registerBlockWithItem("computer_block_diamond",
@@ -128,7 +128,7 @@ public class AdvancedComputers {
             () -> new ComputerBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK), ComputerTier.Creative));
 
     public static final RegistryBlockItemPair<Block> SCREEN_BLOCK_WOOD = registerBlockWithItem("screen_block_wood",
-            () -> new ScreenBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
+            () -> new ScreenBlock(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS)));
     public static final RegistryBlockItemPair<Block> SCREEN_BLOCK = registerBlockWithItem("screen_block",
             () -> new ScreenBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
     public static final RegistryBlockItemPair<Block> SCREEN_BLOCK_DIAMOND = registerBlockWithItem("screen_block_diamond",
@@ -147,10 +147,10 @@ public class AdvancedComputers {
             () -> new RedstoneIoBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
 
     public static final RegistryBlockItemPair<Block> DEVICE_CABLE_BLOCK = registerBlockWithItem("device_cable_block",
-            () -> new DeviceCableBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
+            () -> new DeviceCableBlock(BlockBehaviour.Properties.copy(Blocks.BLUE_WOOL)));
 
     public static final RegistryBlockItemPair<Block> NETWORK_CABLE_BLOCK = registerBlockWithItem("network_cable_block",
-            () -> new NetworkCableBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
+            () -> new NetworkCableBlock(BlockBehaviour.Properties.copy(Blocks.CYAN_WOOL)));
 
     public static final RegistryBlockItemPair<Block> WAN_ROUTER_BLOCK = registerBlockWithItem("wan_router",
             () -> new WanRouterBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK).noOcclusion()));
