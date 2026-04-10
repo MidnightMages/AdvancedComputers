@@ -296,13 +296,14 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
         }
     }
 
-    private void setBlockStates(ComputerBlock.ComputerRunState newState) {
-
-    }
-
     public void toggleLVMPowerState() {
         if (isServer()) {
-            getLvm().toggleOnOff();
+            try {
+                getLvm().toggleOnOff();
+            } catch (Exception e) {
+                setRunState(ComputerBlock.ComputerRunState.CRASHED);
+                throw e;
+            }
         } else {
             NetCodeUtils.sendToServer(new ClientOriginatingUiEvent(this, 1));
         }

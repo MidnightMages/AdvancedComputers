@@ -233,6 +233,7 @@ public class LuaVirtualMachine {
                 throw new IllegalStateException("trying to initialize non-resting LVM");
             }
             AdvancedComputers.LOGGER.info("Trying to start LVM");
+            state.initialize();
 
             // rebuild device cable cluster just in case
             suppressDeviceNetworkUpdate = true;
@@ -308,7 +309,6 @@ public class LuaVirtualMachine {
             vm.eventCallback = timeTracker::handleVmEvent;
 
             // now the VM is initialized for a cold start
-            state.initialize();
         }
     }
 
