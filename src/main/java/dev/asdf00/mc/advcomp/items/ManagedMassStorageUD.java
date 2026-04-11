@@ -241,8 +241,8 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
 
     @LuaCallable
     public void move(String src, String dest) {
-        var isDirectoryOperation = src.endsWith("/");
-        var realSrcPath = getRealFsPath(normalizeEncodeAbsPath(src, !isDirectoryOperation, isDirectoryOperation));
+        var realSrcPath = getRealFsPath(normalizeEncodeAbsPath(src, false, false));
+        var isDirectoryOperation = realSrcPath.endsWith("/");
         var realDstPath = getRealFsPath(normalizeEncodeAbsPath(dest, !isDirectoryOperation, isDirectoryOperation));
         RuntimeAssert.RuntimeAssert(realSrcPath.startsWith(getFsRealBasePath()), "Somehow we tried to delete something outside of the filesystem. Please report this. (src)");
         RuntimeAssert.RuntimeAssert(realDstPath.startsWith(getFsRealBasePath()), "Somehow we tried to delete something outside of the filesystem. Please report this. (dst)");
@@ -281,39 +281,49 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
     }
 
     @LuaCallable
-    public long getSize(String path) {
-        var normalized = normalizeEncodeAbsFilePath(path);
-        var realPath = getRealFsPath(normalized);
-        if (!Files.isRegularFile(realPath)) {
-            throw new LuaJavaError("File '%s' does not exist".formatted(normalized));
-        }
-        try {
-            return Files.size(realPath);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public long spaceUsed() {
+        return spaceUsed("/");
     }
 
     @LuaCallable
-    public long spaceUsed() {
+    public long spaceUsed(String path) {
         // TODO also make the user pay for file/folder attributes
-        try (var paths = Files.walk(getFsRealBasePath(), Integer.MAX_VALUE)) {
+        var absRealPath = normalizeEncodeAbsPath(path, false, false);
+        var isFileOperation = !absRealPath.endsWith("/");
+        Path absRealPathPath = Path.of(absRealPath);
+        if (isFileOperation) { // if its a single file
+            return getFileCost(absRealPathPath) + getNameCost(absRealPathPath);
+        }
+
+        // otherwise traverse entire tree
+        try (var paths = Files.walk(absRealPathPath, Integer.MAX_VALUE)) {
             long[] totalByteCount = new long[]{0};
-            paths.forEach(p -> {
-                try {
-                    if (Files.isRegularFile(p)) {
-                        var openHandle = openFilehandles.get(p.subpath(getFsRealBasePath().getNameCount(), p.getNameCount()).toFile());
-                        totalByteCount[0] += openHandle != null ? openHandle.getUnflushedSize() : Files.size(p);
-                    }
-                    totalByteCount[0] += p.getName(p.getNameCount() - 1).toString().length(); // add an extra cost of 1 per file name letter
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+            paths.forEach(pi -> {
+                if (Files.isRegularFile(pi)) {
+                    totalByteCount[0] += getFileCost(pi);
                 }
+                totalByteCount[0] += getNameCost(pi); // add an extra cost of 1 per file name letter
             });
             return totalByteCount[0];
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private long getFileCost(Path realPath) {
+        try {
+            var openHandle = openFilehandles.get(realPath.subpath(getFsRealBasePath().getNameCount(), realPath.getNameCount()).toFile());
+            return openHandle != null ? openHandle.getUnflushedSize() : Files.size(realPath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private long getNameCost(Path realPath) {
+        if (realPath.equals(getFsRealBasePath())) // no name-cost for the root folder of the filesystem
+            return 0;
+
+        return realPath.getName(realPath.getNameCount() - 1).toString().length();
     }
 
     @Override
