@@ -168,6 +168,9 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
     }
 
     public LuaFsFileUD createFileHandle(String filePath, boolean autocreate, boolean handleCanRead, boolean handleCanWrite, boolean isAppendMode, boolean clearFileOnOpen) {
+        if (openFilehandles.containsKey(new File(filePath)))
+            throw new LuaJavaError("file is already opened");
+
         return new LuaFsFileUD(this, autocreate, filePath, handleCanRead, handleCanWrite, isAppendMode, clearFileOnOpen);
     }
 
@@ -236,46 +239,27 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
         }
     }
 
-//    @LuaCallable
-//    public void move(String src, String dest) {
-//        var isDirectoryOperation = src.endsWith("/");
-//        var realSrcPath = getRealFsPath(normalizeAbsPath(src, !isDirectoryOperation, isDirectoryOperation));
-//        var realDstPath = getRealFsPath(normalizeAbsPath(dest, !isDirectoryOperation, isDirectoryOperation));
-//        RuntimeAssert.RuntimeAssert(realSrcPath.startsWith(getFsRealBasePath()), "Somehow we tried to delete something outside of the filesystem. Please report this. (src)");
-//        RuntimeAssert.RuntimeAssert(realDstPath.startsWith(getFsRealBasePath()), "Somehow we tried to delete something outside of the filesystem. Please report this. (dst)");
-//
-//        if (isDirectoryOperation) {
-//            if (!Files.isDirectory(realSrcPath))
-//                throw new LuaJavaError("source path does not exist or is not a directory");
-//            if (Files.exists(realDstPath))
-//                throw new LuaJavaError("destination path already exists");
-//
-//        } else {
-//
-//        }
-//
-//        if (Files.isRegularFile(realPath)) {
-//            try {
-//                Files.delete(realPath);
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//        } else if (Files.isDirectory(realPath)) {
-//            var rootPath = getFsRealBasePath();
-//            try (Stream<Path> paths = Files.walk(realPath)) {
-//                paths.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(x -> {
-//                    if (!x.toPath().equals(rootPath)) { // dont delete the actual fs root folder ever
-//                        //noinspection ResultOfMethodCallIgnored
-//                        x.delete();
-//                    }
-//                });
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//        } else {
-//            throw new LuaJavaError("File/directory '%s' does not exist".formatted(path));
-//        }
-//    }
+    @LuaCallable
+    public void move(String src, String dest) {
+        var isDirectoryOperation = src.endsWith("/");
+        var realSrcPath = getRealFsPath(normalizeEncodeAbsPath(src, !isDirectoryOperation, isDirectoryOperation));
+        var realDstPath = getRealFsPath(normalizeEncodeAbsPath(dest, !isDirectoryOperation, isDirectoryOperation));
+        RuntimeAssert.RuntimeAssert(realSrcPath.startsWith(getFsRealBasePath()), "Somehow we tried to delete something outside of the filesystem. Please report this. (src)");
+        RuntimeAssert.RuntimeAssert(realDstPath.startsWith(getFsRealBasePath()), "Somehow we tried to delete something outside of the filesystem. Please report this. (dst)");
+
+        if (isDirectoryOperation) {
+            if (!Files.isDirectory(realSrcPath))
+                throw new LuaJavaError("source path does not exist or is not a directory");
+            if (Files.exists(realDstPath))
+                throw new LuaJavaError("destination path already exists");
+        }
+
+        try {
+            Files.move(realSrcPath, realDstPath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @LuaCallable
     public void makeDirectory(String path) {

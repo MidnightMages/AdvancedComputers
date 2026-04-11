@@ -66,14 +66,26 @@ public class LuaFsFileUD implements LuaUserData {
 
         ptr = isAppend ? contents.size() : 0; // in the deserialization-case, the ptr value will be overwritten later
         parentFilesystemUD.onFileHandleOpened(fsFilePath, this);
+
+        // if we concluded the filehandle is good, create the actual file on disk so that it shows up in list()
+        if (!exists) {
+            try {
+                Files.createFile(realDiskFilePath);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     @LuaCallable
     public LuaObject read(int count) {
         if (contents == null) throw new LuaJavaError("filehandle is already closed");
         if (!canRead) throw new LuaJavaError("filehandle is writeonly!");
-        if (count < 0)
+        if (count == -1)
             count = Integer.MAX_VALUE;
+        else if (count < -1) {
+            throw new LuaJavaError("read length %d is invalid. must be >= -1".formatted(count));
+        }
 
         if (ptr >= contents.size())
             return LuaObject.NIL;
