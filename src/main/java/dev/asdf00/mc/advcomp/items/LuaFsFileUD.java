@@ -115,10 +115,11 @@ public class LuaFsFileUD implements LuaUserData {
     }
 
     @LuaCallable
-    public void seek(String relativeTo, int offset) {
+    public int seek(String relativeTo, int offset) {
         if (contents == null) throw new LuaJavaError("filehandle is already closed");
         if (isAppend) throw new LuaJavaError("filehandle can only append!");
 
+        var oldPtr = ptr;
         int newPtr;
         switch (relativeTo) {
             case "start" -> newPtr = offset;
@@ -131,6 +132,7 @@ public class LuaFsFileUD implements LuaUserData {
             throw new LuaJavaError("resulting seek position is out of bounds (%d)!".formatted(newPtr));
 
         ptr = newPtr;
+        return oldPtr;
     }
 
     /**
