@@ -331,22 +331,6 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
         }
     }
 
-    private long getFileCost(Path realPath) {
-        try {
-            var openHandle = openFilehandles.get(realPath.subpath(getFsRealBasePath().getNameCount(), realPath.getNameCount()).toFile());
-            return openHandle != null ? openHandle.getUnflushedSize() : Files.size(realPath);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private long getNameCost(Path realPath) {
-        if (realPath.equals(getFsRealBasePath())) // no name-cost for the root folder of the filesystem
-            return 0;
-
-        return realPath.getName(realPath.getNameCount() - 1).toString().length();
-    }
-
     @Override
     int getDiskId() {
         return diskStorageId;
@@ -376,6 +360,23 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
     }
 
     // ############################## HELPERS ##############################
+
+    private long getFileCost(Path realPath) {
+        try {
+            var openHandle = openFilehandles.get(realPath.subpath(getFsRealBasePath().getNameCount(), realPath.getNameCount()).toFile());
+            return openHandle != null ? openHandle.getUnflushedSize() : Files.size(realPath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private long getNameCost(Path realPath) {
+        if (realPath.equals(getFsRealBasePath())) // no name-cost for the root folder of the filesystem
+            return 0;
+
+        return realPath.getName(realPath.getNameCount() - 1).toString().length();
+    }
+
     private record PathSearchResult(boolean isDirectory, Path realFsPath) {
     }
 
@@ -383,9 +384,6 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
      * Takes in a virtual path, and attempts to convert it to a directory or file path, depending on what exists.
      * If assertDirectory is set to true, throws if it is not a directory.
      *
-     * @param virtualFsPath
-     * @param assertDirectory
-     * @return
      */
     private PathSearchResult getRealFileOrDirectoryPath(String virtualFsPath, boolean assertDirectory) {
         var realPath = getRealFsPath(normalizeEncodeAbsFilePath(virtualFsPath));
@@ -468,7 +466,6 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
      * Called when a new file handle has been opened
      *
      * @param path   the path of the referenced file. This is the in-fs path, so independent to the host filesystem path
-     * @param handle
      */
     void onFileHandleOpened(String path, LuaFsFileUD handle) {
         RuntimeAssert.RuntimeAssert(!path.endsWith("/"), "unexpected path format");
