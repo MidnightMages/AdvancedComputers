@@ -1,19 +1,19 @@
 {
   "values": [
-    "advancedcomputers:computer_block_diamond",
-    "advancedcomputers:mainboard_programmer_block",
-    "advancedcomputers:screen_block_diamond",
-    "advancedcomputers:item_interface_block",
-    "advancedcomputers:screen_block",
-    "advancedcomputers:computer_block_creative",
-    "advancedcomputers:computer_block_netherite",
-    "advancedcomputers:wan_router_lowtier",
     "advancedcomputers:computer_block",
-    "advancedcomputers:device_cable_block",
+    "advancedcomputers:computer_block_diamond",
+    "advancedcomputers:computer_block_netherite",
+    "advancedcomputers:computer_block_creative",
+    "advancedcomputers:screen_block",
+    "advancedcomputers:screen_block_diamond",
     "advancedcomputers:keycard_reader_block",
+    "advancedcomputers:mainboard_programmer_block",
+    "advancedcomputers:item_interface_block",
     "advancedcomputers:redstone_io_block",
-    "advancedcomputers:net_router",
+    "advancedcomputers:device_cable_block",
     "advancedcomputers:network_cable_block",
-    "advancedcomputers:wan_router"
+    "advancedcomputers:wan_router",
+    "advancedcomputers:wan_router_lowtier",
+    "advancedcomputers:net_router"
   ]
 }

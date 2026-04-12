@@ -12,9 +12,9 @@ import net.minecraftforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class BlockTagGenerator extends BlockTagsProvider {
@@ -26,13 +26,13 @@ public class BlockTagGenerator extends BlockTagsProvider {
     @Override
     protected void addTags(HolderLookup.@NotNull Provider pProvider) {
 
-        Set<Block> allBlocks = new HashSet<>(Set.of(Arrays.stream(AdvancedComputers.class.getDeclaredFields()).filter(f -> f.getType().equals(RegistryBlockItemPair.class)).map(x -> {
+        List<Block> allBlocks = new ArrayList<>(Arrays.stream(AdvancedComputers.class.getDeclaredFields()).filter(f -> f.getType().equals(RegistryBlockItemPair.class)).map(x -> {
             try {
                 return x.get(null);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
-        }).map(x -> ((Block) ((RegistryBlockItemPair<?>) x).block().get())).toArray(Block[]::new)));
+        }).map(x -> ((Block) ((RegistryBlockItemPair<?>) x).block().get())).toList());
 
         var woodComputer = AdvancedComputers.COMPUTER_BLOCK_WOOD.block().get();
         RuntimeAssert.RuntimeAssert(allBlocks.remove(woodComputer), "removal failed");
