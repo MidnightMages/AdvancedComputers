@@ -58,7 +58,9 @@ local ok, rv = xpcall(function()
 		  --print("has boot file? ", a.fileExists("boot.lua"))
 		  if a:fileExists("boot.lua") then
 			 print("Bootable file found on storage #"..idx.." - reading...")
-			 local code = a:open("boot.lua"):read()
+			 local handle = a:open("boot.lua")
+			 local code = handle:read(-1)
+			 handle:close()
 			 print("Compiling boot.lua...")
 			 --print(code, type(code))
 			 _G.bootDrive = a
