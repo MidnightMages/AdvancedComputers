@@ -138,6 +138,10 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
 
     @LuaCallable
     public LuaFsFileUD open(String filePath, String mode) {
+        // error on slash at the end
+        if (isLuaPathDirectory(filePath))
+            throw new LuaJavaError("Expected file path, but path ended with a slash.");
+
         filePath = normalizeEncodeAbsFilePath(filePath);
         if (!supportedBaseFileModes.contains(mode)) {
             throw new LuaJavaError("Unsupported file mode '%s'".formatted(mode));
@@ -176,6 +180,7 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
 
     @LuaCallable
     public LuaObject list(String path) {
+        // input can have slash or not at the end
         var realFsPath = getRealFsPath(normalizeEncodeAbsFolderPath(path));
         var depth = Path.of(path).getNameCount();
         //noinspection ConstantValue
@@ -196,21 +201,31 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     @LuaCallable
     public boolean fileExists(String path) {
+        // no slash at the end
+        if (isLuaPathDirectory(path))
+            throw new LuaJavaError("Expected file path, but path ended with a slash.");
+
         var realPath = getRealFsPath(normalizeEncodeAbsFilePath(path));
         return Files.isRegularFile(realPath);
     }
 
     @LuaCallable
     public boolean directoryExists(String path) {
-        var realPath = getRealFsPath(normalizeEncodeAbsFolderPath(path));
+        // slash or no slash at th end
+        var realPath = getRealFsPath(normalizeEncodeAbsFilePath(path));
         return Files.isDirectory(realPath);
     }
 
     @LuaCallable
     public void delete(String path) {
-        var realPath = getRealFsPath(normalizeEncodeAbsPath(path, false, false));
+        // if slash at end, must be folder, otherwise can be file or folder
+        var realPathInfo = getRealFileOrDirectoryPath(path, isLuaPathDirectory(path));
+        var realPath = realPathInfo.realFsPath();
         RuntimeAssert.RuntimeAssert(realPath.startsWith(getFsRealBasePath()), "Somehow we tried to delete something outside of the filesystem. Please report this.");
         if (Files.isRegularFile(realPath)) {
+            if (realPathInfo.isDirectory()) {
+                throw new LuaJavaError("Path pointed at file, even though it ended with a slash and therefore a directory was expected.");
+            }
             try {
                 Files.delete(realPath);
             } catch (IOException e) {
@@ -241,17 +256,21 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
 
     @LuaCallable
     public void move(String src, String dest) {
-        var realSrcPath = getRealFsPath(normalizeEncodeAbsPath(src, false, false));
-        var isDirectoryOperation = realSrcPath.endsWith("/");
-        var realDstPath = getRealFsPath(normalizeEncodeAbsPath(dest, !isDirectoryOperation, isDirectoryOperation));
+        // if slash at end, must be folder, otherwise can be file or folder
+        var realSrcPath = getRealFsPath(normalizeEncodeAbsPath(src, true, false));
+        var realDstPath = getRealFsPath(normalizeEncodeAbsPath(dest, true, false));
         RuntimeAssert.RuntimeAssert(realSrcPath.startsWith(getFsRealBasePath()), "Somehow we tried to delete something outside of the filesystem. Please report this. (src)");
         RuntimeAssert.RuntimeAssert(realDstPath.startsWith(getFsRealBasePath()), "Somehow we tried to delete something outside of the filesystem. Please report this. (dst)");
 
-        if (isDirectoryOperation) {
-            if (!Files.isDirectory(realSrcPath))
-                throw new LuaJavaError("source path does not exist or is not a directory");
-            if (Files.exists(realDstPath))
-                throw new LuaJavaError("destination path already exists");
+        if (Files.exists(realDstPath))
+            throw new LuaJavaError("destination path already exists");
+
+        if (!Files.exists(realSrcPath))
+            throw new LuaJavaError("source path does not exist");
+
+        var isDirectoryOperation = isLuaPathDirectory(src) || isLuaPathDirectory(dest);
+        if (isDirectoryOperation && !Files.isDirectory(realSrcPath)) {
+            throw new LuaJavaError("source path is not a directory (implied by trailing slash)");
         }
 
         try {
@@ -263,6 +282,7 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
 
     @LuaCallable
     public void makeDirectory(String path) {
+        // input can have slash but need not
         var normalizedPath = normalizeEncodeAbsFolderPath(path);
         // traverse the chain and see if any parent folder name is already taken by a file, which would be illegal
         var currentFilePath = getFsRealBasePath();
@@ -287,16 +307,17 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
 
     @LuaCallable
     public long spaceUsed(String path) {
+        // if slash at end, must be folder, otherwise can be file or folder
         // TODO also make the user pay for file/folder attributes
-        var absRealPath = normalizeEncodeAbsPath(path, false, false);
-        var isFileOperation = !absRealPath.endsWith("/");
-        Path absRealPathPath = Path.of(absRealPath);
-        if (isFileOperation) { // if its a single file
-            return getFileCost(absRealPathPath) + getNameCost(absRealPathPath);
+
+        var realFsPath = getRealFileOrDirectoryPath(path, isLuaPathDirectory(path));
+        var realPath = realFsPath.realFsPath();
+        if (!realFsPath.isDirectory()) { // if its a single file
+            return getFileCost(realPath) + getNameCost(realPath);
         }
 
         // otherwise traverse entire tree
-        try (var paths = Files.walk(absRealPathPath, Integer.MAX_VALUE)) {
+        try (var paths = Files.walk(realPath, Integer.MAX_VALUE)) {
             long[] totalByteCount = new long[]{0};
             paths.forEach(pi -> {
                 if (Files.isRegularFile(pi)) {
@@ -355,6 +376,35 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
     }
 
     // ############################## HELPERS ##############################
+    private record PathSearchResult(boolean isDirectory, Path realFsPath) {
+    }
+
+    /**
+     * Takes in a virtual path, and attempts to convert it to a directory or file path, depending on what exists.
+     * If assertDirectory is set to true, throws if it is not a directory.
+     *
+     * @param virtualFsPath
+     * @param assertDirectory
+     * @return
+     */
+    private PathSearchResult getRealFileOrDirectoryPath(String virtualFsPath, boolean assertDirectory) {
+        var realPath = getRealFsPath(normalizeEncodeAbsFilePath(virtualFsPath));
+        if (Files.isDirectory(realPath))
+            return new PathSearchResult(true, realPath);
+        else if (Files.isRegularFile(realPath)) {
+            if (assertDirectory)
+                throw new LuaJavaError("Expected a directory path, found a file at the given path: '%s'".formatted(virtualFsPath));
+
+            return new PathSearchResult(false, realPath);
+        } else {
+            throw new LuaJavaError("File/Directory '%s' does not exist".formatted(virtualFsPath));
+        }
+    }
+
+    private static boolean isLuaPathDirectory(String path) {
+        return path.endsWith("/") || path.endsWith("\\");
+    }
+
     private static final String forbiddenChars = "<>:\"|?*";
 
     private static String normalizeEncodeAbsFilePath(String path) {
