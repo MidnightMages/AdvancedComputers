@@ -26,6 +26,23 @@ public class Config {
             .defineInRange("audio.maxDistance", 25,0,64);
 
 
+    // ============================== START GAMEPLAY STUFF ============================== //
+    private static final ForgeConfigSpec.BooleanValue GAMEPLAY_ENABLE_EXPERT_MODE = BUILDER
+            .comment("""
+                    When enabled, changes some balancing, specifically:
+                    - disks and floppys may corrupt data over time or fail completely, depending on their age and use.
+                        - for managed disks this means that filecontents and file/folder names may be changed
+                        - for unmanaged disks, random bytes/bits may be flipped
+                        - complete failure means that the disk becomes inaccessible
+                    - disallow crafting of the Advanced OS installation floppy, requiring bootstrapping via punchcards.
+                    
+                    Disabling this setting does not reverse the effects of data corruption
+                    """)
+            .worldRestart()
+            .define("gameplay.enableExpertMode", false);
+    // ============================== END GAMEPLAY STUFF ============================== //
+
+    // ============================== START TECHNICAL STUFF ============================== //
     private static final ForgeConfigSpec.BooleanValue LUA_FS_ESCAPE_UPPERCASE_CHARS_IN_HOST_FS = BUILDER
             .comment("""
                     Whether to store in-game file on the host-filesystem using a path that is always lowercase.
@@ -64,6 +81,7 @@ public class Config {
                     """)
             .worldRestart()
             .define("debug.lua.print_to_server_console", false);
+    // ============================== END TECHNICAL STUFF ============================== //
 
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
@@ -73,6 +91,7 @@ public class Config {
     public static boolean debugLuaPrintToServerConsole;
     public static float audioVolume;
     public static int audioMaxDistance;
+    public static boolean gameplayEnableExpertMode;
 
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
@@ -83,5 +102,6 @@ public class Config {
         audioVolume = AUDIO_VOLUME.get() / 100f;
         audioMaxDistance = AUDIO_MAX_DISTANCE.get();
         RuntimeAssert.RuntimeAssert(audioVolume <= 1, "somehow the volume is greater than 1"); // just to avoid some ear-blasting accidents
+        gameplayEnableExpertMode = GAMEPLAY_ENABLE_EXPERT_MODE.get();
     }
 }
