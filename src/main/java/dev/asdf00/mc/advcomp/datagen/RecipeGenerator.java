@@ -264,6 +264,17 @@ public class RecipeGenerator extends RecipeProvider {
                 .define('D', AdvancedComputers.DEVICE_CABLE_BLOCK.blockItem().get())
                 .unlockedBy("item", has(Tags.Items.INGOTS_COPPER))
                 .save(pWriter);
+
+        shaped(AdvancedComputers.MAINBOARD_PROGRAMMER_BLOCK.blockItem().get())
+                .pattern("NCN")
+                .pattern("CMC")
+                .pattern("NDN")
+                .define('N', Tags.Items.NUGGETS_IRON)
+                .define('C', Tags.Items.INGOTS_COPPER)
+                .define('M', AdvancedComputers.MAINBOARD_TIER_2_ITEM.get())
+                .define('D', AdvancedComputers.DEVICE_CABLE_BLOCK.blockItem().get())
+                .unlockedBy("item", has(Tags.Items.INGOTS_COPPER))
+                .save(pWriter);
     }
 
     public record PremadeFloppyInfo(String folderId, String resultFloppyLabel, ItemLike otherIngredient, int color) {}

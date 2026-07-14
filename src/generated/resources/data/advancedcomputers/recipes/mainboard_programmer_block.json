@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "tag": "forge:ingots/copper"
+    },
+    "D": {
+      "item": "advancedcomputers:device_cable_block"
+    },
+    "M": {
+      "item": "advancedcomputers:mainboard_tier2_item"
+    },
+    "N": {
+      "tag": "forge:nuggets/iron"
+    }
+  },
+  "pattern": [
+    "NCN",
+    "CMC",
+    "NDN"
+  ],
+  "result": {
+    "item": "advancedcomputers:mainboard_programmer_block"
+  },
+  "show_notification": true
+}

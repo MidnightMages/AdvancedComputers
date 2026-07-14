@@ -3,6 +3,9 @@ package dev.asdf00.mc.advcomp.blocks.mainboard_programmer;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
+import dev.asdf00.mc.advcomp.blocks.BasePeripheralComponentBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.item_Interface.ItemInterfaceBlockEntityUD;
+import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 import dev.asdf00.mc.advcomp.utils.NotifyingItemHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -24,7 +27,7 @@ import net.minecraftforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MainboardProgrammerBlockEntity extends BlockEntity implements MenuProvider {
+public class MainboardProgrammerBlockEntity extends BasePeripheralComponentBlockEntity implements MenuProvider {
     public final NotifyingItemHandler itemHandler = new NotifyingItemHandler(this, MainboardProgrammerBlockMenu.TE_INVENTORY_SLOT_COUNT, this::itemHandler_onSlotChanged);
     private LazyOptional<IItemHandler> lazyItemHandler = LazyOptional.empty();
     protected final ContainerData data;
@@ -112,5 +115,10 @@ public class MainboardProgrammerBlockEntity extends BlockEntity implements MenuP
     public void onLoad() {
         super.onLoad();
         lazyItemHandler = LazyOptional.of(() -> itemHandler);
+    }
+
+    @Override
+    public LuaUserDataComponent createUserdata() {
+        return new MainboardProgrammerBlockUD(this);
     }
 }
