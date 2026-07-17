@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/orientable_with_bottom",
+  "textures": {
+    "bottom": "advancedcomputers:block/machine_base",
+    "front": "advancedcomputers:block/adapter_block_side",
+    "side": "advancedcomputers:block/adapter_block_side",
+    "top": "advancedcomputers:block/adapter_block_front"
+  }
+}

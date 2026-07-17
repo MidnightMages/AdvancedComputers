@@ -39,6 +39,11 @@ public class BlockModelGenerator extends BlockModelProvider {
         this.orientable("punchcard_reader_block", rl("block/machine_base_wood"),
                 rl("block/punchcard_reader_block_front"), rl("block/machine_base_wood"));
 
+        this.orientableWithBottom("adapter_block", rl("block/adapter_block_side"), // cube:side
+                rl("block/adapter_block_side"), // cube:front
+                rl("block/machine_base"), // cube:bottom aka the actual back; so the side the user sees
+                rl("block/adapter_block_front")); // cube:top aka the actual front; so the side that is connected to the block
+
         this.cubeAll("item_interface_block", rl("block/item_interface_block"));
 
         this.cubeAll("redstone_io_block", rl("block/redstone_io_block"));

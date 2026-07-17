@@ -15,6 +15,7 @@
     "advancedcomputers:network_cable_block",
     "advancedcomputers:wan_router",
     "advancedcomputers:wan_router_lowtier",
-    "advancedcomputers:net_router"
+    "advancedcomputers:net_router",
+    "advancedcomputers:adapter_block"
   ]
 }
