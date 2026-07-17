@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "advancedcomputers:block/adapter_block",
+      "x": 180
+    },
+    "facing=east": {
+      "model": "advancedcomputers:block/adapter_block",
+      "x": 90,
+      "y": 90
+    },
+    "facing=north": {
+      "model": "advancedcomputers:block/adapter_block",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "advancedcomputers:block/adapter_block",
+      "x": 90,
+      "y": 180
+    },
+    "facing=up": {
+      "model": "advancedcomputers:block/adapter_block"
+    },
+    "facing=west": {
+      "model": "advancedcomputers:block/adapter_block",
+      "x": 90,
+      "y": 270
+    }
+  }
+}
