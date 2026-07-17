@@ -80,8 +80,19 @@ public class CableCluster {
         // whenever a network rebuild discovers a AcBaseCableConnectableBlockEntity, the network is read from that block and it is wiped off of any devices on that network
         var blockPosesToCheck = new ArrayDeque<BlockPos>();
         Consumer<BlockPos> addNeighbors = (BlockPos bp) -> {
-            for (var dir : Direction.values())
-                blockPosesToCheck.push(bp.relative(dir));
+            var sourceBlock = level.getBlockEntity(bp);
+            for (var dir : Direction.values()) {
+                var newBp = bp.relative(dir);
+                var newlyAddedBlock = level.getBlockEntity(newBp);
+                var cantConnect = (sourceBlock instanceof CableConnectableBlockOrEntity sourceCableOrBlockEnt && // if source block doesnt allow connecting on that side
+                    !sourceCableOrBlockEnt.canConnectTo(clusterType, dir)
+                    ||
+                    (newlyAddedBlock instanceof CableConnectableBlockOrEntity newlyAddedCableOrBlockEnt) && // or same for dest block
+                    !newlyAddedCableOrBlockEnt.canConnectTo(clusterType, dir.getOpposite()));
+
+                if (!cantConnect) // if we can connect, add the block
+                    blockPosesToCheck.push(newBp);
+            }
         };
         blockPosesToCheck.push(initialBp);
 
