@@ -23,6 +23,9 @@ import dev.asdf00.mc.advcomp.blocks.screen.*;
 import dev.asdf00.mc.advcomp.blocks.wan_router.*;
 import dev.asdf00.mc.advcomp.datagen.*;
 import dev.asdf00.mc.advcomp.items.*;
+import dev.asdf00.mc.advcomp.items.punchcard.PunchcardItem;
+import dev.asdf00.mc.advcomp.items.punchcard.PunchcardItemMenu;
+import dev.asdf00.mc.advcomp.items.punchcard.PunchcardItemScreen;
 import dev.asdf00.mc.advcomp.types.DualLayerItemColorHandler;
 import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
 import dev.asdf00.mc.advcomp.types.GlobalDataStorage;
@@ -201,6 +204,9 @@ public class AdvancedComputers {
     public static final RegistryObject<MenuType<ScreenMenu>> SCREEN_MENU =
             registerMenuType("screen_menu", ScreenMenu::new);
 
+    public static final RegistryObject<MenuType<PunchcardItemMenu>> PUNCHCARD_MENU =
+            registerMenuType("punchcard_menu", PunchcardItemMenu::new);
+
     public static final RegistryObject<RecipeSerializer<DyeCustomRecipe>> DYE_RECIPE_SERIALIZER =
             RECIPE_SERIALIZERS.register("dye_item", () -> DyeCustomRecipe.serializer);
 
@@ -237,6 +243,7 @@ public class AdvancedComputers {
     public static final RegistryObject<Item> MAINBOARD_TIER_1_ITEM = RegisterItem("mainboard_tier1_item", () -> new MainboardItem(MainboardItem.MainboardTier.T1));
     public static final RegistryObject<Item> MAINBOARD_TIER_2_ITEM = RegisterItem("mainboard_tier2_item", () -> new MainboardItem(MainboardItem.MainboardTier.T2));
     public static final RegistryObject<Item> MAINBOARD_TIER_3_ITEM = RegisterItem("mainboard_tier3_item", () -> new MainboardItem(MainboardItem.MainboardTier.T3));
+    public static final RegistryObject<Item> PUNCHCARD_ITEM = RegisterItem("punchcard_item", () -> new PunchcardItem(new Item.Properties()));
 
     public static final RegistryObject<CreativeModeTab> creativeTab = CREATIVE_MODE_TABS.register("advanced_computers",
             () -> CreativeModeTab.builder()
@@ -366,6 +373,7 @@ public class AdvancedComputers {
                 MenuScreens.register(COMPUTER_MENU.get(), ComputerBlockScreen::new);
                 MenuScreens.register(MAINBOARD_PROGRAMMER_MENU.get(), MainboardProgrammerBlockScreen::new);
                 MenuScreens.register(SCREEN_MENU.get(), ScreenBlockScreen::new);
+                MenuScreens.register(PUNCHCARD_MENU.get(), PunchcardItemScreen::new);
             });
         }
 
