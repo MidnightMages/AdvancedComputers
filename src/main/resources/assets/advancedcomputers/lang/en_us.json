@@ -14,6 +14,10 @@
 
 	"block.advancedcomputers.mainboard_programmer_block": "Mainboard Programmer",
 	"gui.advancedcomputers.mainboard_programmer_block.title": "Mainboard Programmer",
+
+	"block.advancedcomputers.punchcard_machine_block": "Punchcard Machine",
+	"gui.advancedcomputers.punchcard_machine_block.title": "Punchcard Machine",
+	"item.advancedcomputers.punchcard_item": "Punchcard",
 	
 	"block.advancedcomputers.item_interface_block": "Item Interface",
 	"block.advancedcomputers.redstone_io_block": "Redstone I/O",

@@ -1,8 +1,6 @@
 package dev.asdf00.mc.advcomp.items.punchcard;
 
-import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
-import dev.asdf00.mc.advcomp.items.BaseAcDyableItem;
-import net.minecraft.network.FriendlyByteBuf;
+import dev.asdf00.mc.advcomp.blocks.punchcard_machine.mainboard_programmer.PunchcardMachineBlockEntity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -27,7 +25,16 @@ public class PunchcardItem extends Item {
     @Override
     public void appendHoverText(@NotNull ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltipComponents, @NotNull TooltipFlag pIsAdvanced) {
         pTooltipComponents.add(Component.translatable("tooltip.advancedcomputers.shared.notimplemented"));
+
+        var data = getData(pStack);
+        var text = data == null ? "§4NONE!§r" : data;
+        pTooltipComponents.add(Component.literal("Stamped instructions: %s".formatted(text)));
         super.appendHoverText(pStack, pLevel, pTooltipComponents, pIsAdvanced);
+    }
+
+    private static String getData(@NotNull ItemStack pStack) {
+        var tag = pStack.getTag();
+        return tag == null ? null : tag.getString(PunchcardMachineBlockEntity.NBT_PUNCHCARD_ITEM_DATA_KEY);
     }
 
     @Override

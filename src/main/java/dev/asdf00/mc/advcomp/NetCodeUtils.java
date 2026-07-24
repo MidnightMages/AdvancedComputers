@@ -1,8 +1,12 @@
 package dev.asdf00.mc.advcomp;
 
+import com.mojang.datafixers.types.Func;
 import io.netty.handler.codec.DecoderException;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
@@ -49,6 +53,20 @@ public class NetCodeUtils {
             AdvancedComputers.LOGGER.warn("Got invalid message from other party");
             return null;
         }
+    }
+
+    public static void writeNullableStringToBuf(FriendlyByteBuf buf, String data) {
+        buf.writeBoolean(data != null);
+        if (data != null)
+            writeStringToBuf(buf, data);
+    }
+
+    public static String readNullableStringFromBuf(FriendlyByteBuf buf) {
+        var hasValue = buf.readBoolean();
+        if (!hasValue)
+            return null;
+
+        return readStringFromBuf(buf);
     }
 
     public interface NetworkMessage {
