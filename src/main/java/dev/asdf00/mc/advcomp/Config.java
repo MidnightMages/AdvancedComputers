@@ -20,7 +20,7 @@ public class Config {
 
     private static final ForgeConfigSpec.IntValue AUDIO_MAX_DISTANCE = BUILDER
             .comment("""
-                    How loud synthesized audio, i.e. the beeping sound is.
+                    How far the synthesized audio is hearable.
                     """)
             .worldRestart()
             .defineInRange("audio.maxDistance", 25,0,64);
