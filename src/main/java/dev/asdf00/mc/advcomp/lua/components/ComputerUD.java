@@ -7,6 +7,7 @@ import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
+import dev.asdf00.mc.advcomp.AudioHandler;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 
@@ -67,9 +68,8 @@ public final class ComputerUD extends BaseAcComponent {
             throw new LuaJavaError("Invalid frequency %s. Must be in range [20, 2000]".formatted(freq));
         }
 
-        // TODO fix beep
-//        if (enableBeep)
-//            playBeep(freq, dur);
+        acVm.computerBlockEntity.queueSoundForPlayOnClients(new AudioHandler.QueuedSound(freq, duration));
+        acVm.performSleepAndRefundTime(duration + 0.1f); // some padding to possibly avoid sound overlaps
     }
 
     @LuaCallable

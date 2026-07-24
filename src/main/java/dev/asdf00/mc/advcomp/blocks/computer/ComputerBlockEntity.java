@@ -1,6 +1,7 @@
 package dev.asdf00.mc.advcomp.blocks.computer;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.AudioHandler;
 import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.NetCodeUtils.NetworkMessage;
 import dev.asdf00.mc.advcomp.TranslationMap;
@@ -53,6 +54,7 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
     private LuaVirtualMachine lvm;
     private final Object lockLVM = new Object();
     private boolean isFirstTick = true;
+
 
     // set to STOPPED on first tick to reset block state to indicate stopped LVM
     private final AtomicReference<ComputerBlock.ComputerRunState> newRunState = new AtomicReference<>(ComputerBlock.ComputerRunState.STOPPED);
@@ -223,13 +225,14 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
     }
 
     private Set<BaseCableConnectableBlockEntity> existingBlockComponents = new HashSet<>();
+
     @Override
     public void onNetworkUpdated() {
         CableCluster deviceCluster = null;
         CableCluster networkCluster = null;
         HashSet<CableCluster> alreadyProcessed = new HashSet<>();
         for (var cluster : connectedNetworks.values()) {
-            if(!alreadyProcessed.add(cluster)) // skip already processed clusters as multiple faces may show the *same* one
+            if (!alreadyProcessed.add(cluster)) // skip already processed clusters as multiple faces may show the *same* one
                 continue;
 
             if (cluster.clusterType == AdvancedComputers.CLUSTER_TYPE_DEVICE) {
@@ -309,6 +312,13 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
         }
     }
 
+    /**
+     * CALLED BY LUA THREAD
+     */
+    public void queueSoundForPlayOnClients(AudioHandler.QueuedSound sound) {
+        AudioHandler.queueSoundOnClientsAt(level, getBlockPos(), sound);
+    }
+
     // =================================================================================================================
     //       Lua Events     Lua Events     Lua Events     Lua Events     Lua Events     Lua Events     Lua Events
     // =================================================================================================================
@@ -360,9 +370,9 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
         @Override
         public String toString() {
             return "ClientOriginatingUiEvent{" +
-                    "cbePos=" + cbePos +
-                    ", btnId=" + btnId +
-                    '}';
+                   "cbePos=" + cbePos +
+                   ", btnId=" + btnId +
+                   '}';
         }
     }
 }

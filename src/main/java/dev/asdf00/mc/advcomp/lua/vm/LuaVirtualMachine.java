@@ -341,6 +341,22 @@ public class LuaVirtualMachine {
     // =================================================================================================================
 
     /**
+     * Blocks the lua thread for the given amount of time, but then refunds execution time as to not stall execution after.
+     */
+    public void performSleepAndRefundTime(double seconds) {
+        try {
+            long sleepBegunAt = System.nanoTime();
+            beforeLongLuaOperation();
+            Thread.sleep((int) (seconds * 1000));
+            long sleptForNs = Math.max(0, System.nanoTime() - sleepBegunAt);
+            timeTracker.refundNanos(sleptForNs);
+        } catch (InterruptedException e) {
+            // premature exit, preserve interrupted state
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    /**
      * Always call this method before executing a long-running or blocking LUA function to allow for proper syncing with
      * the client.
      */
@@ -424,12 +440,12 @@ public class LuaVirtualMachine {
     }
 
     private static void printlnLUA(String s) {
-        if(Config.debugLuaPrintToServerConsole)
+        if (Config.debugLuaPrintToServerConsole)
             System.out.println(s);
     }
 
     private static void printInlineLUA(String s) {
-        if(Config.debugLuaPrintToServerConsole)
+        if (Config.debugLuaPrintToServerConsole)
             System.out.print(s);
     }
     // ------------

@@ -55,6 +55,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -283,6 +284,7 @@ public class AdvancedComputers {
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(CableClusterHandler.class);
+        MinecraftForge.EVENT_BUS.register(AudioHandler.class);
 
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
@@ -293,6 +295,7 @@ public class AdvancedComputers {
 
         // Register server client communication messages
         NetCodeUtils.registerMessage(ComputerBlockEntity.ClientOriginatingUiEvent.class, ComputerBlockEntity.ClientOriginatingUiEvent::decode);
+        NetCodeUtils.registerMessage(AudioHandler.PlaySoundToClientEvent.class, AudioHandler.PlaySoundToClientEvent::decode);
         NetCodeUtils.registerMessage(ScreenBlockEntity.ScreenInputToServerEvent.class, ScreenBlockEntity.ScreenInputToServerEvent::decode);
         NetCodeUtils.registerMessage(ScreenBlockEntity.ScreenContentToClientEvent.class, ScreenBlockEntity.ScreenContentToClientEvent::decode);
 
@@ -384,6 +387,15 @@ public class AdvancedComputers {
             event.register(new DualLayerItemColorHandler(), KEYCARD_BASIC_ITEM.get());
             event.register(new DualLayerItemColorHandler(), KEYCARD_ADVANCED_ITEM.get());
             event.register(new DualLayerItemColorHandler(), FLOPPY_DISK_ITEM.get());
+        }
+    }
+    @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
+    public static class ForgeClientModEvents {
+        @SubscribeEvent
+        public static void onClientTick(TickEvent.ClientTickEvent event) {
+            if (event.phase == TickEvent.Phase.END) {
+                AudioHandler.onClientTick();
+            }
         }
     }
 }

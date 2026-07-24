@@ -1,6 +1,7 @@
 package dev.asdf00.mc.advcomp;
 
 import dev.asdf00.mc.advcomp.utils.AcConfigBuilder;
+import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -9,6 +10,21 @@ import net.minecraftforge.fml.event.config.ModConfigEvent;
 @Mod.EventBusSubscriber(modid = AdvancedComputers.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Config {
     private static final AcConfigBuilder BUILDER = new AcConfigBuilder();
+
+    private static final ForgeConfigSpec.IntValue AUDIO_VOLUME = BUILDER
+            .comment("""
+                    How loud synthesized audio, i.e. the beeping sound is.
+                    """)
+            .worldRestart()
+            .defineInRange("audio.volume", 17,0,30); // lets limit it to 30 as 17 is already quite audible
+
+    private static final ForgeConfigSpec.IntValue AUDIO_MAX_DISTANCE = BUILDER
+            .comment("""
+                    How loud synthesized audio, i.e. the beeping sound is.
+                    """)
+            .worldRestart()
+            .defineInRange("audio.maxDistance", 25,0,64);
+
 
     private static final ForgeConfigSpec.BooleanValue LUA_FS_ESCAPE_UPPERCASE_CHARS_IN_HOST_FS = BUILDER
             .comment("""
@@ -55,6 +71,8 @@ public class Config {
     public static boolean luaVmCache2Enabled;
     public static int luaVmCache2MaxFiles;
     public static boolean debugLuaPrintToServerConsole;
+    public static float audioVolume;
+    public static int audioMaxDistance;
 
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
@@ -62,5 +80,8 @@ public class Config {
         luaVmCache2Enabled = LUA_VM_CACHE2_ENABLED.get();
         luaVmCache2MaxFiles = LUA_VM_CACHE2_MAX_FILES.get();
         debugLuaPrintToServerConsole = DEBUG_LUA_PRINT_TO_SERVER_CONSOLE.get();
+        audioVolume = AUDIO_VOLUME.get() / 100f;
+        audioMaxDistance = AUDIO_MAX_DISTANCE.get();
+        RuntimeAssert.RuntimeAssert(audioVolume <= 1, "somehow the volume is greater than 1"); // just to avoid some ear-blasting accidents
     }
 }
