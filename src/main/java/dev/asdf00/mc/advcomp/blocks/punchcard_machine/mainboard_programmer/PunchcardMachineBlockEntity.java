@@ -22,8 +22,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.MinecartItem;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
@@ -36,7 +39,10 @@ import org.jetbrains.annotations.Nullable;
 public class PunchcardMachineBlockEntity extends BlockEntity implements MenuProvider {
     public static final String NBT_BLOCK_TEXT_KEY = "codeBoxContents";
     public static final String NBT_PUNCHCARD_ITEM_DATA_KEY = "data";
-    public final NotifyingItemHandler itemHandler = new NotifyingItemHandler(this, PunchcardMachineBlockMenu.TE_INVENTORY_SLOT_COUNT, this::itemHandler_onSlotChanged);
+    public final NotifyingItemHandler itemHandler = new NotifyingItemHandler(this, PunchcardMachineBlockMenu.TE_INVENTORY_SLOT_COUNT,
+            (slotIdx, itemStack) -> slotIdx == 0 && itemStack.is(Items.PAPER) ? -1 : 0,
+            this::itemHandler_onSlotChanged
+    );
     private LazyOptional<IItemHandler> lazyItemHandler = LazyOptional.empty();
     protected final ContainerData data;
     String currentGuiText = "";
