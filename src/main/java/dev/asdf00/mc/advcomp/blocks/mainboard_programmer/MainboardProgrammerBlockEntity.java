@@ -5,6 +5,7 @@ import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
 import dev.asdf00.mc.advcomp.blocks.BasePeripheralComponentBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.item_Interface.ItemInterfaceBlockEntityUD;
+import dev.asdf00.mc.advcomp.items.MainboardItem;
 import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 import dev.asdf00.mc.advcomp.utils.NotifyingItemHandler;
 import net.minecraft.core.BlockPos;
@@ -28,7 +29,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MainboardProgrammerBlockEntity extends BasePeripheralComponentBlockEntity implements MenuProvider {
-    public final NotifyingItemHandler itemHandler = new NotifyingItemHandler(this, MainboardProgrammerBlockMenu.TE_INVENTORY_SLOT_COUNT, this::itemHandler_onSlotChanged);
+    public final NotifyingItemHandler itemHandler = new NotifyingItemHandler(this, MainboardProgrammerBlockMenu.TE_INVENTORY_SLOT_COUNT,
+            (slotIdx, itemStack) -> slotIdx == 0 && (itemStack.getItem() instanceof MainboardItem)  ? 1 : 0,
+            this::itemHandler_onSlotChanged
+    );
     private LazyOptional<IItemHandler> lazyItemHandler = LazyOptional.empty();
     protected final ContainerData data;
 

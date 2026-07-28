@@ -9,6 +9,10 @@ import dev.asdf00.mc.advcomp.api.ClusterHostEntity;
 import dev.asdf00.mc.advcomp.blocks.BaseCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.exceptions.ACError;
+import dev.asdf00.mc.advcomp.items.BaseDataStorageItem;
+import dev.asdf00.mc.advcomp.items.DiskItem;
+import dev.asdf00.mc.advcomp.items.FloppyDiskItem;
+import dev.asdf00.mc.advcomp.items.MainboardItem;
 import dev.asdf00.mc.advcomp.lua.components.AcBlockEntityComponent;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.lua.vm.State;
@@ -97,7 +101,24 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
 
     public ComputerBlockEntity(BlockPos pPos, BlockState pBlockState) {
         super(AdvancedComputers.COMPUTER_BE.get(), pPos, pBlockState, Arrays.asList(AdvancedComputers.CLUSTER_TYPE_DEVICE, AdvancedComputers.CLUSTER_TYPE_NETWORK));
-        itemHandler = new NotifyingItemHandler(this, ComputerBlockMenu.TE_INVENTORY_SLOT_COUNT(((ComputerBlock) pBlockState.getBlock()).TIER), this::itemHandler_onSlotChanged);
+        itemHandler = new NotifyingItemHandler(this,
+                ComputerBlockMenu.TE_INVENTORY_SLOT_COUNT(((ComputerBlock) pBlockState.getBlock()).TIER),
+                (slotIdx, itemStack) -> {
+                    if (slotIdx == 0) return itemStack.getItem() instanceof MainboardItem ? 1 : 0;
+                    var hddCount = this.tier.diskSlotCount;
+                    if (slotIdx <= hddCount) {
+                        return itemStack.getItem() instanceof DiskItem ? 1 : 0;
+                    }
+                    var floppySlotIdx = hddCount + 1;
+
+                    if (slotIdx == floppySlotIdx) {
+                        return itemStack.getItem() instanceof FloppyDiskItem ? 1 : 0;
+                    } else {
+                        return 0; // TODO specify which components maybe inserted into those slots
+                    }
+                },
+                this::itemHandler_onSlotChanged
+        );
         this.data = new ContainerData() {
             @Override
             public int get(int pIndex) {
