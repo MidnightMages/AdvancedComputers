@@ -66,7 +66,6 @@ public class MainboardProgrammerBlockMenu extends AbstractContainerMenu {
         Slot sourceSlot = slots.get(pIndex);
         if (!sourceSlot.hasItem()) return ItemStack.EMPTY;  //EMPTY_ITEM
         ItemStack sourceStack = sourceSlot.getItem();
-        ItemStack copyOfSourceStack = sourceStack.copy();
 
         // Check if the slot clicked is one of the vanilla container slots
         if (pIndex < VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT) {
@@ -91,7 +90,7 @@ public class MainboardProgrammerBlockMenu extends AbstractContainerMenu {
             sourceSlot.setChanged();
         }
         sourceSlot.onTake(playerIn, sourceStack);
-        return copyOfSourceStack;
+        return sourceStack;
     }
 
 

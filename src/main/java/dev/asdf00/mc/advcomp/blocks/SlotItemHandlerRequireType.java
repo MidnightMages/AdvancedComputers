@@ -1,5 +1,6 @@
 package dev.asdf00.mc.advcomp.blocks;
 
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
@@ -9,6 +10,7 @@ import java.util.function.Function;
 
 public class SlotItemHandlerRequireType extends SlotItemHandler {
     private final Function<ItemStack, Boolean> mayPlace;
+    private int maxStackSize = 1;
 
     public SlotItemHandlerRequireType(IItemHandler itemHandler, int index, int xPosition, int yPosition, Class<?> requiredType) {
         super(itemHandler, index, xPosition, yPosition);
@@ -46,16 +48,21 @@ public class SlotItemHandlerRequireType extends SlotItemHandler {
 
     @Override
     public int getMaxStackSize() {
-        return 1;
+        return maxStackSize;
     }
 
     @Override
     public int getMaxStackSize(@NotNull ItemStack stack) {
-        return 1;
+        return maxStackSize;
     }
 
     @Override
     public void set(@NotNull ItemStack stack) {
-        super.set(stack.copyWithCount(1));
+        super.set(stack);
+    }
+
+    public Slot withMaxStackSize(int maxStackSize) {
+        this.maxStackSize = maxStackSize;
+        return this;
     }
 }
