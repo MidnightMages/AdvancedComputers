@@ -3,6 +3,7 @@ package dev.asdf00.mc.advcomp.lua.vm;
 import dev.asdf00.jluavm.LuaVM;
 import dev.asdf00.jluavm.api.functions.AtomicLuaFunction;
 import dev.asdf00.jluavm.api.functions.MixedStateFunctionRegistry;
+import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.Config;
@@ -11,6 +12,7 @@ import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
 import dev.asdf00.mc.advcomp.blocks.BaseCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.punchcard_reader.PunchcardReaderBlockUD;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
 import dev.asdf00.mc.advcomp.lua.components.*;
@@ -199,13 +201,13 @@ public class LuaVirtualMachine {
     private void start(byte[] serializedState) {
         boolean isCold = serializedState == null;
         synchronized (state) {
-            if (isCold) {
-                coldInitialize();
-            } else {
-                initializeFromState(serializedState);
-            }
-            executorThread = new Thread(this::startLuaExecution);
-            executorThread.start();
+                if (isCold) {
+                    coldInitialize();
+                } else {
+                    initializeFromState(serializedState);
+                }
+                executorThread = new Thread(this::startLuaExecution);
+                executorThread.start();
         }
     }
 
@@ -267,14 +269,13 @@ public class LuaVirtualMachine {
                 }
             }
             if (mainboardInfo == null) {
-                stopCode = "No uefi installed";
+                stopCode = "No mainboard installed";
                 state.crash();
                 return;
             }
 
             // add mainboard userdata objects to computerUD
             luaComputer.setupMainboard(mainboardInfo);
-            String uefiScript = ((UefiUD) luaComputer.uefi.refVal).getUefiScript();
 
             // set up peripheral devices from IO-net
             computerBlockEntity.connectedNetworks.values().stream()
@@ -292,6 +293,23 @@ public class LuaVirtualMachine {
                                     new ScreenBlockEntity[]{sbe}, "clearGuiText", ""));
                         }
                     });
+
+
+            // figure out what script to load
+            String uefiScript;
+            // try punchcard first
+            var firstPunchCardReader = componentReg.getFirst("punchcardReader");
+            if (!firstPunchCardReader.isNil()) {
+                try {
+                    uefiScript = ((PunchcardReaderBlockUD) firstPunchCardReader.refVal).read_tickThread(true);
+                } catch (LuaJavaError e) {
+                    stopCode = "No punchcard in punchcard reader";
+                    state.crash();
+                    return;
+                }
+            } else { // otherwise fall back to regular uefi
+                uefiScript = ((UefiUD) luaComputer.uefi.refVal).getUefiScript();
+            }
 
             // build lua virtual machine
             vm = LuaVM.builder().withApiRegistry(BUILTIN_FUNCTIONS).modifyEnv(_G -> {

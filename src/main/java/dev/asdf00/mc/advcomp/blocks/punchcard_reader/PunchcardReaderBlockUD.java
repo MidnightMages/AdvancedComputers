@@ -94,28 +94,28 @@ public class PunchcardReaderBlockUD extends BaseAcBlockEntityComponentUD<Punchca
         return blockEntity.runOnTickThread(this::shift_tickThread);
     }
 
+    public String read_tickThread(boolean shiftCards) {
+        var inv = blockEntity.itemHandler;
+        if (inv.getStackInSlot(0).isEmpty() && shiftCards) // try to shift first if we cant read right now
+            shift_tickThread();
+
+        var punchcardToRead = inv.getStackInSlot(0);
+        if (punchcardToRead.isEmpty())
+            throw new LuaJavaError("Cannot read punchcard as no input punchcards are available");
+        // read the contents
+        var rv = PunchcardItem.getData(punchcardToRead);
+        // shift again to prepare for next time
+        if (shiftCards)
+            shift_tickThread();
+
+        return rv;
+    }
     @LuaCallable
     public String read(boolean shiftCards) { //
         if (!hasCardInReader.get().isTruthy() && !shiftCards)
             throw new LuaJavaError("Cannot read punchcard as none is currently in the slot");
 
-        return blockEntity.runOnTickThread(() -> {
-                    var inv = blockEntity.itemHandler;
-                    if (inv.getStackInSlot(0).isEmpty() && shiftCards) // try to shift first if we cant read right now
-                        shift_tickThread();
-
-                    var punchcardToRead = inv.getStackInSlot(0);
-                    if (punchcardToRead.isEmpty())
-                        throw new LuaJavaError("Cannot read punchcard as no input punchcards are available");
-                    // read the contents
-                    var rv = PunchcardItem.getData(punchcardToRead);
-                    // shift again to prepare for next time
-                    if (shiftCards)
-                        shift_tickThread();
-
-                    return rv;
-                }
-        );
+        return blockEntity.runOnTickThread(() -> read_tickThread(shiftCards));
     }
 
     @LuaDeserializer
