@@ -17,12 +17,17 @@ public class PunchcardReaderBlockScreen extends AbstractContainerScreen<Punchcar
         super(pMenu, pPlayerInventory, pTitle);
     }
 
+    private boolean isShifted = false;
+
     @Override
     protected void init() {
         super.init();
         //this.titleLabelY = 1000; // hide top text
-        topPos += 1;
-        this.titleLabelY -= 1;
+        if (!isShifted) {
+            topPos += 1;
+            this.titleLabelY -= 1;
+            isShifted = true;
+        }
     }
 
     @Override
