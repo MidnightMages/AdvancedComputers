@@ -309,20 +309,19 @@ public class LuaVirtualMachine {
 
 
             // figure out what script to load
-            String uefiScript;
+            String uefiScript = null;
             // try punchcard first
             var firstPunchCardReader = componentReg.getFirst("punchcardReader");
             if (!firstPunchCardReader.isNil()) {
                 try {
                     uefiScript = ((PunchcardReaderBlockUD) firstPunchCardReader.refVal).read_tickThread(true);
-                } catch (LuaJavaError e) {
-                    stopCode = "No punchcard in punchcard reader";
-                    state.crash();
-                    return;
+                } catch (LuaJavaError ignored) {
                 }
-            } else { // otherwise fall back to regular uefi
-                uefiScript = ((UefiUD) luaComputer.uefi.refVal).getUefiScript();
             }
+            // otherwise fall back to regular uefi
+            if (uefiScript == null)
+                uefiScript = ((UefiUD) luaComputer.uefi.refVal).getUefiScript();
+
 
             // build lua virtual machine
             vm = LuaVM.builder().withApiRegistry(BUILTIN_FUNCTIONS).modifyEnv(_G -> {
