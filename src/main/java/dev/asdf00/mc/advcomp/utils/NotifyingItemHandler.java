@@ -75,7 +75,7 @@ public class NotifyingItemHandler extends ItemStackHandler {
         }
 
 
-        var stackToInsert = stack.copyWithCount(canInsertThisMuch);
+        var stackToInsert = stack.copyWithCount(Math.min(stack.getCount(), canInsertThisMuch));
         var leftoverStack = super.insertItem(slot, stackToInsert, simulate);
         return leftoverStack.copyWithCount(leftoverStack.getCount() + extraItemsToReturn);
     }
