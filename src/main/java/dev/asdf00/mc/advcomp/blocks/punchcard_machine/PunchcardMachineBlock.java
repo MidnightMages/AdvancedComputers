@@ -1,4 +1,4 @@
-package dev.asdf00.mc.advcomp.blocks.punchcard_machine.mainboard_programmer;
+package dev.asdf00.mc.advcomp.blocks.punchcard_machine;
 
 import dev.asdf00.mc.advcomp.blocks.BasePeripheralOrHostBlock;
 import net.minecraft.core.BlockPos;

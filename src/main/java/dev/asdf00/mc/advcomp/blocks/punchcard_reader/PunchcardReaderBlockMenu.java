@@ -1,57 +1,45 @@
-package dev.asdf00.mc.advcomp.blocks.punchcard_machine.mainboard_programmer;
+package dev.asdf00.mc.advcomp.blocks.punchcard_reader;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.blocks.SlotItemHandlerRequireType;
-import dev.asdf00.mc.advcomp.items.MainboardItem;
-import net.minecraft.client.Minecraft;
+import dev.asdf00.mc.advcomp.items.punchcard.PunchcardItem;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
-
-public class PunchcardMachineBlockMenu extends AbstractContainerMenu {
-    public final PunchcardMachineBlockEntity blockEntity;
+public class PunchcardReaderBlockMenu extends AbstractContainerMenu {
+    public final PunchcardReaderBlockEntity blockEntity;
     private final Level level;
     private final ContainerData data;
 
-    public PunchcardMachineBlockMenu(int pContainerId, Inventory inv, FriendlyByteBuf extraData) {
+    public PunchcardReaderBlockMenu(int pContainerId, Inventory inv, FriendlyByteBuf extraData) {
         this(pContainerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()), new SimpleContainerData(TE_INVENTORY_SLOT_COUNT));
     }
 
-    public PunchcardMachineBlockMenu(int pContainerId, Inventory playerInv, BlockEntity be, ContainerData cd) {
-        super(AdvancedComputers.PUNCHCARD_MACHINE_MENU.get(), pContainerId);
+    public PunchcardReaderBlockMenu(int pContainerId, Inventory playerInv, BlockEntity be, ContainerData cd) {
+        super(AdvancedComputers.PUNCHCARD_READER_MENU.get(), pContainerId);
         checkContainerSize(playerInv, TE_INVENTORY_SLOT_COUNT);
-        blockEntity = (PunchcardMachineBlockEntity) be;
+        blockEntity = (PunchcardReaderBlockEntity) be;
         level = playerInv.player.level();
         data = cd;
 
         addPlayerInventory(playerInv);
         addPlayerHotbar(playerInv);
         this.blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(iItemHandler -> {
-            var planksTag = Objects.requireNonNull(ForgeRegistries.ITEMS.tags()).getTag(ItemTags.PLANKS);
-            this.addSlot(new SlotItemHandlerRequireType(iItemHandler, 0, 62, 138, x->x.is(Items.PAPER)).withMaxStackSize(64));
-            this.addSlot(new SlotItemHandlerRequireType(iItemHandler, 1, 98, 138, x-> false));
+            this.addSlot(new SlotItemHandlerRequireType(iItemHandler, 0, 7, 34, PunchcardItem.class));
+            int currentIndex = 1;
+            for (int i = 0; i < 2; i++) { // add rows
+                for (int xi = 0; xi < 8; xi++) {
+                    this.addSlot(new SlotItemHandlerRequireType(iItemHandler, currentIndex++, 26+xi*18, 15 + 38*i, PunchcardItem.class));
+                }
+            }
         });
-
-    }
-
-    void addSlotRow(IItemHandler iItemHandler, int indexStart, int xPos, int yPos, int count) {
-        for (int i = 0; i < count; i++) {
-            this.addSlot(new SlotItemHandlerRequireType(iItemHandler, indexStart + i, xPos + 18 * i, yPos, MainboardItem.class));
-        }
     }
 
     // CREDIT GOES TO: diesieben07 | https://github.com/diesieben07/SevenCommons
@@ -70,7 +58,7 @@ public class PunchcardMachineBlockMenu extends AbstractContainerMenu {
     private static final int TE_INVENTORY_FIRST_SLOT_INDEX = VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT;
 
     // THIS YOU HAVE TO DEFINE!
-    public static final int TE_INVENTORY_SLOT_COUNT = 2;  // must be the number of slots you have!
+    public static final int TE_INVENTORY_SLOT_COUNT = 1+2*8;  // must be the number of slots you have!
 
     @Override
     public @NotNull ItemStack quickMoveStack(@NotNull Player playerIn, int pIndex) {
@@ -106,7 +94,7 @@ public class PunchcardMachineBlockMenu extends AbstractContainerMenu {
 
 
     private static final int inventoryPosX = 8;
-    private static final int inventoryPosY = 84+75;
+    private static final int inventoryPosY = 84;
     private static final int hotbarPosY = inventoryPosY + 58;
 
     private void addPlayerInventory(Inventory playerInventory) {
@@ -125,12 +113,6 @@ public class PunchcardMachineBlockMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(@NotNull Player pPlayer) {
-        return stillValid(ContainerLevelAccess.create(level, blockEntity.getBlockPos()), pPlayer, AdvancedComputers.PUNCHCARD_MACHINE_BLOCK.block().get());
-    }
-
-    @Override
-    public void sendAllDataToRemote() {
-        super.sendAllDataToRemote();
-        this.blockEntity.sendInitialSyncToClient();
+        return stillValid(ContainerLevelAccess.create(level, blockEntity.getBlockPos()), pPlayer, AdvancedComputers.PUNCHCARD_READER_BLOCK.block().get());
     }
 }

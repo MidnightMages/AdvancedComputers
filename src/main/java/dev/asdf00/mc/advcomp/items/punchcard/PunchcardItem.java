@@ -1,6 +1,6 @@
 package dev.asdf00.mc.advcomp.items.punchcard;
 
-import dev.asdf00.mc.advcomp.blocks.punchcard_machine.mainboard_programmer.PunchcardMachineBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.punchcard_machine.PunchcardMachineBlockEntity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -32,7 +32,7 @@ public class PunchcardItem extends Item {
         super.appendHoverText(pStack, pLevel, pTooltipComponents, pIsAdvanced);
     }
 
-    private static String getData(@NotNull ItemStack pStack) {
+    public static String getData(@NotNull ItemStack pStack) {
         var tag = pStack.getTag();
         return tag == null ? null : tag.getString(PunchcardMachineBlockEntity.NBT_PUNCHCARD_ITEM_DATA_KEY);
     }

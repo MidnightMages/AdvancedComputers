@@ -11,16 +11,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ItemInterfaceBlockEntity extends BasePeripheralComponentBlockEntity {
 
-    ConcurrentLinkedQueue<Runnable> tickThreadQueue = new ConcurrentLinkedQueue<>();
-    public void tick(Level pLevel, BlockPos pPos, BlockState pState) {
-        while (true) {
-            var newItem = tickThreadQueue.poll();
-            if (newItem == null)
-                return;
-            newItem.run();
-        }
-    }
-
     public ItemInterfaceBlockEntity(BlockPos pPos, BlockState pBlockState) {
         super(AdvancedComputers.ITEM_INTERFACE_BE.get(), pPos, pBlockState);
     }

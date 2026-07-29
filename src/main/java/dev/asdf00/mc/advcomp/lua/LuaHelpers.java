@@ -5,6 +5,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import java.util.function.Supplier;
+
 public class LuaHelpers {
     public static BlockPos getNeighborBlockPosFromSideArgument(BlockEntity ourBlockEntity, int sideArgument, int sideArgumentIndex) {
         return getNeighborBlockPosFromSideArgument(ourBlockEntity.getBlockPos(), sideArgument, sideArgumentIndex);

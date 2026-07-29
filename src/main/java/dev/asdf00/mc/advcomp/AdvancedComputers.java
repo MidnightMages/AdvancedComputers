@@ -17,10 +17,14 @@ import dev.asdf00.mc.advcomp.blocks.mainboard_programmer.MainboardProgrammerBloc
 import dev.asdf00.mc.advcomp.blocks.mainboard_programmer.MainboardProgrammerBlockScreen;
 import dev.asdf00.mc.advcomp.blocks.net_router.NetRouterBlock;
 import dev.asdf00.mc.advcomp.blocks.net_router.NetRouterBlockEntity;
-import dev.asdf00.mc.advcomp.blocks.punchcard_machine.mainboard_programmer.PunchcardMachineBlock;
-import dev.asdf00.mc.advcomp.blocks.punchcard_machine.mainboard_programmer.PunchcardMachineBlockEntity;
-import dev.asdf00.mc.advcomp.blocks.punchcard_machine.mainboard_programmer.PunchcardMachineBlockMenu;
-import dev.asdf00.mc.advcomp.blocks.punchcard_machine.mainboard_programmer.PunchcardMachineBlockScreen;
+import dev.asdf00.mc.advcomp.blocks.punchcard_machine.PunchcardMachineBlock;
+import dev.asdf00.mc.advcomp.blocks.punchcard_machine.PunchcardMachineBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.punchcard_machine.PunchcardMachineBlockMenu;
+import dev.asdf00.mc.advcomp.blocks.punchcard_machine.PunchcardMachineBlockScreen;
+import dev.asdf00.mc.advcomp.blocks.punchcard_reader.PunchcardReaderBlock;
+import dev.asdf00.mc.advcomp.blocks.punchcard_reader.PunchcardReaderBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.punchcard_reader.PunchcardReaderBlockMenu;
+import dev.asdf00.mc.advcomp.blocks.punchcard_reader.PunchcardReaderBlockScreen;
 import dev.asdf00.mc.advcomp.blocks.redstone_io.RedstoneIoBlock;
 import dev.asdf00.mc.advcomp.blocks.redstone_io.RedstoneIoBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.*;
@@ -151,6 +155,9 @@ public class AdvancedComputers {
     public static final RegistryBlockItemPair<Block> PUNCHCARD_MACHINE_BLOCK = registerBlockWithItem("punchcard_machine_block",
             () -> new PunchcardMachineBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
 
+    public static final RegistryBlockItemPair<Block> PUNCHCARD_READER_BLOCK = registerBlockWithItem("punchcard_reader_block",
+            () -> new PunchcardReaderBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
+
     public static final RegistryBlockItemPair<Block> ITEM_INTERFACE_BLOCK = registerBlockWithItem("item_interface_block",
             () -> new ItemInterfaceBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
 
@@ -190,6 +197,9 @@ public class AdvancedComputers {
     public static final RegistryObject<BlockEntityType<PunchcardMachineBlockEntity>> PUNCHCARD_MACHINE_BE = BLOCK_ENTITY_TYPES.register("punchcard_machine_be",
             () -> BlockEntityType.Builder.of(PunchcardMachineBlockEntity::new, PUNCHCARD_MACHINE_BLOCK.block().get()).build(null));
 
+    public static final RegistryObject<BlockEntityType<PunchcardReaderBlockEntity>> PUNCHCARD_READER_BE = BLOCK_ENTITY_TYPES.register("punchcard_reader_be",
+            () -> BlockEntityType.Builder.of(PunchcardReaderBlockEntity::new, PUNCHCARD_READER_BLOCK.block().get()).build(null));
+
     public static final RegistryObject<BlockEntityType<ItemInterfaceBlockEntity>> ITEM_INTERFACE_BE = BLOCK_ENTITY_TYPES.register("item_interface_be",
             () -> BlockEntityType.Builder.of(ItemInterfaceBlockEntity::new, ITEM_INTERFACE_BLOCK.block().get()).build(null));
 
@@ -213,6 +223,9 @@ public class AdvancedComputers {
 
     public static final RegistryObject<MenuType<PunchcardMachineBlockMenu>> PUNCHCARD_MACHINE_MENU =
             registerMenuType("punchcard_machine_menu", PunchcardMachineBlockMenu::new);
+
+    public static final RegistryObject<MenuType<PunchcardReaderBlockMenu>> PUNCHCARD_READER_MENU =
+            registerMenuType("punchcard_reader_menu", PunchcardReaderBlockMenu::new);
 
     public static final RegistryObject<MenuType<ScreenMenu>> SCREEN_MENU =
             registerMenuType("screen_menu", ScreenMenu::new);
@@ -388,6 +401,7 @@ public class AdvancedComputers {
                 MenuScreens.register(COMPUTER_MENU.get(), ComputerBlockScreen::new);
                 MenuScreens.register(MAINBOARD_PROGRAMMER_MENU.get(), MainboardProgrammerBlockScreen::new);
                 MenuScreens.register(PUNCHCARD_MACHINE_MENU.get(), PunchcardMachineBlockScreen::new);
+                MenuScreens.register(PUNCHCARD_READER_MENU.get(), PunchcardReaderBlockScreen::new);
                 MenuScreens.register(SCREEN_MENU.get(), ScreenBlockScreen::new);
                 MenuScreens.register(PUNCHCARD_MENU.get(), PunchcardItemScreen::new);
             });
