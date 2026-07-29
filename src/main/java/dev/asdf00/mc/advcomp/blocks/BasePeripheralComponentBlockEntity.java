@@ -87,7 +87,9 @@ public abstract class BasePeripheralComponentBlockEntity extends BaseCableConnec
             if (resultException[0] != null) {
                 if (resultException[0] instanceof Error e)
                     throw new Error(e);
-                else {
+                else if (resultException[0] instanceof LuaJavaError e) {
+                    throw new LuaJavaError(e.getMessage(), e);
+                } else {
                     assert resultException[0] instanceof RuntimeException : resultException[0];
                     throw new RuntimeException(resultException[0]);
                 }

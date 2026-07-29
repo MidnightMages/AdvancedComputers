@@ -52,7 +52,7 @@ public class PunchcardReaderBlockUD extends BaseAcBlockEntityComponentUD<Punchca
     }
 
     private int getAvailableOutputSpace_tickThread() {
-        return (int) IntStream.rangeClosed(8, 15)
+        return (int) IntStream.rangeClosed(9, 15)
                 .filter(i -> blockEntity.itemHandler.getStackInSlot(i).isEmpty())
                 .count();
     }
