@@ -17,7 +17,6 @@ public class PunchcardMachineBlockScreen extends AbstractContainerScreen<Punchca
     private Button encodeButton;
     private MultiLineEditBox codeBox;
     private int focusId = 0;
-    private String lastAcknowledgedServerString = "";
 
     public PunchcardMachineBlockScreen(PunchcardMachineBlockMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
@@ -65,9 +64,9 @@ public class PunchcardMachineBlockScreen extends AbstractContainerScreen<Punchca
     public void render(@NotNull GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         renderBackground(pGuiGraphics);
         var newText = menu.blockEntity.currentGuiText;
-        if (!lastAcknowledgedServerString.equals(newText)) {
-            lastAcknowledgedServerString = newText;
+        if (newText != null) {
             this.codeBox.setValue(newText);
+            menu.blockEntity.currentGuiText = null;
         }
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         renderTooltip(pGuiGraphics, pMouseX, pMouseY);
