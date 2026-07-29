@@ -201,13 +201,26 @@ public class LuaVirtualMachine {
     private void start(byte[] serializedState) {
         boolean isCold = serializedState == null;
         synchronized (state) {
+            boolean initSuccess = false;
+            try {
                 if (isCold) {
                     coldInitialize();
                 } else {
                     initializeFromState(serializedState);
                 }
+                initSuccess = true;
+            } finally {
+                if (!initSuccess && state.getState() != State.CRASHED) {
+                    stopCode = "Unknown";
+                    state.crash();
+                }
+            }
+            if (state.getState() != State.CRASHED) {
                 executorThread = new Thread(this::startLuaExecution);
                 executorThread.start();
+            } else {
+                AdvancedComputers.LOGGER.warn("Computer failed to start: %s".formatted(stopCode));
+            }
         }
     }
 
