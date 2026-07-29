@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "advancedcomputers:block/punchcard_machine_block",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "advancedcomputers:block/punchcard_machine_block"
+    },
+    "facing=south": {
+      "model": "advancedcomputers:block/punchcard_machine_block",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "advancedcomputers:block/punchcard_machine_block",
+      "y": 270
+    }
+  }
+}

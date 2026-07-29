@@ -59,39 +59,6 @@ public class ItemInterfaceBlockEntityUD extends BaseAcBlockEntityComponentUD<Ite
                     .formatted(argumentIndex + 1, argument, minInclusive));
     }
 
-    private <T> T runOnTickThread(Supplier<T> toExecute) {
-        //noinspection unchecked
-        T[] result = (T[]) new Object[1];
-        Throwable[] resultException = new Throwable[1];
-        synchronized (result) {
-            blockEntity.tickThreadQueue.add(() -> {
-                try {
-                    result[0] = toExecute.get();
-                } catch (Throwable exception) {
-                    resultException[0] = exception;
-                }
-                synchronized (result) {
-                    result.notifyAll();
-                }
-            });
-            try {
-                result.wait();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new LuaJavaError("operation was interrupted and may or may not have been executed");
-            }
-            if (resultException[0] != null) {
-                if (resultException[0] instanceof Error e)
-                    throw new Error(e);
-                else {
-                    assert resultException[0] instanceof RuntimeException : resultException[0];
-                    throw new RuntimeException(resultException[0]);
-                }
-            }
-            return result[0];
-        }
-    }
-
     @LuaCallable
     public String getNeighborBlockName(int side) {
         var neighborPos = LuaHelpers.getNeighborBlockPosFromSideArgument(blockEntity, side, 0);
@@ -118,7 +85,7 @@ public class ItemInterfaceBlockEntityUD extends BaseAcBlockEntityComponentUD<Ite
         argcheckMin(maxAmount, 4, 1);
 
         // RUN ON TICK THERAD
-        return runOnTickThread(() -> {
+        return blockEntity.runOnTickThread(() -> {
             var sourceCap = getItemHandlerOnSideOrNull(sideSource, 0);
             var destCap = getItemHandlerOnSideOrNull(sideDest, 2);
 
@@ -146,7 +113,7 @@ public class ItemInterfaceBlockEntityUD extends BaseAcBlockEntityComponentUD<Ite
     @LuaCallable // returns how many items were moved, on success
     public LuaObject getStackInSlot(int side, int slot) {
         // RUN ON TICK THERAD
-        var itemStack = runOnTickThread(() -> {
+        var itemStack = blockEntity.runOnTickThread(() -> {
             var sourceCap = getItemHandlerOnSideOrNull(side, 0);
 
             if (sourceCap == null)

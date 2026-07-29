@@ -38,7 +38,10 @@ public class BlockTagGenerator extends BlockTagsProvider {
         RuntimeAssert.RuntimeAssert(allBlocks.remove(woodComputer), "removal failed");
         var woodScreen = AdvancedComputers.SCREEN_BLOCK_WOOD.block().get();
         RuntimeAssert.RuntimeAssert(allBlocks.remove(woodScreen), "removal failed");
-        this.tag(BlockTags.MINEABLE_WITH_AXE).add(woodComputer, woodScreen);
+        var punchcardMachine = AdvancedComputers.PUNCHCARD_MACHINE_BLOCK.block().get();
+        RuntimeAssert.RuntimeAssert(allBlocks.remove(punchcardMachine), "removal failed");
+
+        this.tag(BlockTags.MINEABLE_WITH_AXE).add(woodComputer, woodScreen, punchcardMachine);
 
         Block[] allBlocksArray = allBlocks.toArray(Block[]::new);
         this.tag(BlockTags.MINEABLE_WITH_PICKAXE).add(allBlocksArray);

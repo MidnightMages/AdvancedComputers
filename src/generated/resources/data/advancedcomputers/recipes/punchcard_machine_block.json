@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "F": {
+      "item": "minecraft:flint"
+    },
+    "L": {
+      "item": "minecraft:lever"
+    },
+    "P": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "pattern": [
+    "PLP",
+    "PFP",
+    "PPP"
+  ],
+  "result": {
+    "item": "advancedcomputers:punchcard_machine_block"
+  },
+  "show_notification": true
+}
