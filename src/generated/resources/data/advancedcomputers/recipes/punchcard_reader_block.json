@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "minecraft:paper"
+    },
+    "P": {
+      "tag": "minecraft:planks"
+    },
+    "T": {
+      "item": "minecraft:torch"
+    }
+  },
+  "pattern": [
+    "PPP",
+    "PAP",
+    "PTP"
+  ],
+  "result": {
+    "item": "advancedcomputers:punchcard_reader_block"
+  },
+  "show_notification": true
+}

@@ -31,9 +31,6 @@ import dev.asdf00.mc.advcomp.blocks.screen.*;
 import dev.asdf00.mc.advcomp.blocks.wan_router.*;
 import dev.asdf00.mc.advcomp.datagen.*;
 import dev.asdf00.mc.advcomp.items.*;
-import dev.asdf00.mc.advcomp.items.punchcard.PunchcardItem;
-import dev.asdf00.mc.advcomp.items.punchcard.PunchcardItemMenu;
-import dev.asdf00.mc.advcomp.items.punchcard.PunchcardItemScreen;
 import dev.asdf00.mc.advcomp.types.DualLayerItemColorHandler;
 import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
 import dev.asdf00.mc.advcomp.types.GlobalDataStorage;
@@ -230,9 +227,6 @@ public class AdvancedComputers {
     public static final RegistryObject<MenuType<ScreenMenu>> SCREEN_MENU =
             registerMenuType("screen_menu", ScreenMenu::new);
 
-    public static final RegistryObject<MenuType<PunchcardItemMenu>> PUNCHCARD_MENU =
-            registerMenuType("punchcard_menu", PunchcardItemMenu::new);
-
     public static final RegistryObject<RecipeSerializer<DyeCustomRecipe>> DYE_RECIPE_SERIALIZER =
             RECIPE_SERIALIZERS.register("dye_item", () -> DyeCustomRecipe.serializer);
 
@@ -403,7 +397,6 @@ public class AdvancedComputers {
                 MenuScreens.register(PUNCHCARD_MACHINE_MENU.get(), PunchcardMachineBlockScreen::new);
                 MenuScreens.register(PUNCHCARD_READER_MENU.get(), PunchcardReaderBlockScreen::new);
                 MenuScreens.register(SCREEN_MENU.get(), ScreenBlockScreen::new);
-                MenuScreens.register(PUNCHCARD_MENU.get(), PunchcardItemScreen::new);
             });
         }
 

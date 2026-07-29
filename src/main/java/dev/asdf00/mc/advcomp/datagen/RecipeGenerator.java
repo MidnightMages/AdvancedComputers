@@ -4,6 +4,7 @@ import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.datagen.util.ShapelessNbtRecipeBuilder;
 import dev.asdf00.mc.advcomp.items.FloppyDiskItem;
 import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
+import net.minecraft.client.Minecraft;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.*;
 import net.minecraft.resources.ResourceLocation;
@@ -275,6 +276,28 @@ public class RecipeGenerator extends RecipeProvider {
                 .define('D', AdvancedComputers.DEVICE_CABLE_BLOCK.blockItem().get())
                 .unlockedBy("item", has(Tags.Items.INGOTS_COPPER))
                 .save(pWriter);
+
+        shaped(AdvancedComputers.PUNCHCARD_READER_BLOCK.blockItem().get())
+                .pattern("PPP")
+                .pattern("PAP")
+                .pattern("PTP")
+                .define('P', planks)
+                .define('A', paper)
+                .define('T', Items.TORCH)
+                .unlockedBy("item", has(Items.TORCH))
+                .save(pWriter);
+
+        shaped(AdvancedComputers.PUNCHCARD_MACHINE_BLOCK.blockItem().get())
+                .pattern("PLP")
+                .pattern("PFP")
+                .pattern("PPP")
+                .define('P', planks)
+                .define('L', Items.LEVER)
+                .define('F', Items.FLINT)
+                .unlockedBy("item", has(Items.LEVER))
+                .save(pWriter);
+
+
     }
 
     public record PremadeFloppyInfo(String folderId, String resultFloppyLabel, ItemLike otherIngredient, int color) {}

@@ -2,7 +2,7 @@ package dev.asdf00.mc.advcomp.blocks.punchcard_reader;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.SlotItemHandlerRequireType;
-import dev.asdf00.mc.advcomp.items.punchcard.PunchcardItem;
+import dev.asdf00.mc.advcomp.items.PunchcardItem;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;

@@ -4,8 +4,6 @@ import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
 import dev.asdf00.mc.advcomp.blocks.BasePeripheralComponentBlockEntity;
-import dev.asdf00.mc.advcomp.items.MainboardItem;
-import dev.asdf00.mc.advcomp.items.punchcard.PunchcardItem;
 import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 import dev.asdf00.mc.advcomp.utils.NotifyingItemHandler;
 import net.minecraft.core.BlockPos;

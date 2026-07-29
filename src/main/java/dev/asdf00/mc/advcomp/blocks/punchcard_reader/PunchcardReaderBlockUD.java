@@ -7,7 +7,7 @@ import dev.asdf00.jluavm.api.userdata.LuaProperty;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
-import dev.asdf00.mc.advcomp.items.punchcard.PunchcardItem;
+import dev.asdf00.mc.advcomp.items.PunchcardItem;
 import dev.asdf00.mc.advcomp.lua.components.BaseAcBlockEntityComponentUD;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import net.minecraft.world.item.ItemStack;
