@@ -49,6 +49,7 @@ public final class TextBufferUD implements LuaUserData {
         this.lStart = lStart;
     }
 
+    @LuaCallable
     public String getTextAsString() {
         var guiTextSb = new StringBuilder();
         for (int line = 0; line < height; line++) {
