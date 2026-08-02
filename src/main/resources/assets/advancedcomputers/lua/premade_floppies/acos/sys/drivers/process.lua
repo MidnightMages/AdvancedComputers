@@ -131,9 +131,7 @@ local syscalls = {}
 function syscalls.spawnProcess(processStartInfo) -- TODO chose isolation level and thus prototype-_ENV, i.e 0 = kernel, 1 = driver, 2 = user?
     local proc = PROCESS.new(processStartInfo, kutils.getCurrentProcess())
     scheduler:enqueue(proc)
-    print("created", proc.description)
     local rv = wrap(proc, ALLOWED_READS)
-    print("created rv", rv.description)
     return rv
 end
 

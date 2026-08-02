@@ -13,7 +13,7 @@ function kernel:invokeSyscall(syscallName, ...)
 end
 
 function kernel:debug(...)
-    if true then
+    if false then
         print("[D]",...)
     end
 end

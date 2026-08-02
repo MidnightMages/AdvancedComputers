@@ -144,7 +144,7 @@ local function runTasks()
         end
         
         if lastCnt ~= #runningProcesses then
-    print("proc count: ", lastCnt, "-->", #runningProcesses)
+            --print("proc count: ", lastCnt, "-->", #runningProcesses)
             lastCnt = #runningProcesses
         end
         local diedProcessIds = {}
@@ -207,7 +207,7 @@ local function runTasks()
                 end
             end
             if #unblockedThreads ~= pre then
-                print("unblocked thread cnt", pre, "-->", #unblockedThreads)
+                --print("unblocked thread cnt", pre, "-->", #unblockedThreads)
             end
             if #unblockedThreads == 0 then -- no more threads --> process is dead
                 table.insert(diedProcessIds, i)
@@ -238,7 +238,7 @@ local function runTasks()
                     buffer:free()
                 end
             end
-            print("marked process '"..tostring(procObj.description).."' as dead")
+            --print("marked process '"..tostring(procObj.description).."' as dead")
             table.remove(runningProcesses, diedPid_aka_i)
         end
     end

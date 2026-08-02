@@ -20,4 +20,8 @@ function screen.bindPrint(textBuffer)
     return makePrint("\n"), makePrint("")
 end
 
+function screen.clear(textBuffer)
+    buffer:pasteText(0, 0, "FILL_CLIP_CLEAR", string.rep("\n", HEIGHT))
+end
+
 return screen

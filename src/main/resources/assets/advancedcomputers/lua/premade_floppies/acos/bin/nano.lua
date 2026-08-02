@@ -14,7 +14,7 @@ if filename == "-h" or filename == "-?" then
     return
 end
 
-print("starting AdvancedOS NANO ...")
+-- print("starting AdvancedOS NANO ...")
 
 local fs = require "filesystem"
 local kernel = require "kernel"

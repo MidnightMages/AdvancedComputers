@@ -1,6 +1,5 @@
 local kernel = require("kernel")
 local fs = require("filesystem")
-    print("a")
 local argString = kernel:getCurrentProcess().args
 local function printPrefix()
     local path = kernel:getCurrentWorkingDirectory()
@@ -14,7 +13,6 @@ end
 kernel:debug("Shell with PID", kernel:getCurrentProcess().pid, "was started")
 
 local function executeStatement(statement)
-    print("Shell is executing statement", statement)
     if statement == "exit" then return true end
     local splitted = string.split(statement, " ")
     local executablePath = splitted[1]
@@ -29,7 +27,6 @@ local function executeStatement(statement)
         local firstChar = path:sub(1,1)
         if firstChar ~= "~" and firstChar ~= "/" then -- if relative
             path = kernel:getCurrentWorkingDirectory()..path
-            print("concatted with cwd into ", path)
         end
         path = kernel:normalizePath(path)
         if not fs:directoryExists(path) then
