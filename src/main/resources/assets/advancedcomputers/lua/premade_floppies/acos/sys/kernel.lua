@@ -121,7 +121,6 @@ print("new kernel running!!!!!!")
 local lastCnt = -1
 local function runTasks()
     while true do
-        
         -- process events
         while true do
             local machineEvent = {computer:getMachineEvent()}
@@ -142,14 +141,19 @@ local function runTasks()
             end
             -- resume all eventhandlers
         end
-        
+
         if lastCnt ~= #runningProcesses then
             --print("proc count: ", lastCnt, "-->", #runningProcesses)
             lastCnt = #runningProcesses
         end
         local diedProcessIds = {}
+
+        local seenRootProc = false
         for i = 1, #runningProcesses do
             local processToRun = runningProcesses[i]
+            if processToRun.id == 0 then -- found the root process
+                seenRootProc = true
+            end
             local function markCurrentProcessForErrorKilling()
                 processToRun.endedSuccessfully = false
                 table.insert(diedProcessIds, i)
@@ -216,10 +220,11 @@ local function runTasks()
             sleep(0.05)
         end
 
-        for j = #diedProcessIds, 1, -1  do
+        for j = #diedProcessIds, 1, -1 do
             local diedPid_aka_i = diedProcessIds[j]
             local procObj = runningProcesses[diedPid_aka_i]
-            procObj.endedSuccessfully = procObj.endedSuccessfully ~= false -- we have set this to false already if the process errored. So if it was not set, all was well
+            procObj.endedSuccessfully = procObj.endedSuccessfully ~=
+            false                                                          -- we have set this to false already if the process errored. So if it was not set, all was well
             procObj.state = PROCESS_RUNSTATE.dead
             -- reset used screens
             local k = 1
@@ -240,6 +245,10 @@ local function runTasks()
             end
             --print("marked process '"..tostring(procObj.description).."' as dead")
             table.remove(runningProcesses, diedPid_aka_i)
+        end
+
+        if not seenRootProc then -- kill the scheduler if the root process dies
+            break
         end
     end
 end

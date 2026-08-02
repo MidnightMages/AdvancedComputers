@@ -13,7 +13,9 @@ end
 kernel:debug("Shell with PID", kernel:getCurrentProcess().pid, "was started")
 
 local function executeStatement(statement)
-    if statement == "exit" then return true end
+    if statement == "exit" then
+        return true
+    end
     local splitted = string.split(statement, " ")
     local executablePath = splitted[1]
     local argString = #splitted > 0 and table.move(splitted, 2, #splitted, 1, {}) or {}
@@ -77,7 +79,9 @@ local function charTyped(key) -- return whether to exit
         captureInput = false
         local res = executeStatement(statement)
         captureInput = true
-        if res == true then return true end
+        if res == true then
+            return true
+        end
         printPrefix()
     elseif key ~= "\b" then
         stringBuffer = stringBuffer .. key
