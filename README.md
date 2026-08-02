@@ -13,35 +13,34 @@ At this point there is still some fundamental content missing (thus the alpha ta
 Currently adds programmable computers into Minecraft, along with screens, peripheral cables, real-world-internet-access, and redstone and inventory-interface peripherals, all being interactable through Lua 5.4.
 
 **For server owners:**
-As far as resource usage goes, we are only setting up a lua execution environment per computer and **not** an entire virtual machine, meaning these computers have a very minimum low ram and disk space requirement.
+As far as resource usage goes, we are only setting up a lua execution environment per computer and **not** an entire virtual machine, meaning these computers have a very low ram and disk space requirement.
 
 Cpu time limiting based on computer tier is implemented, whereas ram & disk usage limiting currently is not.
 
 ### Finding your way around
-We sincerely want to apologise for the slight lack of usability on the software side; our OS (Advanced OS) is not mega usable right now, but the commands `ls` and `lua` do exist, so you could technically write a text editor using the lua shell and then get going from there. 
-Additionally theres now `rm`, which, when called with a path that has a trailing slash e.g. `rm /etc/`, will remove directories recursively. And also `pasteTextToFile`, which listens for pasted-text (paste via middle mouse button) and then writes that into the specified file. E.g. `pasteToFile someFile.lua`.
-We are rewriting the OS in the MidnightMages/AcLuaDev repo, so it should be a lot more usable soon :D.
+The included OS (Advanced OS) comes with the basic commands such as `ls`, `rm` and even a text editor called `nano`, inspired by the GNU nano. Additionally there is also `pasteTextToFile`, which listens for pasted-text (paste via middle mouse button) and then writes that into the specified file. E.g. `pasteToFile someFile.lua`.
+
+(Almost all of) the api is documented in our wiki: https://wiki.ac.ghxx.dev/
 
 You can also use the lua code `vm.listUDKeys(components:getFirst("computer"))` to programmatically figure out which fields a userdata object contains (in your current mod version). 'userdata' is a special Lua type that represents a Java object. All components are represented as userdata objects.
-
-A more convenient approach however may however taking a look at the exported userdata variable headers here: https://ac.ghxx.dev/apidocs.txt
 
 This combined with looking at the existing uefi.lua and operating system, both located in `src/main/resources/assets/advancedcomputers/lua/*` should hopefully give a decent point to start out with.
 
 You can also find the current mod and minecraft version in the global `_HOST` variable. E.g `AdvancedComputers 0.1.2-alpha; Minecraft 1.20.1`.
 
 ### Planned stuff (for deeming the mod fit for Beta):
-- Make the OS more usable (including rewriting the kernel), as currently it is very very bare (though does contain the `ls` and `lua` programs)
-- Finish adding anything that is missing from the Lua standard library (most notably some edgecase features in pattern matching, i.e string.gsub and related functions, though they mostly work)
-- Sending network packets between ingame computers (with some intelligent packet handling to avoid having to write a custom, ingame IP protocol) 
-- Making a wiki on https://ac.ghxx.dev/ that lists & describes all the api functions
+- ~~Make the OS more usable (including rewriting the kernel), as currently it is very very bare (though does contain the `ls` and `lua` programs)~~
+- ~~Making a wiki on https://wiki.ac.ghxx.dev/ that lists & describes all the api functions~~
+- Finish adding anything that is missing from the Lua standard library (most notably some edgecase features in pattern matching, i.e. edgecases in string.gsub and related functions, though they mostly work)
+- Sending network packets between ingame computers (with some intelligent packet handling to avoid having to write a custom ingame IP protocol) 
 - Interaction with more minecraft blocks
 - Make disk space limited and add a soft computer ram limit
 - Adding ingame networking (computer to computer)
 - Adding more fun stuff like servers, etc.
 
 ## Downloading
-While in alpha, versions can be downloaded via the [github releases section](https://github.com/MidnightMages/AdvancedComputers/releases). You can also get releases from [Modrinth](https://modrinth.com/mod/advanced-computers/settings/description) and possibly in the future also CurseForge.
+You can download this mod from [Modrinth](https://modrinth.com/mod/advanced-computers/settings/description) and possibly in the future also CurseForge.
+While in alpha, versions can also be downloaded via the [github releases section](https://github.com/MidnightMages/AdvancedComputers/releases), though we will stop shipping binary releases here at some point and then just focus on Modrinth and CurseForge.
 
 ## Targeted minecraft versions
 Currently this targets Minecraft 1.20.1 (forge), but we do plan to extend that once the mod reaches the Release state (i.e. containing very few bugs and being mostly content complete).
