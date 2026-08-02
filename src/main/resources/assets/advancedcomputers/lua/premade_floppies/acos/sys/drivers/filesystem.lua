@@ -1,6 +1,3 @@
--- TODO: make this a USERSPACE FS with appropriate syscalls
-
-
 local fs = {}
 -- TODO create file containing fs metadata, listing ids of disks and mountpoints, 
 -- such that it is only necessary for the boot drive to be in a predictable slot or specified by the bios, but the others can be in any order
@@ -8,6 +5,10 @@ local mounts = {}
 
 local function normalizePath(path)
     -- TODO add process's working directory if the path odes not start with /
+    if not string.startsWith(path, "/") then
+        -- prepend current working dir
+        path = kutils.getCurrentProcess().currentWorkingDirectory .. path
+    end
     local segments = string.split(path,"/")
     --print("splitres:",#segments, segments[1]..";", segments[2]..";")
     local skipCnt = 0
@@ -64,7 +65,6 @@ local function getMountPoint(path)
 end
 
 local function findDriveAndDrivePath(filePath)
-    assert(string.startsWith(filePath,"/"))
     local p = normalizePath(filePath)
     local drive, prefix = getMountPoint(p)
     local drivePath = "/"..string.sub(p, #prefix+1)
@@ -103,9 +103,14 @@ function fs:directoryExists(filePath)
     return drive:directoryExists(drivePath)
 end
 
-function fs:createDirectory(filePath)
+function fs:deleteDirectory(filePath)
     local drive, drivePath = findDriveAndDrivePath(filePath)
-    drive:makeDirectory(drivePath)
+    drive:deleteDirectory(drivePath)
+end
+
+function fs:delete(filePath)
+    local drive, drivePath = findDriveAndDrivePath(filePath)
+    drive:delete(drivePath)
 end
 
 function fs:list(filePath)

@@ -62,7 +62,7 @@ public class GpuUD extends BaseAcComponent {
 
     void onBufferFreed(TextBufferUD bufferToFree) {
         synchronized (remainingVideoRamLockObj) {
-            if (bufferToFree.isFreed)
+            if (bufferToFree.isAlive)
                 throw new LuaJavaError("Buffer was freed already");
             remainingVideoRam += bufferToFree.width * bufferToFree.height;
             RuntimeAssert.RuntimeAssert(allocatedBuffers.remove(bufferToFree), "tried to free an already freed buffer??");

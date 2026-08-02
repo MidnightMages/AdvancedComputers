@@ -2,13 +2,17 @@ local kernel = require("kernel")
 local fs = require("filesystem")
 
 kernel:debug("starting")
+
+local rawArgs = {...}
+local argPath = #rawArgs > 0 and tostring(rawArgs[1]) or ""
+
+---@type Process
 local proc = kernel:getCurrentProcess()
-local args = proc.args
-local dir = proc.cwd
-if string.startsWith(args,"/") then
-    dir = args
+local dir = proc.currentWorkingDirectory
+if string.startsWith(argPath,"/") then
+    dir = argPath
 else
-    dir = dir .. args
+    dir = dir .. argPath
 end
 
 dir = kernel:normalizePath(dir .. "/")

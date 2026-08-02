@@ -21,9 +21,10 @@ public final class TextBufferUD implements LuaUserData {
     public int width;
     @LuaExposed(LuaExposed.Policy.READ)
     public int height;
+    @LuaExposed(LuaExposed.Policy.READ)
+    public boolean isAlive;
 
     private GpuUD gpuUD;
-    public boolean isFreed;
     private LuaObject luaSelf = null;
 
     /**
@@ -35,14 +36,14 @@ public final class TextBufferUD implements LuaUserData {
     private int lStart;
 
     public TextBufferUD(int width, int height, GpuUD gpuUD) {
-        this(width, height, gpuUD, false, 0);
+        this(width, height, gpuUD, true, 0);
     }
 
-    private TextBufferUD(int width, int height, GpuUD gpuUD, boolean isFreed, int lStart) {
+    private TextBufferUD(int width, int height, GpuUD gpuUD, boolean isAlive, int lStart) {
         this.width = width;
         this.height = height;
         this.gpuUD = gpuUD;
-        this.isFreed = isFreed;
+        this.isAlive = isAlive;
         this.foregroundColor = new byte[width * height];
         this.backgroundColor = new byte[width * height];
         this.text = new char[width * height];
@@ -65,7 +66,7 @@ public final class TextBufferUD implements LuaUserData {
     @LuaCallable
     public void free() {
         gpuUD.onBufferFreed(this);
-        isFreed = true;
+        isAlive = false;
         // now we are safe to drop the memory backing this buffer.
         width = height = 0;
         backgroundColor = null;
@@ -287,7 +288,7 @@ public final class TextBufferUD implements LuaUserData {
                 .append(width)
                 .append(height)
                 .append(LuaObject.of(gpuUD).serialize(serialData, mappedObjs, additionalData))
-                .append(isFreed)
+                .append(isAlive)
                 // TODO append fg color
                 // TODO append bg color
                 .append(txtBytes.length)
@@ -320,12 +321,12 @@ public final class TextBufferUD implements LuaUserData {
 
     @Override
     public boolean luaFieldGuard(LuaObject key, LuaObject value) {
-        return !isFreed;
+        return isAlive;
     }
 
     @Override
     public boolean luaCallGuard(String name, LuaObject[] arguments) {
-        return !isFreed;
+        return isAlive;
     }
 
     public Set<ScreenBlockEntity> getAssociatedScreens() {

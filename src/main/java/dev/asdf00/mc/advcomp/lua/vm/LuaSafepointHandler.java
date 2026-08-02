@@ -127,7 +127,7 @@ public class LuaSafepointHandler implements LuaUserData {
                 // no screen to sent to
                 continue;
             }
-            if (buf.isFreed) {
+            if (buf.isAlive) {
                 NetCodeUtils.sendToClient(
                         PacketDistributor.ALL.noArg(),
                         new ScreenBlockEntity.ScreenContentToClientEvent(screens.toArray(ScreenBlockEntity[]::new), "clearGuiText", ""));

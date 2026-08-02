@@ -3,8 +3,13 @@ local fs = require("filesystem")
 
 kernel:debug("starting")
 local proc = kernel:getCurrentProcess()
-local args = proc.args
-local cwd = proc.cwd
+local args = table.pack(...)[1]
+if args == nil then
+    print("Error: please supply a path to delete")
+    return
+end
+
+local cwd = proc.currentWorkingDirectory
 local filePath
 if string.startsWith(args,"/") then
     filePath = args

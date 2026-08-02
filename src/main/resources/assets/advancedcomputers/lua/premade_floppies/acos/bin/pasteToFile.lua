@@ -3,7 +3,7 @@ local fs = require("filesystem")
 
 kernel:debug("starting")
 local proc = kernel:getCurrentProcess()
-local args = proc.args
+local args = table.pack(...)
 
 
 if #args == 0 then
@@ -11,7 +11,7 @@ if #args == 0 then
     return 1
 end
 
-local cwd = proc.cwd
+local cwd = proc.currentWorkingDirectory
 local filePath
 if string.startsWith(args,"/") then
     filePath = args
@@ -32,17 +32,19 @@ local function textPasted(str)
     fs:writeAllText(filePath, str)
 end
 
+local keepListening = true
 local keepRunning = true
 kernel:registerEventCallback("charTyped", function(...)
-    if not keepRunning then end -- if already pasting something
+    if not keepListening or not keepRunning then return end -- if already pasting something
     if (select(2,...)) == '\n' then keepRunning = false end
 end)
 
 kernel:registerEventCallback("textPasted", function(...)
-    if not keepRunning then end -- if already aborted or pasted
+    if not keepRunning or not keepListening then return end -- if already aborted or pasted
+    keepListening = false
     print("text received, writing to file...")
-    keepRunning = false
     textPasted(select(2,...))
+    keepRunning = false
 end)
 while keepRunning do sleep(1) end
 

@@ -9,7 +9,6 @@ local function info(i)
     table.insert(infoLines, i)
 end
 
---[[
 bongo("                               █                                      ")
 bongo("                             ██ ██                                    ")
 bongo("                           ██    ██                                   ")
@@ -32,28 +31,7 @@ bongo("                                         ██         █████�
 bongo("                                         ██      ███        ████████  ")
 bongo("                                         ██   ████                  ██")
 bongo("                                           ████                       ")
-]]
 -- src: https://www.asciiart.eu/image-to-ascii
-bongo("                           ██                                 ")
-bongo("                          ██ ██                               ")
-bongo("                       ███    ██                              ")
-bongo("                   ███          █████                         ")
-bongo("                ███                  █████                    ")
-bongo("      ████   ███                          ████                ")
-bongo("    ██    ████                                ███████████     ")
-bongo("    █  ██   █       ██                                 ██     ")
-bongo("    █ ████          ██                                 █      ")
-bongo("    █   █                            ██               ██      ")
-bongo("█████                 ██             ██              ██       ")
-bongo("     ███████           ██████████                   ██       ")
-bongo("              ███████                                 ██      ")
-bongo("                     ███████                           ██     ")
-bongo("                             ████████                   █     ")
-bongo("                                     ███                ██    ")
-bongo("                                     ██        █████     ██   ")
-bongo("                                     ██      ███     █████████")
-bongo("                                     ██   ███                 ")
-bongo("                                      ████                    ")
 
 -- linux screenfetch info:
 info("root@hostname")
