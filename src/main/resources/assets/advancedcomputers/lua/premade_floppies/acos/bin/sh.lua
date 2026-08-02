@@ -98,5 +98,5 @@ kernel:registerEventCallback("charTyped", function(...)
     if charTyped(select(2,...)) then keepRunning = false end
 end)
 while keepRunning do
-    sleep(5);
+    sleep(1);
 end
