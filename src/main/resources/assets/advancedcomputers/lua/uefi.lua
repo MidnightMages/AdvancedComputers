@@ -80,6 +80,7 @@ stackTraceOnCrash = not not stackTraceOnCrash
 
 -- init boot function
 local function bootFromMedium(medium)
+    assert(type(medium)=="userdata", "attempted to boot from non-userdata drive")
     _ENV.bootDrive = medium -- set boot drive
     local bootHandle = medium:open("boot.lua")
     local code = bootHandle:read(-1)
@@ -168,7 +169,7 @@ else
     for idx, medium in pairs(bootables) do
         print(tostring(idx)..": medium-" .. idx .. "-" .. medium.storageFamilyName)
     end
-    local bootTarget = defaultBoot
+    local bootTarget = bootables[defaultBoot]
     local remaining = bootOptionsSleepTime * 10
     while true do
         printInline("enter boot medium id: ") -- only single char allowed
