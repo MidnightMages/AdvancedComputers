@@ -149,7 +149,7 @@ function fs:copyRecursive(srcPath, destPath, blacklistOrNil, verboseOrNil)
     end
 
     assert(fs:directoryExists(srcPath), "source directory "..tostring(srcPath).." does not exist.")
-    fs:createDirectory(destPath)
+    fs:makeDirectory(destPath)
 
     -- if directory
     for _, f in ipairs(fs:list(srcPath)) do
