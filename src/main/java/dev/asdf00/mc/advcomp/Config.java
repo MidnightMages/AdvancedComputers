@@ -57,6 +57,13 @@ public class Config {
             .worldRestart()
             .defineInRange("lua.vm.cache2_max_files", 1000, 5, Integer.MAX_VALUE);
 
+    private static final ForgeConfigSpec.BooleanValue LUA_VM_PRECOMPILE_UEFI_AND_OS = BUILDER
+            .comment("""
+                    Precompile uefi.lua and parts of Advanced OS to speed up initial startup.
+                    """)
+            .worldRestart()
+            .define("lua.vm.precompile_uefi_and_os", true);
+
     private static final ForgeConfigSpec.BooleanValue DEBUG_LUA_PRINT_TO_SERVER_CONSOLE = BUILDER
             .comment("""
                     If this is set to true, the default UEFI will also print to the server console. This is useful for debugging, but it may look confusing in the server console.
@@ -70,6 +77,7 @@ public class Config {
     public static boolean escapeUppercaseCharactersOnHost;
     public static boolean luaVmCache2Enabled;
     public static int luaVmCache2MaxFiles;
+    public static boolean luaVmPrecompileUefiAndOs;
     public static boolean debugLuaPrintToServerConsole;
     public static float audioVolume;
     public static int audioMaxDistance;
@@ -79,6 +87,7 @@ public class Config {
         escapeUppercaseCharactersOnHost = LUA_FS_ESCAPE_UPPERCASE_CHARS_IN_HOST_FS.get();
         luaVmCache2Enabled = LUA_VM_CACHE2_ENABLED.get();
         luaVmCache2MaxFiles = LUA_VM_CACHE2_MAX_FILES.get();
+        luaVmPrecompileUefiAndOs = LUA_VM_PRECOMPILE_UEFI_AND_OS.get();
         debugLuaPrintToServerConsole = DEBUG_LUA_PRINT_TO_SERVER_CONSOLE.get();
         audioVolume = AUDIO_VOLUME.get() / 100f;
         audioMaxDistance = AUDIO_MAX_DISTANCE.get();

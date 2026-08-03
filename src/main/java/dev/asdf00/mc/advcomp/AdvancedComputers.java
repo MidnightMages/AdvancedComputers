@@ -1,7 +1,9 @@
 package dev.asdf00.mc.advcomp;
 
 import com.mojang.logging.LogUtils;
+import dev.asdf00.jluavm.LuaVM;
 import dev.asdf00.jluavm.internals.javac.PersistentJavaCompilationCache;
+import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.api.ClusterTypeManager;
 import dev.asdf00.mc.advcomp.blocks.cables.DeviceCableBlock;
 import dev.asdf00.mc.advcomp.blocks.cables.NetworkCableBlock;
@@ -36,6 +38,7 @@ import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
 import dev.asdf00.mc.advcomp.types.GlobalDataStorage;
 import dev.asdf00.mc.advcomp.types.cluster.ClusterType;
 import dev.asdf00.mc.advcomp.utils.AcPaths;
+import dev.asdf00.mc.advcomp.utils.ResourceUtil;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.loot.LootTableProvider;
@@ -377,6 +380,22 @@ public class AdvancedComputers {
 
         if(Config.luaVmCache2Enabled)
             PersistentJavaCompilationCache.enableCache(AcPaths.getCompilationCachePath(), Config.luaVmCache2MaxFiles);
+
+        if (Config.luaVmPrecompileUefiAndOs)
+            triggerLuaPrecompilation();
+    }
+
+    private void triggerLuaPrecompilation() {
+        new Thread(() -> {
+            for (var path : "uefi.lua;premade_floppies/acos/boot.lua;premade_floppies/acos/sys/kernel.lua".split(";")) {
+                try {
+                    LuaVM.load(ResourceUtil.loadLuaScript(path), LuaObject.table());
+                    LOGGER.info("Precompilation of '%s' finished.".formatted(path));
+                } catch (Exception ignored) {
+                    LOGGER.warn("Precompilation of '%s' failed. This is not a problem, though likely regular compilation will fail too.".formatted(path));
+                }
+            }
+        }).start();
     }
 
     @SubscribeEvent
