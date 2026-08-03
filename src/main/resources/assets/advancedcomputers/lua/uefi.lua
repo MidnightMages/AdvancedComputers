@@ -140,44 +140,45 @@ print("\navailable components:")
 local defaultBoot
 local idx = 1
 local bootables = {}
+local bootableCount = 0
 for compType, elem in components:list() do
     print("- " .. compType)
     if compType == "massStorage" then
         if elem:fileExists("boot.lua") then
             -- we found a bootable medium, use it as default if not already set
-            defaultBoot = defaultBoot == nil and idx or defaultBoot
+            defaultBoot = defaultBoot or idx
             bootables[idx] = elem
+			bootableCount = bootableCount + 1
         end
         idx = idx + 1
     end
 end
 
-
 -- boot options
-if #bootables < 1 then
+if bootableCount < 1 then
     print("no bootable medium found!\nexiting ...")
     sleep(SLEEP_TIME)
     return
-elseif #bootables == 1 then
+elseif bootableCount == 1 then
     local bootTarget = bootables[defaultBoot]
     print("booting from medium-" .. defaultBoot .. "-" .. bootTarget.storageFamilyName .. " ...")
     bootFromMedium(bootTarget)
 else
     print("\nboot options (default is top)")
     for idx, medium in pairs(bootables) do
-        print("- medium-" .. idx .. "-" .. medium.storageFamilyName)
+        print(tostring(idx)..": medium-" .. idx .. "-" .. medium.storageFamilyName)
     end
     local bootTarget = defaultBoot
     local remaining = bootOptionsSleepTime * 10
     while true do
         printInline("enter boot medium id: ") -- only single char allowed
         while true do
-            local nextEvent = computer:getMachineEvent()
+            local nextEvent = table.pack(computer:getMachineEvent())
             if nextEvent[1] == "charTyped" then
                 local requested = nextEvent[2]
-                print(requested)
-                if bootables[requested] ~= nil then
-                    bootTarget = bootables[requested]
+				local requestedNumber = tonumber(requested)
+                if requestedNumber ~= nil and bootables[requestedNumber] ~= nil then
+                    bootTarget = bootables[requestedNumber]
                     print("booting medium-" .. requested .. "-" .. bootTarget.storageFamilyName)
                     goto bootingLabel
                 else
