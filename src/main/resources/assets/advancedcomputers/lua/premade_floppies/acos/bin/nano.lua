@@ -222,6 +222,9 @@ local function charTyped(char)
                 l = data[cy] .. l
                 cx = #l + 2
                 updateLineCnt()
+            else
+                -- do nothing
+                return
             end
         elseif cx == 2 then
             -- first char
