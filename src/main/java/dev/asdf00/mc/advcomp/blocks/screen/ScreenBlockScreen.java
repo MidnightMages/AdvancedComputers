@@ -6,15 +6,21 @@ import dev.asdf00.mc.advcomp.NetCodeUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraftforge.client.event.ScreenEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.function.Consumer;
+
 public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
     private static final ResourceLocation TEXTURE = new ResourceLocation(AdvancedComputers.MODID, "textures/gui/screen_gui.png");
+    private static ScreenBlockScreen currentlyOpenInstance = null;
 
     private static final int COL_CNT = 110;
     private static final int LINE_CNT = 44;
@@ -35,6 +41,12 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
         super.init();
         this.titleLabelY = 1000; // hide top text
         this.inventoryLabelY = 1000; // hide inventory text
+        currentlyOpenInstance = this;
+    }
+
+    @Override
+    public void onClose() {
+        currentlyOpenInstance = null;
     }
 
     @Override
@@ -187,29 +199,60 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
         return getMenu().blockEntity;
     }
 
+    private static void onKeyboardEventGuarded(Consumer<ScreenBlockScreen> action) {
+        var ply = Minecraft.getInstance().player;
+        var openInstance = currentlyOpenInstance;
+        if (ply == null || openInstance == null)
+            return;
+
+        var menu = ply.containerMenu;
+        if (menu instanceof ScreenMenu)
+            action.accept(openInstance);
+    }
+
     // pModifiers:
     // 1=shift, 2=ctrl and r_ctrl, 4=alt, 6=alt_gr
+    @SubscribeEvent(receiveCanceled = true)
+    public static void onKeyPressedPre(ScreenEvent.KeyPressed.Pre event) {
+        if (event.getKeyCode() == 256) // not ESC
+        {
+            return;
+        }
+        onKeyboardEventGuarded(screen -> screen.emitGeneralKeyEvent("keyPressed", event.getKeyCode(), event.getScanCode(), event.getModifiers()));
+    }
+
+    @SubscribeEvent(receiveCanceled = true)
+    public static void onKeyReleasedPre(ScreenEvent.KeyReleased.Pre event) {
+        onKeyboardEventGuarded(screen -> {
+            if (event.getKeyCode() == 256) // not ESC
+            {
+                LocalPlayer ply = Minecraft.getInstance().player;
+                assert ply != null;
+                ply.closeContainer();
+                return;
+            }
+            screen.emitGeneralKeyEvent("keyReleased", event.getKeyCode(), event.getScanCode(), event.getModifiers());
+        });
+    }
+//    @SubscribeEvent(receiveCanceled = true)
+//    public static void onCharTypedPre(ScreenEvent.CharacterTyped.Pre event) {
+//        onKeyboardEventGuarded(screen -> );
+//    }
+
     @Override
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
-        //AdvancedComputers.LOGGER.warn("keyPressed %s;%s;%s;%s".formatted(pKeyCode, pScanCode, pModifiers, GLFW.glfwGetKeyName(pKeyCode, pScanCode)));
-        emitGeneralKeyEvent("keyPressed", pKeyCode, pScanCode, pModifiers);
-
-        return true;
+        return true; // mark as consumed
     }
 
     @Override
     public boolean keyReleased(int pKeyCode, int pScanCode, int pModifiers) {
-        //AdvancedComputers.LOGGER.warn("keyReleased %s;%s;%s;%s".formatted(pKeyCode, pScanCode, pModifiers, GLFW.glfwGetKeyName(pKeyCode, pScanCode)));
-        emitGeneralKeyEvent("keyReleased", pKeyCode, pScanCode, pModifiers);
-        return true;
+        return true; // mark as consumed
     }
 
     @Override
     public boolean charTyped(char pCodePoint, int pModifiers) {
-        //AdvancedComputers.LOGGER.warn("charTyped %s;%s".formatted(pCodePoint, pModifiers));
-
         triggerRawScreenEvent("charTyped", String.valueOf(pCodePoint));
-        return true;
+        return true; // mark as consumed
     }
 
     @Override

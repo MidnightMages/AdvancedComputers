@@ -315,6 +315,7 @@ public class AdvancedComputers {
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(CableClusterHandler.class);
         MinecraftForge.EVENT_BUS.register(AudioHandler.class);
+        MinecraftForge.EVENT_BUS.register(ScreenBlockScreen.class);
 
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
