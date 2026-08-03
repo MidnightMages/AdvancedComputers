@@ -281,14 +281,10 @@ public class LuaVirtualMachine {
                     mainboardInfo = mi.getInfo(is);
                 }
             }
-            if (mainboardInfo == null) {
-                stopCode = "No mainboard installed";
-                state.crash();
-                return;
-            }
 
             // add mainboard userdata objects to computerUD
-            luaComputer.setupMainboard(mainboardInfo);
+            if (mainboardInfo != null)
+                luaComputer.setupMainboard(mainboardInfo);
 
             // set up peripheral devices from IO-net
             computerBlockEntity.connectedNetworks.values().stream()
@@ -319,8 +315,14 @@ public class LuaVirtualMachine {
                 }
             }
             // otherwise fall back to regular uefi
-            if (uefiScript == null)
+            if (uefiScript == null) {
+                if (mainboardInfo == null) { // crash if we odnt have a mainboard
+                    stopCode = "No mainboard installed";
+                    state.crash();
+                    return;
+                }
                 uefiScript = ((UefiUD) luaComputer.uefi.refVal).getUefiScript();
+            }
 
 
             // build lua virtual machine
