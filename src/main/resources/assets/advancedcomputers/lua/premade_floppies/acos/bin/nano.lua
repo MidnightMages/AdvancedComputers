@@ -2,19 +2,17 @@
 A little implementation of a text editor inspired by the gnu-nano editor
 ]]
 
-local DEFAULT_NAME <const> = "unnamed.txt"
-local filename = ... -- the first argument is either a "-h" or the file name
+local argParser = require("argparse").parser("nano", "A little text editor inspired by GNU NANO")
+    :positional("filename", "file to copy")
 
-if filename == "-h" or filename == "-?" then
-    -- print help
-    print([[Advanced OS - NANO:
-    nano [ <filename> | -h | -? ]
-      -h / -?     print this help page
-      <filename>  the file to open (it does not need to exist)]])
-    return
+local ok, opt, pos = argParser:parse(...)
+if not ok then
+    print(opt)
+    return -1
 end
 
--- print("starting AdvancedOS NANO ...")
+local DEFAULT_NAME <const> = "unnamed.txt"
+local filename = pos.filename
 
 local fs = require "filesystem"
 local kernel = require "kernel"
@@ -219,8 +217,8 @@ local function charTyped(char)
                 -- there is a line above
                 table.remove(data, cy)
                 cy = cy - 1
+                cx = #l + 1
                 l = data[cy] .. l
-                cx = #l + 2
                 updateLineCnt()
             else
                 -- do nothing
@@ -229,15 +227,17 @@ local function charTyped(char)
         elseif cx == 2 then
             -- first char
             l = string.sub(l, 2, #l)
+            cx = 1
         elseif cx > #l then
             -- end of the line
             l = string.sub(l, 1, #l - 1)
+            cx = cx - 1
         else
             -- middle of the line
             l = string.sub(l, 1, cx - 2) .. string.sub(l, cx, #l)
+            cx = cx - 1
         end
         data[cy] = l
-        cx = cx - 1
     else
         if cx <= 1 then
             -- start of the line
@@ -260,8 +260,10 @@ local function keyPressed(stRep, keyCode, scanCode, mods)
     clearCaret()
     if keyCode == 266 then     -- PAGE_UP
         cy = math.max(1, cy - VISIBLE_LINES)
+        cx = math.min(#data[cy] + 1, cx)
     elseif keyCode == 267 then -- PAGE_DOWN
         cy = math.min(#data, cy + VISIBLE_LINES)
+        cx = math.min(#data[cy] + 1, cx)
     elseif keyCode == 268 then -- HOME
         cx = 1
     elseif keyCode == 269 then -- END
@@ -281,15 +283,20 @@ local function keyPressed(stRep, keyCode, scanCode, mods)
             -- wrap line
             if cy > 1 then
                 cy = cy - 1
-                cx = #data[cy]
+                cx = #data[cy] + 1
+            else
+                -- do nothing
+                return
             end
         else
             cx = cx - 1
         end
     elseif keyCode == 264 then                -- DOWN
         cy = math.min(#data, cy + 1)
+        cx = math.min(#data[cy] + 1, cx)
     elseif keyCode == 265 then                -- UP
         cy = math.max(1, cy - 1)
+        cx = math.min(#data[cy] + 1, cx)
     elseif keyCode == 0x4C and mods == 2 then -- ^L
         -- toggle line numbers
         showLineNums = not showLineNums

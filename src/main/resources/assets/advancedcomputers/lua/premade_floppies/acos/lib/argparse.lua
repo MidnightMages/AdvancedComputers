@@ -63,6 +63,7 @@ function ap.parser(progName, intro)
         argsWithArg = {},
         positionalArgs = {},
         descrptions = {},
+        requiredCnt = 0,
         progName = progName,
         intro = intro or "",
     }
@@ -98,6 +99,11 @@ function ap.parser(progName, intro)
         return self
     end
 
+    function parser:endRequired()
+        self.requiredCnt = #self.positionalArgs
+        return self
+    end
+
     function parser:help()
         local h = "Help for '"
             .. self.progName
@@ -117,13 +123,15 @@ function ap.parser(progName, intro)
             h = h .. " | --" .. arg .. " <arg>"
         end
         h = h .. " ]"
-        for _, argName in ipairs(self.positionalArgs) do
-            h = h .. " <" .. argName .. ">"
+        for i, argName in ipairs(self.positionalArgs) do
+            h = i <= self.requiredCnt
+                and h .. " <" .. argName .. ">"
+                or h .. " [" .. argName .. "]"
         end
         if #self.intro > 0 then
             h = h .. "\n" .. self.intro
         end
-        h = h .. "\n  -h/-? \tprint help"
+        h = h .. "\n  -h/? \tprint help"
         for arg, desc in pairs(self.singleCharArgs) do
             h = h .. "\n  -" .. arg .. " \t" .. desc
         end
@@ -137,7 +145,11 @@ function ap.parser(progName, intro)
             h = h .. "\n  --" .. arg .. " <arg> \t" .. desc
         end
         for i, argName in ipairs(self.positionalArgs) do
-            h = h .. "\n  <" .. argName .. "> \t" .. self.descrptions[i]
+            if i <= self.requiredCnt then
+                h = h .. string.format("\n  <%s> \t%s", argName, self.descrptions[i])
+            else
+                h = h .. string.format("\n  [%s] \t%s", argName, self.descrptions[i])
+            end
         end
         return h
     end
@@ -202,7 +214,7 @@ function ap.parser(progName, intro)
                     goto continue
                 end
             end
-            if #positionals >= #self.positionalArgs then
+            if nextFreePos > #self.positionalArgs then
                 return false, "Argument error: too many positional arguments!\n" .. self:help()
             end
             positionals[self.positionalArgs[nextFreePos]] = arg
@@ -212,7 +224,12 @@ function ap.parser(progName, intro)
         end
 
         if argWithArg then
-            return false, string.format("Argument error: missing argument at #%d!", #arg + 1) .. "\n" .. self:help()
+            return false, string.format("Argument error: missing argument at #%d!\n%s", #arg + 1, self:help())
+        end
+        local dif = self.requiredCnt - (nextFreePos - 1)
+        if dif > 0 then
+            return false, string.format("Argument error: missing %d positional argument%s!\n%s",
+                dif, dif == 1 and "" or "s", self:help())
         end
 
         return true, optionals, positionals
