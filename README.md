@@ -39,7 +39,7 @@ You can also find the current mod and minecraft version in the global `_HOST` va
 - Adding more fun stuff like servers, etc.
 
 ## Downloading
-You can download this mod from [Modrinth](https://modrinth.com/mod/advanced-computers/settings/description) and possibly in the future also CurseForge.
+You can download this mod from [Modrinth](https://modrinth.com/mod/advanced-computers) and possibly in the future also CurseForge.
 While in alpha, versions can also be downloaded via the [github releases section](https://github.com/MidnightMages/AdvancedComputers/releases), though we will stop shipping binary releases here at some point and then just focus on Modrinth and CurseForge.
 
 ## Targeted minecraft versions
