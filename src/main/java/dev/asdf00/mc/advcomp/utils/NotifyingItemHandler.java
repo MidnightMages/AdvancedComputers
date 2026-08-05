@@ -4,20 +4,18 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class NotifyingItemHandler extends ItemStackHandler {
     private final BlockEntity be;
     private final Consumer<Integer> onItemSlotChanged;
     private final BiFunction<Integer, ItemStack, Integer> itemstackMaxAcceptSize;
-
-    public NotifyingItemHandler(BlockEntity be, int size, BiFunction<Integer, ItemStack, Integer> itemstackMaxAcceptSize) {
-        this(be, size, itemstackMaxAcceptSize, null);
-    }
 
     public NotifyingItemHandler(BlockEntity be, int size, BiFunction<Integer, ItemStack, Integer> itemstackMaxAcceptSize, Consumer<Integer> onItemSlotChanged) {
         super(size);
@@ -78,5 +76,60 @@ public class NotifyingItemHandler extends ItemStackHandler {
         var stackToInsert = stack.copyWithCount(Math.min(stack.getCount(), canInsertThisMuch));
         var leftoverStack = super.insertItem(slot, stackToInsert, simulate);
         return leftoverStack.copyWithCount(leftoverStack.getCount() + extraItemsToReturn);
+    }
+
+    @Override
+    public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
+        return super.extractItem(slot, amount, simulate);
+    }
+
+    public NotifyingItemHandlerView getWrapper() {
+        return new NotifyingItemHandlerView(this);
+    }
+
+    public static class NotifyingItemHandlerView implements IItemHandler {
+        private final NotifyingItemHandler backing;
+        private Function<Integer, Boolean> canExtractFromSlot = x -> true;
+
+        private NotifyingItemHandlerView(NotifyingItemHandler backing) {
+            this.backing = backing;
+        }
+
+        public NotifyingItemHandlerView canExtract(Function<Integer, Boolean> canExtractFromSlot) {
+            this.canExtractFromSlot = canExtractFromSlot;
+            return this;
+        }
+
+        @Override
+        public int getSlots() {
+            return backing.getSlots();
+        }
+
+        @Override
+        public @NotNull ItemStack getStackInSlot(int slot) {
+            return backing.getStackInSlot(slot);
+        }
+
+        @Override
+        public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+            return backing.insertItem(slot, stack, simulate);
+        }
+
+        @Override
+        public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
+            if (!canExtractFromSlot.apply(slot))
+                return ItemStack.EMPTY;
+            return backing.extractItem(slot, amount, simulate);
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return backing.getSlotLimit(slot);
+        }
+
+        @Override
+        public boolean isItemValid(int slot, @NotNull ItemStack itemStack) {
+            return backing.isItemValid(slot, itemStack);
+        }
     }
 }

@@ -72,8 +72,11 @@ public class PunchcardReaderBlockEntity extends BasePeripheralComponentBlockEnti
 
     @Override
     public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        if (cap == ForgeCapabilities.ITEM_HANDLER)
-            return lazyItemHandler.cast();
+        if (cap == ForgeCapabilities.ITEM_HANDLER) {
+            if (side == null)
+                return lazyItemHandler.cast();
+            return LazyOptional.of(() -> itemHandler.getWrapper().canExtract(slotIdx -> side == Direction.DOWN && slotIdx >= 9)).cast();
+        }
 
         return super.getCapability(cap, side);
     }
