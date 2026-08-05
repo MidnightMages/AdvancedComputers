@@ -143,7 +143,7 @@ public class CableCluster {
                 //cableConnectableBe.getNetworkList().clear(); // TODO let the block know if a face was cleared and not actually re-discovered and restored
                 foundEntities.put(cableConnectableBe, currentBlockPos);
 
-                if (cableConnectableBe.actsAsCable()) {
+                if (cableConnectableBe.actsAsCable(clusterType)) {
                     addNeighbors.accept(currentBlockPos);
                 }
             }
@@ -158,7 +158,7 @@ public class CableCluster {
         for (var foundBlockEntity : foundEntities.keySet()) {
             var entityBlockPos = foundEntities.get(foundBlockEntity);
             var netList = foundBlockEntity.getNetworkList();
-            if (foundBlockEntity.actsAsCable()) { // if this acts as a cable then we can simply clear all networks
+            if (foundBlockEntity.actsAsCable(clusterType)) { // if this acts as a cable then we can simply clear all networks
                 netList.clear();
             } else { // otherwise we need to clear networks as they disconnect
                 throw new IllegalStateException("not implemented yet");

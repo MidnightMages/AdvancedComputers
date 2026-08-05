@@ -54,7 +54,7 @@ public abstract class BaseCableConnectableBlockEntity extends BlockEntity implem
     }
 
     @Override
-    public boolean actsAsCable() {
+    public boolean actsAsCable(ClusterType clusterType) {
         return true;
     }
 

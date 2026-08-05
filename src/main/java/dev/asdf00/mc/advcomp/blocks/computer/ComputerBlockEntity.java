@@ -17,6 +17,8 @@ import dev.asdf00.mc.advcomp.lua.components.AcBlockEntityComponent;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.lua.vm.State;
 import dev.asdf00.mc.advcomp.types.cluster.ClusterType;
+import dev.asdf00.mc.advcomp.types.network.AcNetworkHandler;
+import dev.asdf00.mc.advcomp.types.network.AcNetworkParticipant;
 import dev.asdf00.mc.advcomp.utils.NotifyingItemHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -47,8 +49,9 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-public class ComputerBlockEntity extends BaseCableConnectableBlockEntity implements MenuProvider, ClusterHostEntity {
+public class ComputerBlockEntity extends BaseCableConnectableBlockEntity implements MenuProvider, ClusterHostEntity, AcNetworkParticipant {
     public final NotifyingItemHandler itemHandler;
+    private AcNetworkHandler.NetworkNode netNode;
     private ComputerTier tier;
     private ComputerBlock block;
     private LazyOptional<IItemHandler> lazyItemHandler = LazyOptional.empty();
@@ -140,6 +143,7 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
                 return 1;
             }
         };
+        netNode = AcNetworkHandler.INSTANCE.registerNewNode(false);
     }
 
     private boolean isServer() {
@@ -183,6 +187,11 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
     @Override
     public AbstractContainerMenu createMenu(int pContainerId, @NotNull Inventory pPlayerInventory, @NotNull Player pPlayer) {
         return new ComputerBlockMenu(pContainerId, pPlayerInventory, this, this.data);
+    }
+
+    @Override
+    public boolean actsAsCable(ClusterType clusterType) {
+        return clusterType == AdvancedComputers.CLUSTER_TYPE_DEVICE;
     }
 
     @Override
@@ -338,6 +347,16 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
      */
     public void queueSoundForPlayOnClients(AudioHandler.QueuedSound sound) {
         AudioHandler.queueSoundOnClientsAt(level, getBlockPos(), sound);
+    }
+
+    @Override
+    public AcNetworkHandler.NetworkNode getNetworkNode() {
+        return netNode;
+    }
+
+    public void onDestroy() {
+        netNode.deleteAndDeregisterNode();
+        netNode = null;
     }
 
     // =================================================================================================================
