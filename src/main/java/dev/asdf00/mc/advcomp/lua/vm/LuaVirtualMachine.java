@@ -125,14 +125,14 @@ public class LuaVirtualMachine {
     }
 
     public void onBlockComponentRemoved(BaseCableConnectableBlockEntity blockEntity) {
-        if (suppressDeviceNetworkUpdate) return;
+        if (suppressDeviceNetworkUpdate || componentReg == null) return;
 
         AdvancedComputers.LOGGER.warn("Removing block component %s".formatted(blockEntity.toString()));
         componentReg.removeAllMatchingComponents(x -> x != null && x.getInventoryOwnerPos().equals(blockEntity.getBlockPos()));
     }
 
     public <T extends BlockEntity & AcBlockEntityComponent> void onBlockComponentAdded(T blockEntity) {
-        if (suppressDeviceNetworkUpdate) return;
+        if (suppressDeviceNetworkUpdate || componentReg == null) return;
 
         AdvancedComputers.LOGGER.warn("Adding block component %s".formatted(blockEntity.toString()));
         var blockEntityUD = blockEntity.createUserdata();
