@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "tag": "forge:ingots/copper"
+    },
+    "R": {
+      "tag": "forge:dusts/redstone"
+    },
+    "W": {
+      "item": "minecraft:cyan_wool"
+    }
+  },
+  "pattern": [
+    "WWW",
+    "CRC",
+    "WWW"
+  ],
+  "result": {
+    "count": 16,
+    "item": "advancedcomputers:network_cable_block"
+  },
+  "show_notification": true
+}

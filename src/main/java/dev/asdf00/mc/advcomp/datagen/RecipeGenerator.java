@@ -219,6 +219,15 @@ public class RecipeGenerator extends RecipeProvider {
                 .define('R', Tags.Items.DUSTS_REDSTONE)
                 .unlockedBy("item", has(Tags.Items.INGOTS_IRON))
                 .save(pWriter);
+        shaped(AdvancedComputers.NETWORK_CABLE_BLOCK.blockItem().get(), 16)
+                .pattern("WWW")
+                .pattern("CRC")
+                .pattern("WWW")
+                .define('W', Items.CYAN_WOOL)
+                .define('C', Tags.Items.INGOTS_COPPER)
+                .define('R', Tags.Items.DUSTS_REDSTONE)
+                .unlockedBy("item", has(Tags.Items.INGOTS_IRON))
+                .save(pWriter);
 
         var hddResults = new RegistryObject[]{AdvancedComputers.HDD_TIER_1_ITEM, AdvancedComputers.HDD_TIER_2_ITEM,
                 AdvancedComputers.HDD_TIER_3_ITEM, AdvancedComputers.HDD_TIER_4_ITEM, AdvancedComputers.HDD_TIER_5_ITEM};
