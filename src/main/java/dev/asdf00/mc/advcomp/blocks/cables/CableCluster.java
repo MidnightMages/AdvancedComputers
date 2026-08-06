@@ -137,6 +137,7 @@ public class CableCluster {
         var clusterHostBlockEntities = new ArrayList<ClusterHostEntity>();
         var foundActualCableBlocksOfThisType = new ArrayList<BlockPos>();
         var alreadyTrackedBlockEntities = new HashSet<BlockPos>();
+        var passthroughBlocklist = new HashSet<BlockPos>();
         while (!facesToTraverse.isEmpty()) {
             var currentFaceToTraverse = facesToTraverse.remove();
             var srcBpos = currentFaceToTraverse.x();
@@ -161,6 +162,9 @@ public class CableCluster {
                     foundActualCableBlocksOfThisType.add(srcBpos);
             }
 
+            if (passthroughBlocklist.contains(srcBpos))
+                continue;
+
             var anyActsAsCable = srcBpInfo.isOrActsAsCable() || destBpInfo.isOrActsAsCable();
             var connectionIsAllowed = (
                                               srcBpInfo.isOrActsAsCable() ||
@@ -184,6 +188,8 @@ public class CableCluster {
                         if (dir4 != dir3.getOpposite())
                             facesToTraverse.add(new Tuple<>(destBpos, dir4));
                     }
+                if (!destBpInfo.isOrActsAsCable()) // prevent going through blocks like netrouters
+                    passthroughBlocklist.add(destBpos);
             }
         }
 
