@@ -1,15 +1,11 @@
 package dev.asdf00.mc.advcomp.blocks.computer;
 
-import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.AudioHandler;
-import dev.asdf00.mc.advcomp.NetCodeUtils;
+import dev.asdf00.mc.advcomp.*;
 import dev.asdf00.mc.advcomp.NetCodeUtils.NetworkMessage;
-import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.api.ClusterHostEntity;
 import dev.asdf00.mc.advcomp.blocks.BaseCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.exceptions.ACError;
-import dev.asdf00.mc.advcomp.items.BaseDataStorageItem;
 import dev.asdf00.mc.advcomp.items.DiskItem;
 import dev.asdf00.mc.advcomp.items.FloppyDiskItem;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
@@ -143,7 +139,7 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
                 return 1;
             }
         };
-        netNode = AcNetworkHandler.INSTANCE.registerNewNode(false);
+        netNode = AcNetworkHandler.INSTANCE.registerNewNode(false, this);
     }
 
     private boolean isServer() {
@@ -225,6 +221,7 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
                 AdvancedComputers.LOGGER.error("Associated block was not a computer blocK, but instead was somehow %s???".formatted(b.getName()));
             }
             AdvancedComputers.LOGGER.info("ON LOAD COMPUTER Tier: %s".formatted(tier.name()));
+            CableClusterHandler.markBlockPosForUpdate(level, this.getBlockPos());
         }
         lazyItemHandler = LazyOptional.of(() -> itemHandler);
     }
@@ -300,6 +297,8 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
                 existingBlockComponents = newComponentsSet;
             }
         }
+
+        netNode.computeConnectedNodes(this.connectedNetworks);
     }
 
     // =================================================================================================================
