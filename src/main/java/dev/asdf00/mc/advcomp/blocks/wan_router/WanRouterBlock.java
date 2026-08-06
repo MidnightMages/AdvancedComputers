@@ -48,13 +48,6 @@ public class WanRouterBlock extends BaseEntityBlock {
         return RenderShape.MODEL;
     }
 
-
-    @Override
-    public void appendHoverText(@NotNull ItemStack pStack, @Nullable BlockGetter pLevel, @NotNull List<Component> pTooltip, @NotNull TooltipFlag pFlag) {
-        pTooltip.add(Component.translatable("tooltip.advancedcomputers.shared.notimplemented"));
-        super.appendHoverText(pStack, pLevel, pTooltip, pFlag);
-    }
-
     @Override
     public void destroy(LevelAccessor pLevel, @NotNull BlockPos pPos, @NotNull BlockState pState) {
         if(pLevel.getBlockEntity(pPos) instanceof WanRouterBlockEntity router)
