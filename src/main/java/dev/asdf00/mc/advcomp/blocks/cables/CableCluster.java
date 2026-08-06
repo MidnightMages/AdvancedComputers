@@ -18,11 +18,14 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CableCluster {
     public final BaseCableConnectableBlockEntity[] connectedEntities; // contains all connected devices
     private final ClusterHostEntity[] connectedHostEntities; // contains all connected devices that implement the interface ClusterHostEntity
     public final ClusterType clusterType;
+    private final int debugId;
+    private static final AtomicInteger next_debugId = new AtomicInteger(0);
 
     /**
      * Gets the host of this cluster if this cluster is valid. Otherwise, this method returns {@code null}.
@@ -56,6 +59,7 @@ public class CableCluster {
         this.connectedEntities = connectedEntities;
         this.connectedHostEntities = connectedHostEntities;
         this.clusterType = clusterType;
+        debugId = next_debugId.getAndIncrement();
     }
 
 
@@ -217,5 +221,9 @@ public class CableCluster {
             var bs = level.getBlockState(c).setValue(BaseCableBlock.NETWORK_ERROR, !netIsOk);
             level.setBlock(c, bs, 2); // flags: 2 = sendToClient (NO block update)
         }
+    }
+
+    public int getDebugId() {
+        return this.debugId;
     }
 }
