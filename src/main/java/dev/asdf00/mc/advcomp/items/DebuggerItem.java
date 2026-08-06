@@ -33,7 +33,7 @@ public class DebuggerItem extends Item {
 
     @Override
     public void appendHoverText(@NotNull ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltipComponents, @NotNull TooltipFlag pIsAdvanced) {
-        pTooltipComponents.add(Component.literal("Right-click any block to obtain information"));
+        pTooltipComponents.add(Component.literal("Right-click any block to obtain information."));
         super.appendHoverText(pStack, pLevel, pTooltipComponents, pIsAdvanced);
     }
 
