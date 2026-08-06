@@ -259,7 +259,6 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
     @Override
     public void onNetworkUpdated() {
         CableCluster deviceCluster = null;
-        CableCluster networkCluster = null;
         HashSet<CableCluster> alreadyProcessed = new HashSet<>();
         for (var cluster : connectedNetworks.values()) {
             if (!alreadyProcessed.add(cluster)) // skip already processed clusters as multiple faces may show the *same* one
@@ -269,12 +268,6 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
                 if (deviceCluster != null)
                     throw new IllegalStateException("somehow there were multiple device clusters??");
                 deviceCluster = cluster;
-
-            }
-            if (cluster.clusterType == AdvancedComputers.CLUSTER_TYPE_NETWORK) {
-                if (networkCluster != null)
-                    throw new IllegalStateException("somehow there were multiple network clusters??");
-                networkCluster = cluster;
             }
         }
 

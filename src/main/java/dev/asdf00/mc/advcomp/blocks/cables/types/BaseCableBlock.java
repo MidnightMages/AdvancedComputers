@@ -140,7 +140,7 @@ public abstract class BaseCableBlock extends Block implements SimpleWaterloggedB
     @Override
     public void onRemove(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull BlockState pNewState, boolean pMovedByPiston) {
         super.onRemove(pState, pLevel, pPos, pNewState, pMovedByPiston);
-        if (!pLevel.isClientSide())
+        if (!pLevel.isClientSide() && !pState.getBlock().equals(pNewState.getBlock())) // only update if server and the block actually changed
             CableClusterHandler.markBlockPosForUpdateIfExists(pLevel, pPos);
     }
 
