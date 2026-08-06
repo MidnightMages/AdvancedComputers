@@ -182,6 +182,15 @@ public class RecipeGenerator extends RecipeProvider {
                 .unlockedBy("item", has(planks))
                 .save(pWriter);
 
+        shaped(AdvancedComputers.NET_ROUTER_BLOCK.blockItem().get())
+                .pattern("WNW")
+                .pattern("NIN")
+                .pattern("WNW")
+                .define('W', planks)
+                .define('N', AdvancedComputers.NETWORK_CABLE_BLOCK.blockItem().get())
+                .define('I', Items.IRON_INGOT)
+                .unlockedBy("item", has(AdvancedComputers.NETWORK_CABLE_BLOCK.blockItem().get()))
+                .save(pWriter);
 
         shaped(AdvancedComputers.MAINBOARD_TIER_1_ITEM.get())
                 .pattern("CXI")

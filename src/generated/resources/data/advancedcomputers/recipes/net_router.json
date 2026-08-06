@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "N": {
+      "item": "advancedcomputers:network_cable_block"
+    },
+    "W": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "pattern": [
+    "WNW",
+    "NIN",
+    "WNW"
+  ],
+  "result": {
+    "item": "advancedcomputers:net_router"
+  },
+  "show_notification": true
+}
