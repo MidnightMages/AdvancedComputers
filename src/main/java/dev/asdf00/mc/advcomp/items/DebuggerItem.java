@@ -74,7 +74,7 @@ public class DebuggerItem extends Item {
                                 connectedCluster.getClusterType().getClusterName(), connectedCluster.getDebugId(),
                                 connectedCluster.getEntityCount(),
                                 String.join(", ", Arrays.stream(connectedCluster.connectedEntities)
-                                        .map(x->getBlockName.apply(x.getBlockState().getBlock()))
+                                        .map(x->x==cableConnectable ? "§dself§r" : getBlockName.apply(x.getBlockState().getBlock()))
                                         .toArray(String[]::new)
                                 )
                         );
