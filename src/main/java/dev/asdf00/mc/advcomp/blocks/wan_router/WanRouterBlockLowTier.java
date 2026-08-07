@@ -3,7 +3,6 @@ package dev.asdf00.mc.advcomp.blocks.wan_router;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -48,11 +47,5 @@ public class WanRouterBlockLowTier extends WanRouterBlock {
     @Override
     public @NotNull RenderShape getRenderShape(@NotNull BlockState pState) {
         return RenderShape.MODEL;
-    }
-
-    @Override
-    public void destroy(LevelAccessor pLevel, @NotNull BlockPos pPos, @NotNull BlockState pState) {
-        if (pLevel.getBlockEntity(pPos) instanceof WanRouterBlockEntityLowTier router)
-            router.onDestroy();
     }
 }

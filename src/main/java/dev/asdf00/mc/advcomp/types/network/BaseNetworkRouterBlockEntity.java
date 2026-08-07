@@ -34,15 +34,20 @@ public class BaseNetworkRouterBlockEntity extends BaseCableConnectableBlockEntit
         return false;
     }
 
-    public void onDestroy() {
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
         netNode.deleteAndDeregisterNode();
         netNode = null;
+        assert level != null;
+        CableClusterHandler.markBlockPosForUpdate(level, this.getBlockPos());
     }
 
     @Override
     public void onLoad() {
         super.onLoad();
         assert level != null;
-        CableClusterHandler.markBlockPosForUpdate(level, this.getBlockPos());
+        if (!level.isClientSide())
+            CableClusterHandler.markBlockPosForUpdate(level, this.getBlockPos());
     }
 }

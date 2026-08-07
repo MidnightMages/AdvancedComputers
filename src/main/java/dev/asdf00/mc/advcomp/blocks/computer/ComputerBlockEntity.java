@@ -186,11 +186,6 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
     }
 
     @Override
-    public boolean actsAsCable(ClusterType clusterType) {
-        return clusterType == AdvancedComputers.CLUSTER_TYPE_DEVICE;
-    }
-
-    @Override
     protected void saveAdditional(@NotNull CompoundTag pTag) {
         itemHandler.saveContents(pTag);
         super.saveAdditional(pTag);

@@ -1,5 +1,6 @@
 package dev.asdf00.mc.advcomp.blocks;
 
+import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.api.ClusterHostEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
@@ -55,7 +56,7 @@ public abstract class BaseCableConnectableBlockEntity extends BlockEntity implem
 
     @Override
     public boolean actsAsCable(ClusterType clusterType) {
-        return true;
+        return clusterType == AdvancedComputers.CLUSTER_TYPE_DEVICE;
     }
 
     @Override
