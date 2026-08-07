@@ -254,7 +254,7 @@ public class LuaVirtualMachine {
 
             // rebuild device cable cluster just in case
             suppressDeviceNetworkUpdate = true;
-            CableCluster.onBlockPosChangedInternal(computerBlockEntity.getLevel(), computerBlockEntity.getBlockPos(), AdvancedComputers.CLUSTER_TYPE_DEVICE);
+            CableCluster.rebuildDeviceNetImmediately(computerBlockEntity.getLevel(), computerBlockEntity.getBlockPos(), AdvancedComputers.CLUSTER_TYPE_DEVICE);
             suppressDeviceNetworkUpdate = false;
 
             if (tooManyComputersConnected()) {
@@ -354,7 +354,7 @@ public class LuaVirtualMachine {
             AdvancedComputers.LOGGER.info("Trying to load suspended LVM");
 
             // rebuild device cable cluster just in case
-            CableCluster.onBlockPosChangedInternal(computerBlockEntity.getLevel(), computerBlockEntity.getBlockPos(), AdvancedComputers.CLUSTER_TYPE_DEVICE);
+            CableCluster.rebuildDeviceNetImmediately(computerBlockEntity.getLevel(), computerBlockEntity.getBlockPos(), AdvancedComputers.CLUSTER_TYPE_DEVICE);
 
             // initialize state of 'this'
             timeTracker = new LuaSafepointHandler(this, computerBlockEntity.getTier().threadExecutionSleepFactor);
