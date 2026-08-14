@@ -72,6 +72,16 @@ public class Config {
             .worldRestart()
             .define("debug.lua.print_to_server_console", false);
 
+    private static final ForgeConfigSpec.BooleanValue COMPONENT_INTERNET_HTTP_ENABLED = BUILDER
+            .comment("Whether to allow http(s) requests to the real-world network.")
+            .worldRestart()
+            .define("component.internet.http.enabled", true);
+
+    private static final ForgeConfigSpec.BooleanValue COMPONENT_INTERNET_BLOCK_LOCAL_IPS = BUILDER
+            .comment("Whether local ip ranges should be blocked. Disabling this may expose services on the server's machine or in its LAN, which could be a security risk.")
+            .worldRestart()
+            .define("component.internet.blockLocalIps", true);
+
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
     public static boolean escapeUppercaseCharactersOnHost;
@@ -81,6 +91,8 @@ public class Config {
     public static boolean debugLuaPrintToServerConsole;
     public static float audioVolume;
     public static int audioMaxDistance;
+    public static boolean componentInternetHttpEnabled;
+    public static boolean componentInternetBlockLocalIPs;
 
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
@@ -92,5 +104,7 @@ public class Config {
         audioVolume = AUDIO_VOLUME.get() / 100f;
         audioMaxDistance = AUDIO_MAX_DISTANCE.get();
         RuntimeAssert.RuntimeAssert(audioVolume <= 1, "somehow the volume is greater than 1"); // just to avoid some ear-blasting accidents
+        componentInternetHttpEnabled = COMPONENT_INTERNET_HTTP_ENABLED.get();
+        componentInternetBlockLocalIPs = COMPONENT_INTERNET_BLOCK_LOCAL_IPS.get();
     }
 }
