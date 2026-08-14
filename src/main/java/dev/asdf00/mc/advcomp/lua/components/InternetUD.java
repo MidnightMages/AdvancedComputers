@@ -101,7 +101,7 @@ public final class InternetUD extends BaseAcComponent {
         } else if (!headers.isNil()) {
             throw new LuaJavaError("Expected argument 4 to be either table or nil");
         }
-        headersToSet.put("User-Agent", "Minecraft/AdvancedComputers-AcLuaDev");
+        headersToSet.put("User-Agent", "Minecraft/AdvancedComputers");
 
 
         URI url;
