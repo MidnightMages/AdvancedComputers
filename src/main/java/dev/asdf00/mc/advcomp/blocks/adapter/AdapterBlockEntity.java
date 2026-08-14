@@ -1,4 +1,4 @@
-package dev.asdf00.mc.advcomp.blocks.adapter.redstone_io;
+package dev.asdf00.mc.advcomp.blocks.adapter;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.BasePeripheralComponentBlockEntity;
