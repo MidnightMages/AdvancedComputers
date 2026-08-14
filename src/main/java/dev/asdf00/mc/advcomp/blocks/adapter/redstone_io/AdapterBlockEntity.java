@@ -1,19 +1,21 @@
 package dev.asdf00.mc.advcomp.blocks.adapter.redstone_io;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.blocks.BaseCableConnectableBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.BasePeripheralComponentBlockEntity;
 import dev.asdf00.mc.advcomp.lua.components.AcBlockEntityComponent;
 import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 import dev.asdf00.mc.advcomp.types.cluster.ClusterType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-
-public class AdapterBlockEntity extends BaseCableConnectableBlockEntity implements AcBlockEntityComponent {
+public class AdapterBlockEntity extends BasePeripheralComponentBlockEntity implements AcBlockEntityComponent {
     public AdapterBlockEntity(BlockPos pPos, BlockState pBlockState) {
-        super(AdvancedComputers.ADAPTER_BE.get(), pPos, pBlockState, Collections.singletonList(AdvancedComputers.CLUSTER_TYPE_DEVICE));
+        super(AdvancedComputers.ADAPTER_BE.get(), pPos, pBlockState);
     }
 
     @Override
@@ -27,5 +29,13 @@ public class AdapterBlockEntity extends BaseCableConnectableBlockEntity implemen
             return false;
 
         return super.canConnectTo(clusterType, side);
+    }
+
+    @Override
+    public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+        if (side == null || canConnectTo(AdvancedComputers.CLUSTER_TYPE_DEVICE, side))
+            return super.getCapability(cap, side);
+
+        return LazyOptional.empty();
     }
 }

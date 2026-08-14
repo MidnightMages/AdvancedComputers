@@ -2,13 +2,16 @@ package dev.asdf00.mc.advcomp.blocks.adapter.redstone_io;
 
 import dev.asdf00.jluavm.api.userdata.LuaCallable;
 import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
-import dev.asdf00.jluavm.api.userdata.LuaUserData;
+import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.lua.components.BaseAcBlockEntityComponentUD;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.entity.JukeboxBlockEntity;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Queue;
 
@@ -24,19 +27,29 @@ public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEnt
 
     @LuaCallable
     public String getBlockName() {
-        var direction = Direction.from3DDataValue(this.blockEntity.getBlockState().getValue(AdapterBlock.FACING).get3DDataValue());
-        var posToQuery = blockEntity.getBlockPos().relative(direction);
+        var posToQuery = getTargetPosition();
         var bs = blockEntity.getLevel().getBlockState(posToQuery);
         return "%s@[%s]".formatted(ForgeRegistries.BLOCKS.getKey(bs.getBlock()).toString(), posToQuery.toShortString()); // TODO remove debug coords
     }
 
-    @LuaCallable
-    public LuaUserData getBlockUD() {
-
+    private @NotNull BlockPos getTargetPosition() {
+        var direction = Direction.from3DDataValue(this.blockEntity.getBlockState().getValue(AdapterBlock.FACING).get3DDataValue());
+        return blockEntity.getBlockPos().relative(direction);
     }
 
-    @LuaBackedBy
-    public LuaUserData[] backing = null;
+    @LuaCallable
+    public void test() {
+        this.blockEntity.runOnTickThread(() -> {
+            var posToQuery = getTargetPosition();
+            var be = this.blockEntity.getLevel().getBlockEntity(posToQuery);
+            if (be instanceof JukeboxBlockEntity jbe) {
+                jbe.popOutRecord();
+            } else {
+                throw new LuaJavaError("not pointing at a jukebox");
+            }
+            return null;
+        });
+    }
 
 
     @LuaDeserializer
