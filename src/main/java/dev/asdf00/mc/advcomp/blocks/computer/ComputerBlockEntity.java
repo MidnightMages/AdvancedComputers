@@ -71,6 +71,10 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
         newRunState.set(rs);
     }
 
+    public int getAcIpAddress() {
+        return acIpAddress;
+    }
+
     public ComputerBlockEntity getComputerBlockEntityForAcIp(int acIp) {
         return acIpToComputerBlockEntityMap.get(acIp);
     }

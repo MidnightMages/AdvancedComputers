@@ -4,6 +4,7 @@ import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlock;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.types.cluster.CableConnectableBlockOrEntity;
+import dev.asdf00.mc.advcomp.utils.MiscUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
@@ -62,6 +63,8 @@ public class DebuggerItem extends Item {
                     case RUNNING, WORKING -> runState = "§aRUNNING§r";
                 }
                 computerInfo.append("State: %s".formatted(runState));
+                int ipAddress = computerBlockEntity.getAcIpAddress();
+                computerInfo.append(", AcIpAddress: §7%s§r".formatted(ipAddress <= 0 ? "NONE" : MiscUtil.AcIpToString(ipAddress)));
                 messageToSend += "\n" + computerInfo;
             }
             if (be instanceof CableConnectableBlockOrEntity cableConnectable) {

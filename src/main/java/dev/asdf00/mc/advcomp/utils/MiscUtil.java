@@ -21,4 +21,15 @@ public class MiscUtil {
             }
         });
     }
+
+    public static String AcIpToString(int acIpAddress) {
+        var rv = new StringBuilder();
+        var hexRepr = String.format("%08X", acIpAddress);
+        for (int i = 0; i < 4; i++) {
+            if (i > 0)
+                rv.append('.');
+            rv.append(hexRepr, i * 2, i * 2 + 2);
+        }
+        return rv.toString();
+    }
 }
