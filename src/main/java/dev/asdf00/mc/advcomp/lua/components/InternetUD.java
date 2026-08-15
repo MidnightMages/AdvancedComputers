@@ -38,6 +38,11 @@ public final class InternetUD extends BaseAcComponent {
     }
 
     @LuaCallable
+    public boolean isConnectedToWan() {
+        throw new UnsupportedOperationException("not implemented"); // TODO check if a path to wan exists
+    }
+
+    @LuaCallable
     public HttpResponseUD sendHttpRequest(String url) {
         return sendHttpRequest(url, "GET", "", LuaObject.NIL);
     }

@@ -206,6 +206,9 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
         super.load(pTag);
         int nbtIp = pTag.getInt("acIpAddress"); // returns 0 as default value
         acIpAddress = nbtIp <= 0 ? -1 : nbtIp;
+        if (acIpAddress > 0)
+            acIpToComputerBlockEntityMap.put(this.acIpAddress, this);
+
         itemHandler.loadContents(pTag);
 
         // cannot init the lvm in here, somehow. Need to do it in onLoad() instead.

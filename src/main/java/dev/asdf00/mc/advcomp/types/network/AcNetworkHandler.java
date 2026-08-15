@@ -14,12 +14,10 @@ import java.util.stream.Collectors;
 public class AcNetworkHandler {
     public static final AcNetworkHandler INSTANCE = new AcNetworkHandler();
     private final HashSet<NetworkNode> nodes = new HashSet<>();
-    private final HashMap<Integer,NetworkNode> acIpAddressesToNode = new HashMap<Integer,NetworkNode>();
 
     public NetworkNode registerNewNode(boolean isWanRouter, BlockEntity baseNetworkRouterBlockEntity) {
         var rv = new NetworkNode(isWanRouter, baseNetworkRouterBlockEntity);
         nodes.add(rv);
-        acIpAddressesToNode.put(rv.acIpAddress, rv);
         return rv;
     }
 

@@ -272,6 +272,7 @@ public class LuaVirtualMachine {
             // add builtin components
             componentReg.addComponentInitAndNotify(luaComputer, null);
             componentReg.addComponentInitAndNotify(new InternetUD(), null);
+            componentReg.addComponentInitAndNotify(new NetworkUD(), null);
             componentReg.addComponentInitAndNotify(new GpuUD(), null);
 
             // set up inventory components
