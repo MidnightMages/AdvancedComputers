@@ -210,12 +210,21 @@ public class CableCluster {
             // if this is the initial block, clear all nets as we will rebuild them anyway
 //            if (initialInfo.blockEntity() instanceof CableConnectableBlockOrEntity entToClear) // TODO why doesnt this work?
 //                entToClear.getNetworkList().clear();
-
+            boolean[] runNetworkUpdate = new boolean[]{false};
             forAllDirs(dir -> {
                 var neighborPos = initialBp.relative(dir);
                 var neighborInfo = getInfoAboutBp(level, neighborPos, clusterType);
                 // if the neighbor isnt an interesting face, simply remove our network and be done
-                if (!neighborInfo.supportsCurrentCluster()) return;
+                if (!neighborInfo.supportsCurrentCluster()) {
+                    if (initialInfo.blockEntity() instanceof BaseCableConnectableBlockEntity ent) { // clear existing net if the face doesnt support it
+                        var existingCluster = ent.getNetworkList().get(dir);
+                        if (existingCluster != null && existingCluster.clusterType == clusterType) {
+                            ent.getNetworkList().remove(dir);
+                            runNetworkUpdate[0] = true;
+                        }
+                    }
+                    return;
+                }
 
                 // if it does, its either a cable or a block entity
                 var neighborIsActualCable = neighborInfo.blockEntity() == null;
@@ -246,6 +255,14 @@ public class CableCluster {
                     RuntimeAssert.RuntimeAssert(connectedEntities[0] != connectedEntities[1], "what?");
                 }
             });
+            if (runNetworkUpdate[0]) {
+                if (initialInfo.blockEntity() instanceof BaseCableConnectableBlockEntity ent) {
+                    ent.onNetworkUpdated();
+                } else {
+                    assert false;
+                }
+            }
+
         }
     }
 
