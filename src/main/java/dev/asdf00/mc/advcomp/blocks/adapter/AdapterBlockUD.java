@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.entity.JukeboxBlockEntity;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
 import java.util.Queue;
 
 public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEntity> {
@@ -38,7 +39,7 @@ public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEnt
     }
 
     @LuaCallable
-    public void test() {
+    public void eject() {
         this.blockEntity.runOnTickThread(() -> {
             var posToQuery = getTargetPosition();
             var be = this.blockEntity.getLevel().getBlockEntity(posToQuery);
@@ -48,6 +49,36 @@ public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEnt
                 throw new LuaJavaError("not pointing at a jukebox");
             }
             return null;
+        });
+    }
+
+    @LuaCallable
+    public String getContainedItem() {
+        return this.blockEntity.runOnTickThread(() -> {
+            var posToQuery = getTargetPosition();
+            var be = this.blockEntity.getLevel().getBlockEntity(posToQuery);
+            if (be instanceof JukeboxBlockEntity jbe) {
+                var is = jbe.getFirstItem();
+                if (is.isEmpty()) {
+                    return "";
+                }
+                return Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(is.getItem())).toString();
+            } else {
+                throw new LuaJavaError("not pointing at a jukebox");
+            }
+        });
+    }
+
+    @LuaCallable
+    public boolean getIsPlaying() {
+        return this.blockEntity.runOnTickThread(() -> {
+            var posToQuery = getTargetPosition();
+            var be = this.blockEntity.getLevel().getBlockEntity(posToQuery);
+            if (be instanceof JukeboxBlockEntity jbe) {
+                return jbe.isRecordPlaying();
+            } else {
+                throw new LuaJavaError("not pointing at a jukebox");
+            }
         });
     }
 
