@@ -40,6 +40,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -47,7 +48,6 @@ import java.util.stream.Collectors;
 
 public class ComputerBlockEntity extends BaseCableConnectableBlockEntity implements MenuProvider, ClusterHostEntity, AcNetworkParticipant {
     public final NotifyingItemHandler itemHandler;
-    private AcNetworkHandler.NetworkNode netNode;
     private ComputerTier tier;
     private ComputerBlock block;
     private LazyOptional<IItemHandler> lazyItemHandler = LazyOptional.empty();
@@ -58,12 +58,21 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
     private final Object lockLVM = new Object();
     private boolean isFirstTick = true;
 
+    private static final HashMap<Integer, ComputerBlockEntity> acIpToComputerBlockEntityMap = new HashMap<>();
+    private AcNetworkHandler.NetworkNode netNode;
+    private int acIpAddress = -1;
+
+
 
     // set to STOPPED on first tick to reset block state to indicate stopped LVM
     private final AtomicReference<ComputerBlock.ComputerRunState> newRunState = new AtomicReference<>(ComputerBlock.ComputerRunState.STOPPED);
 
     public void setRunState(ComputerBlock.ComputerRunState rs) {
         newRunState.set(rs);
+    }
+
+    public ComputerBlockEntity getComputerBlockEntityForAcIp(int acIp) {
+        return acIpToComputerBlockEntityMap.get(acIp);
     }
 
     void itemHandler_onSlotChanged(int slot) {
@@ -188,12 +197,15 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
     @Override
     protected void saveAdditional(@NotNull CompoundTag pTag) {
         itemHandler.saveContents(pTag);
+        pTag.putInt("acIpAddress", acIpAddress);
         super.saveAdditional(pTag);
     }
 
     @Override
     public void load(@NotNull CompoundTag pTag) {
         super.load(pTag);
+        int nbtIp = pTag.getInt("acIpAddress"); // returns 0 as default value
+        acIpAddress = nbtIp <= 0 ? -1 : nbtIp;
         itemHandler.loadContents(pTag);
 
         // cannot init the lvm in here, somehow. Need to do it in onLoad() instead.
@@ -252,6 +264,7 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
     public void onNetworkUpdated() {
         CableCluster deviceCluster = null;
         HashSet<CableCluster> alreadyProcessed = new HashSet<>();
+        boolean shouldHaveAcIpAddress = false;
         for (var cluster : connectedNetworks.values()) {
             if (!alreadyProcessed.add(cluster)) // skip already processed clusters as multiple faces may show the *same* one
                 continue;
@@ -260,6 +273,8 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
                 if (deviceCluster != null)
                     throw new IllegalStateException("somehow there were multiple device clusters??");
                 deviceCluster = cluster;
+            } else if (cluster.clusterType == AdvancedComputers.CLUSTER_TYPE_NETWORK) {
+                shouldHaveAcIpAddress = true;
             }
         }
 
@@ -293,6 +308,16 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
             }
         }
 
+        boolean hasAcIpAddress = this.acIpAddress != -1;
+        if (hasAcIpAddress != shouldHaveAcIpAddress) {
+            if (!shouldHaveAcIpAddress) {
+                acIpToComputerBlockEntityMap.remove(this.acIpAddress);
+            }
+            acIpAddress = shouldHaveAcIpAddress ? AdvancedComputers.globalDataStorage.getUniqueAcIpAddress() : -1;
+            if (shouldHaveAcIpAddress) {
+                acIpToComputerBlockEntityMap.put(this.acIpAddress, this);
+            }
+        }
         netNode.computeConnectedNodes(this.connectedNetworks);
     }
 

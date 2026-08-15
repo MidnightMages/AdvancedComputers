@@ -8,15 +8,18 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 import javax.management.openmbean.InvalidOpenTypeException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class AcNetworkHandler {
     public static final AcNetworkHandler INSTANCE = new AcNetworkHandler();
     private final HashSet<NetworkNode> nodes = new HashSet<>();
+    private final HashMap<Integer,NetworkNode> acIpAddressesToNode = new HashMap<Integer,NetworkNode>();
 
     public NetworkNode registerNewNode(boolean isWanRouter, BlockEntity baseNetworkRouterBlockEntity) {
         var rv = new NetworkNode(isWanRouter, baseNetworkRouterBlockEntity);
         nodes.add(rv);
+        acIpAddressesToNode.put(rv.acIpAddress, rv);
         return rv;
     }
 
@@ -28,10 +31,9 @@ public class AcNetworkHandler {
         boolean isWanRouter;
         private final BlockEntity blockEntity;
 
-        public NetworkNode(boolean isWanRouter, BlockEntity blockEntity) {
+        private NetworkNode(boolean isWanRouter, BlockEntity blockEntity) {
             this.isWanRouter = isWanRouter;
             this.blockEntity = blockEntity;
-            nodes.add(this);
         }
 
         public BlockPos getPos() {
@@ -47,7 +49,7 @@ public class AcNetworkHandler {
         }
 
         // for computing gameplay delay
-        public double getGameplayDistanceTo(NetworkNode other) {
+        public Double getGameplayDistanceTo(NetworkNode other) {
             if (this.connectedTo.contains(other)) {
                 return Math.sqrt(this.getPos().distSqr(other.getPos())) * (Math.random() * 0.5 + 1);
             } else if (this.isWanRouter && other.isWanRouter) {
@@ -90,6 +92,7 @@ public class AcNetworkHandler {
 
             if (true) throw new InvalidOpenTypeException("not implemented"); // TODO implement A* search using euclidean distance
 
+            // TODO if not connected, return null!
 
             double gameplayDistance = 0;
             for (int i = 0; i < nodePath.size() - 1; i++) {
