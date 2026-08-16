@@ -48,21 +48,21 @@ public class Config {
                     Whether to enable the second compilation cache. This cache is persistent across server restarts.
                     """)
             .worldRestart()
-            .define("lua.vm.cache2_enabled", true);
+            .define("lua.vm.cache2Enabled", true);
 
     private static final ForgeConfigSpec.IntValue LUA_VM_CACHE2_MAX_FILES = BUILDER
             .comment("""
                     How many files to store in the second compilation cache in memory and also on disk in '<saveFolder>/advancedComputers/compilationCache/'.
                     """)
             .worldRestart()
-            .defineInRange("lua.vm.cache2_max_files", 1000, 5, Integer.MAX_VALUE);
+            .defineInRange("lua.vm.cache2MaxFiles", 1000, 5, Integer.MAX_VALUE);
 
     private static final ForgeConfigSpec.BooleanValue LUA_VM_PRECOMPILE_UEFI_AND_OS = BUILDER
             .comment("""
                     Precompile uefi.lua and parts of Advanced OS to speed up initial startup.
                     """)
             .worldRestart()
-            .define("lua.vm.precompile_uefi_and_os", true);
+            .define("lua.vm.precompileUefiAndOs", true);
 
     private static final ForgeConfigSpec.BooleanValue DEBUG_LUA_PRINT_TO_SERVER_CONSOLE = BUILDER
             .comment("""
@@ -70,7 +70,7 @@ public class Config {
                     If you are unsure, keep it turned off.
                     """)
             .worldRestart()
-            .define("debug.lua.print_to_server_console", false);
+            .define("debug.lua.printToServerConsole", false);
 
     private static final ForgeConfigSpec.BooleanValue COMPONENT_INTERNET_HTTP_ENABLED = BUILDER
             .comment("Whether to allow http(s) requests to the real-world network.")
