@@ -142,6 +142,9 @@ public class AcNetworkHandler {
             return foundPath;
         }
 
+        public boolean isConnectedToWan() {
+            return aStarFromTo(this, null) != null;
+        }
 
         public NetworkPath getShortestPathTo(NetworkNode goalNetNode) {
             if (this == goalNetNode) { // shortcut if this is the same node
