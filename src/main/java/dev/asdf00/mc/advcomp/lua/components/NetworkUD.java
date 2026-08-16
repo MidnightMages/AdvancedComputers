@@ -2,10 +2,13 @@ package dev.asdf00.mc.advcomp.lua.components;
 
 import dev.asdf00.jluavm.api.userdata.LuaCallable;
 import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
+import dev.asdf00.jluavm.api.userdata.LuaExposed;
+import dev.asdf00.jluavm.api.userdata.LuaProperty;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.Config;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.utils.MiscUtil;
 import net.minecraft.core.Direction;
@@ -52,10 +55,17 @@ public class NetworkUD extends BaseAcComponent {
         }
     }
 
+    @SuppressWarnings("unused")
+    @LuaExposed(LuaExposed.Policy.READ)
+    public final LuaProperty maxPacketSize = LuaProperty.ofInt(() -> Config.componentNetworkMaxPacketSize, null);
+
     @LuaCallable
     public void send(String address, int port, String message) {
         var acIpAddress = argcheckParseAddress(address);
         argcheckPort(port);
+        if (message.length() > Config.componentNetworkMaxPacketSize)
+            throw new LuaJavaError("message is too long, must be at most %s characters.".formatted(Config.componentNetworkMaxPacketSize));
+
         var ourNode = this.acVm.computerBlockEntity.getNetworkNode();
         var targetComputer = this.acVm.computerBlockEntity.getComputerBlockEntityForAcIp(acIpAddress);
         var path = ourNode.getShortestPathTo(targetComputer.getNetworkNode());
