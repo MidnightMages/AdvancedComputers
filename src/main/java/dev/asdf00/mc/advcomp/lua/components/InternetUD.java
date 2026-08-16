@@ -155,7 +155,7 @@ public final class InternetUD extends BaseAcComponent {
     @Override
     public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
         // no internal state to serialize
-        return null;
+        return new byte[0];
     }
 
     @SuppressWarnings("unused")
