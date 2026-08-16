@@ -1,13 +1,13 @@
 package dev.asdf00.mc.advcomp.types.network;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.blocks.BaseCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.wan_router.WanRouterBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.wan_router.WanRouterBlockEntityLowTier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -19,7 +19,7 @@ public class AcNetworkHandler {
     public static final AcNetworkHandler INSTANCE = new AcNetworkHandler();
     private final HashSet<NetworkNode> nodes = new HashSet<>();
 
-    public NetworkNode registerNewNode(boolean isWanRouter, BlockEntity baseNetworkRouterBlockEntity) {
+    public NetworkNode registerNewNode(boolean isWanRouter, BaseCableConnectableBlockEntity baseNetworkRouterBlockEntity) {
         var rv = new NetworkNode(isWanRouter, baseNetworkRouterBlockEntity);
         nodes.add(rv);
         return rv;
@@ -31,9 +31,9 @@ public class AcNetworkHandler {
     public class NetworkNode {
         HashSet<NetworkNode> connectedTo = new HashSet<>();
         boolean isWanRouter;
-        private final BlockEntity blockEntity;
+        private final BaseCableConnectableBlockEntity blockEntity;
 
-        private NetworkNode(boolean isWanRouter, BlockEntity blockEntity) {
+        private NetworkNode(boolean isWanRouter, BaseCableConnectableBlockEntity blockEntity) {
             this.isWanRouter = isWanRouter;
             this.blockEntity = blockEntity;
         }
@@ -189,6 +189,10 @@ public class AcNetworkHandler {
                 name = "Other";
             }
             return "%s at (%s)".formatted(name, this.getPos());
+        }
+
+        public BaseCableConnectableBlockEntity getBlockEntity() {
+            return blockEntity;
         }
 
         private record AStarNode(NetworkNode node, double cost) implements Comparable<AStarNode> {

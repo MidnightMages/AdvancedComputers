@@ -8,10 +8,12 @@ import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.utils.MiscUtil;
+import net.minecraft.core.Direction;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 
 public class NetworkUD extends BaseAcComponent {
     public NetworkUD() {
@@ -59,12 +61,32 @@ public class NetworkUD extends BaseAcComponent {
         var path = ourNode.getShortestPathTo(targetComputer.getNetworkNode());
         if (path != null) { // if target is reachable
             var nodePath = path.nodePath();
-            AdvancedComputers.LOGGER.warn("Would send network packet from bp %s to %s.".formatted(nodePath[0].getPos(), nodePath[nodePath.length - 1].getPos()));
+            AdvancedComputers.LOGGER.warn("Would send network packet from bp %s to %s with length %s.".formatted(
+                    nodePath[0].getPos(),
+                    nodePath[nodePath.length - 1].getPos(),
+                    path.length())
+            );
             // TODO emit event with some delay and possible packet loss?
             // TODO need invokequeue so this works across dimensions probs
+
+            LuaObject receiverSide = LuaObject.of("unknown");
+            if (!nodePath[0].equals(nodePath[nodePath.length - 1])) {
+                var lastIntermediateBlockEntity = nodePath[nodePath.length - 2].getBlockEntity();
+                assert lastIntermediateBlockEntity != null;
+                for (var dir : Direction.values()) {
+                    var net = targetComputer.connectedNetworks.get(dir);
+                    if (Set.of(net.connectedEntities).contains(lastIntermediateBlockEntity)) {
+                        receiverSide = LuaObject.of(dir.toString().toLowerCase());
+                        break;
+                    }
+                }
+            }
+
             targetComputer.getLvm().triggerMachineEvent("networkPacket",
                     LuaObject.of(message),
-                    LuaObject.of(MiscUtil.AcIpToString(this.acVm.computerBlockEntity.getAcIpAddress()))
+                    LuaObject.of(port),
+                    LuaObject.of(MiscUtil.AcIpToString(this.acVm.computerBlockEntity.getAcIpAddress())),
+                    receiverSide
             );
         }
     }
