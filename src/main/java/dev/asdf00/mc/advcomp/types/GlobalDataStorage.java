@@ -23,7 +23,9 @@ public class GlobalDataStorage extends SavedData {
         return rv;
     }
     public int getUniqueAcIpAddress() {
-        return nextIpAddress.getAndIncrement();
+        var rv = nextIpAddress.getAndIncrement();
+        setDirty();
+        return rv;
     }
 
     public GlobalDataStorage() {

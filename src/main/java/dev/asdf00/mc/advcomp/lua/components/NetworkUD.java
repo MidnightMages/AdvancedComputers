@@ -7,6 +7,7 @@ import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.utils.MiscUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -50,15 +51,21 @@ public class NetworkUD extends BaseAcComponent {
     }
 
     @LuaCallable
-    public void send(String address, int port) {
+    public void send(String address, int port, String message) {
         var acIpAddress = argcheckParseAddress(address);
         argcheckPort(port);
         var ourNode = this.acVm.computerBlockEntity.getNetworkNode();
         var targetComputer = this.acVm.computerBlockEntity.getComputerBlockEntityForAcIp(acIpAddress);
         var path = ourNode.getShortestPathTo(targetComputer.getNetworkNode());
-        if (path.nodePath() != null) { // if target is reachable
+        if (path != null) { // if target is reachable
             var nodePath = path.nodePath();
-            AdvancedComputers.LOGGER.warn("Would send network packet from bp %s to %s.".formatted(nodePath[0],nodePath[nodePath.length-1]));
+            AdvancedComputers.LOGGER.warn("Would send network packet from bp %s to %s.".formatted(nodePath[0].getPos(), nodePath[nodePath.length - 1].getPos()));
+            // TODO emit event with some delay and possible packet loss?
+            // TODO need invokequeue so this works across dimensions probs
+            targetComputer.getLvm().triggerMachineEvent("networkPacket",
+                    LuaObject.of(message),
+                    LuaObject.of(MiscUtil.AcIpToString(this.acVm.computerBlockEntity.getAcIpAddress()))
+            );
         }
     }
 

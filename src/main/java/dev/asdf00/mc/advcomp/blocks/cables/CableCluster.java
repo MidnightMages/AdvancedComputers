@@ -63,12 +63,18 @@ public class CableCluster {
     public static void onBlockPosChanged(Level level, BlockPos initialBp) {
         var clusterTypes = AdvancedComputers.AC_CLUSTER_TYPE_MANAGER.getNetworkTypes();
 
+        var updatesToEmit = new HashSet<CableConnectableBlockOrEntity>();
         for (var cType : clusterTypes.values()) {
-            CableCluster.buildSingleNet2(level, initialBp, cType);
+            updatesToEmit.addAll(CableCluster.buildSingleNet2(level, initialBp, cType));
                 for (var dir : Direction.values()) {
-                    CableCluster.buildSingleNet2(level, initialBp.relative(dir), cType);
+                    updatesToEmit.addAll(CableCluster.buildSingleNet2(level, initialBp.relative(dir), cType));
                 }
         }
+
+        // defer updates as otherwise we tell a computer that the device net changed on load before having figured out the network connectivity,
+        // causing the ip to be reset
+        for (var ent : updatesToEmit)
+            ent.onNetworkUpdated();
     }
 
     public static void rebuildDeviceNetImmediately(Level level, BlockPos initialBp, ClusterType clusterType) { // probably is unnecessary anyway
@@ -102,10 +108,10 @@ public class CableCluster {
     //						and assign to all crossed faces and to the face of the blocks that we didnt enter
     //		case blockEntityNotCable:
     //					--> 6 networks, start out in every direction. If block is cable then same as cable, otherwise create a net between just those 2 blocks
-    private static void buildSingleNet2(Level level, BlockPos initialBp, ClusterType clusterType) {
+    private static HashSet<CableConnectableBlockOrEntity> buildSingleNet2(Level level, BlockPos initialBp, ClusterType clusterType) {
         var initialInfo = getInfoAboutBp(level, initialBp, clusterType);
         if (!initialInfo.supportsCurrentCluster())
-            return;
+            return new HashSet<>();
 
         if (initialInfo.isOrActsAsCable()) {
             ArrayList<Tuple<CableConnectableBlockOrEntity, Direction>> facesToAssignCurrentNetTo = new ArrayList<>();
@@ -204,13 +210,14 @@ public class CableCluster {
                 ent.getNetworkList().put(tpl.y(), cluster);
                 updatesToEmit.add(ent);
             }
-            for (var ent : updatesToEmit) ent.onNetworkUpdated();
             updateCableBlockStates(new ArrayList<>(foundActualCableBlocksOfThisType), cluster.getHostCount() <= 1, level);
+            return updatesToEmit;
         } else { // is a block entity --> 6 nets
             // if this is the initial block, clear all nets as we will rebuild them anyway
 //            if (initialInfo.blockEntity() instanceof CableConnectableBlockOrEntity entToClear) // TODO why doesnt this work?
 //                entToClear.getNetworkList().clear();
             boolean[] runNetworkUpdate = new boolean[]{false};
+            var rv = new HashSet<CableConnectableBlockOrEntity>();
             forAllDirs(dir -> {
                 var neighborPos = initialBp.relative(dir);
                 var neighborInfo = getInfoAboutBp(level, neighborPos, clusterType);
@@ -235,7 +242,7 @@ public class CableCluster {
                         "initialIsActualCable must imply :BaseCableBlock");
 
                 if (neighborIsActualCable) { // if it is a cable, just rebuilt from there
-                    buildSingleNet2(level, neighborPos, clusterType);
+                    rv.addAll(buildSingleNet2(level, neighborPos, clusterType));
                 } else { // if it is a block entity, spawn a network that connects just those two and assign it
                     var connectedEntities = new BaseCableConnectableBlockEntity[]{
                             (BaseCableConnectableBlockEntity) initialInfo.blockEntity(),
@@ -250,19 +257,19 @@ public class CableCluster {
 
                     connectedEntities[0].getNetworkList().put(dir, cluster2);
                     connectedEntities[1].getNetworkList().put(dir.getOpposite(), cluster2);
-                    connectedEntities[0].onNetworkUpdated();
-                    connectedEntities[1].onNetworkUpdated();
+                    rv.add(connectedEntities[0]);
+                    rv.add(connectedEntities[1]);
                     RuntimeAssert.RuntimeAssert(connectedEntities[0] != connectedEntities[1], "what?");
                 }
             });
             if (runNetworkUpdate[0]) {
                 if (initialInfo.blockEntity() instanceof BaseCableConnectableBlockEntity ent) {
-                    ent.onNetworkUpdated();
+                    rv.add(ent);
                 } else {
-                    assert false;
+                    throw new IllegalStateException("should be unreachable");
                 }
             }
-
+            return rv;
         }
     }
 
