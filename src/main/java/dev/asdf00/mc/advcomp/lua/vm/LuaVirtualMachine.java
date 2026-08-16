@@ -17,9 +17,11 @@ import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
 import dev.asdf00.mc.advcomp.lua.components.*;
 import dev.asdf00.mc.advcomp.utils.AcPaths;
+import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.network.PacketDistributor;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -396,7 +398,9 @@ public class LuaVirtualMachine {
         timeTracker.beforeLongLuaOperation();
     }
 
-    public void dirtyBuffer(TextBufferUD buf) {
+    public void dirtyBuffer(@NotNull TextBufferUD buf) {
+        //noinspection ConstantValue
+        RuntimeAssert.RuntimeAssert(buf != null, "buf was null");
         dirtyBuffers.add(buf);
     }
 

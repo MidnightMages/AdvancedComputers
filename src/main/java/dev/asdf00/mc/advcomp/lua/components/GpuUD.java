@@ -75,6 +75,7 @@ public class GpuUD extends BaseAcComponent {
         if (sbe == null)
             throw new IllegalStateException("internal error trying to find screen");
 
+        RuntimeAssert.RuntimeAssert(buf != null, "buf was null");
         screenBufferMap.put(sbe, buf);
         acVm.dirtyBuffer(buf);
     }
