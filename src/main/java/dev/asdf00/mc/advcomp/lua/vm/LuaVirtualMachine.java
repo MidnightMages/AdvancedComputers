@@ -63,6 +63,20 @@ public class LuaVirtualMachine {
     // =================================================================================================================
 
     public void triggerMachineEvent(String eventName, LuaObject... args) {
+        // If this event is a "network packet received"-event, check if the destination port is actually open.
+        // We do this here instead of during sending, as there is a slight delay between sending and the packet arriving which would open a sidechannel
+        // allowing the receiver to estimate the distance of the sender in certain cases.
+        if (NetworkUD.MESSAGE_RECEIVED_EVENT_NAME.equals(eventName)) {
+            var destinationPortArg = args[1];
+            RuntimeAssert.RuntimeAssert(destinationPortArg.isLong(), "expected this to be the port argument of the network message received event.");
+            var destinationPort = destinationPortArg.asLong();
+            RuntimeAssert.RuntimeAssert(destinationPort >= 0 && destinationPort <= Short.MAX_VALUE, "expected a valid 'short' port value.");
+
+            var netUd = componentReg.getSingleOfType(NetworkUD.class);
+            if (!netUd.canReceivePacketOnPort((int) destinationPort)) {
+                return; // skip event processing
+            }
+        }
         luaComputer.triggerMachineEvent(eventName, args);
     }
 

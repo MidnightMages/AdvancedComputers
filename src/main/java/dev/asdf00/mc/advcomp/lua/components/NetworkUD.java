@@ -6,6 +6,7 @@ import dev.asdf00.jluavm.api.userdata.LuaExposed;
 import dev.asdf00.jluavm.api.userdata.LuaProperty;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
+import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.Config;
@@ -13,12 +14,12 @@ import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.utils.MiscUtil;
 import net.minecraft.core.Direction;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 
 public class NetworkUD extends BaseAcComponent {
+    public static final String MESSAGE_RECEIVED_EVENT_NAME = "networkPacket";
+    private final HashSet<Integer> openPorts = new HashSet<>();
+
     public NetworkUD() {
         super("network");
     }
@@ -26,6 +27,10 @@ public class NetworkUD extends BaseAcComponent {
     private NetworkUD(LuaVirtualMachine acVm) {
         // an internet component, if present, is always available
         super("network", acVm, true);
+    }
+
+    public boolean canReceivePacketOnPort(int destinationPort) {
+        return openPorts.contains(destinationPort);
     }
 
     private static int argcheckParseAddress(String luaAddress) { // address format 00.11.aa.ff; in regex terms [0-9a-f]{2}(\.[0-9a-f]{2}){3}; MSB first
@@ -76,9 +81,7 @@ public class NetworkUD extends BaseAcComponent {
                     nodePath[nodePath.length - 1].getPos(),
                     path.length())
             );
-            // TODO emit event with some delay and possible packet loss?
-            // TODO need invokequeue so this works across dimensions probs
-
+            // TODO emit event with possible packet loss?
             LuaObject receiverSide = LuaObject.of("unknown");
             if (!nodePath[0].equals(nodePath[nodePath.length - 1])) {
                 var lastIntermediateBlockEntity = nodePath[nodePath.length - 2].getBlockEntity();
@@ -95,7 +98,7 @@ public class NetworkUD extends BaseAcComponent {
             long delayByMilliseconds = (long) ((path.length() / Config.componentNetworkTransmissionSpeedBlocksPerSecond) * 1000);
 
             targetComputer.getLvm().queueDelayedMachineEvent(delayByMilliseconds,
-                    "networkPacket",
+                    MESSAGE_RECEIVED_EVENT_NAME,
                     LuaObject.of(message),
                     LuaObject.of(port),
                     LuaObject.of(MiscUtil.AcIpToString(this.acVm.computerBlockEntity.getAcIpAddress())),
@@ -104,15 +107,53 @@ public class NetworkUD extends BaseAcComponent {
         }
     }
 
+    @LuaCallable
+    public boolean openPort(int port) {
+        argcheckPort(port);
+        return openPorts.add(port);
+    }
+
+    @LuaCallable
+    public boolean closePort(int port) {
+        argcheckPort(port);
+        return openPorts.remove(port);
+    }
+
+    @LuaCallable
+    public int closeAllPorts() {
+        var rv = openPorts.size();
+        openPorts.clear();
+        return rv;
+    }
+
+    @LuaCallable
+    public boolean isPortOpen(int port) {
+        argcheckPort(port);
+        return openPorts.contains(port);
+    }
 
     @Override
     public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
-        return new byte[0];
+        var ports = new ArrayList<>(openPorts);
+        var builder = new ByteArrayBuilder()
+                .append(ports.size());
+
+        for (int port : ports) {
+            builder.append(port);
+        }
+
+        return builder.toArray();
     }
 
     @SuppressWarnings("unused")
     @LuaDeserializer
     public static NetworkUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
-        return new NetworkUD((LuaVirtualMachine) additionalData);
+        var rv = new NetworkUD((LuaVirtualMachine) additionalData);
+        var size = reader.readInt();
+        for (int i = 0; i < size; i++) {
+            rv.openPorts.add(reader.readInt());
+        }
+
+        return rv;
     }
 }
