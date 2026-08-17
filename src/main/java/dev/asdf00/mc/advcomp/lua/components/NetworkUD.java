@@ -92,7 +92,10 @@ public class NetworkUD extends BaseAcComponent {
                 }
             }
 
-            targetComputer.getLvm().triggerMachineEvent("networkPacket",
+            long delayByMilliseconds = (long) ((path.length() / Config.componentNetworkTransmissionSpeedBlocksPerSecond) * 1000);
+
+            targetComputer.getLvm().queueDelayedMachineEvent(delayByMilliseconds,
+                    "networkPacket",
                     LuaObject.of(message),
                     LuaObject.of(port),
                     LuaObject.of(MiscUtil.AcIpToString(this.acVm.computerBlockEntity.getAcIpAddress())),

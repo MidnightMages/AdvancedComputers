@@ -28,6 +28,7 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.stream.Collectors;
 
 public class LuaVirtualMachine {
@@ -50,6 +51,7 @@ public class LuaVirtualMachine {
     final LinkedHashSet<TextBufferUD> dirtyBuffers = new LinkedHashSet<>();
     final ConcurrentLinkedQueue<ScreenBlockEntity> dirtyScreenBlockEntities = new ConcurrentLinkedQueue<>();
     private boolean suppressDeviceNetworkUpdate = false;
+    final PriorityBlockingQueue<DelayedQueuedEvent> delayedEventQueue = new PriorityBlockingQueue<>();
 
     public LuaVirtualMachine(ComputerBlockEntity computerBlockEntity) {
         this.computerBlockEntity = computerBlockEntity;
@@ -62,6 +64,23 @@ public class LuaVirtualMachine {
 
     public void triggerMachineEvent(String eventName, LuaObject... args) {
         luaComputer.triggerMachineEvent(eventName, args);
+    }
+
+    public void queueDelayedMachineEvent(long delayByMs, String eventName, LuaObject... args) {
+        this.delayedEventQueue.add(new DelayedQueuedEvent(eventName, args, System.currentTimeMillis() + delayByMs));
+    }
+
+    // SOLE CALLER IS LuaSafepointHandler.
+    void processDelayedEventsAtSafepoint() {
+        while (!delayedEventQueue.isEmpty()) { // loop until we have no more elements, or we find an event that we shouldnt emit yet
+            var peek = delayedEventQueue.peek();
+            if (peek.shallEmitNow()) {
+                delayedEventQueue.remove();
+                triggerMachineEvent(peek.eventName, peek.args);
+            } else {
+                break;
+            }
+        }
     }
 
     public void requestScreenContents(ScreenBlockEntity sbe) {
@@ -80,6 +99,17 @@ public class LuaVirtualMachine {
     public State getState() {
         synchronized (state) {
             return state.getState();
+        }
+    }
+
+    private record DelayedQueuedEvent(String eventName, LuaObject[] args, long emitAtEpoch) implements Comparable<DelayedQueuedEvent> {
+        @Override
+        public int compareTo(@NotNull LuaVirtualMachine.DelayedQueuedEvent o) {
+            return Long.compare(emitAtEpoch, o.emitAtEpoch);
+        }
+
+        public boolean shallEmitNow() {
+            return System.currentTimeMillis() >= emitAtEpoch;
         }
     }
 

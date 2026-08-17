@@ -87,6 +87,11 @@ public class Config {
             .worldRestart()
             .defineInRange("component.network.maxMessageSize", 8192, 1, Integer.MAX_VALUE);
 
+    private static final ForgeConfigSpec.IntValue COMPONENT_NETWORK_TRANSMISSION_SPEED_BLOCKS_PER_SEC = BUILDER
+            .comment("How quickly network packets travel across the world. Given in blocks per second.")
+            .worldRestart()
+            .defineInRange("component.network.transmissionSpeedBlocksPerSecond", 250, 1, Integer.MAX_VALUE);
+
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
     public static boolean escapeUppercaseCharactersOnHost;
@@ -99,6 +104,7 @@ public class Config {
     public static boolean componentInternetHttpEnabled;
     public static boolean componentInternetBlockLocalIPs;
     public static int componentNetworkMaxPacketSize;
+    public static int componentNetworkTransmissionSpeedBlocksPerSecond;
 
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
@@ -113,5 +119,6 @@ public class Config {
         componentInternetHttpEnabled = COMPONENT_INTERNET_HTTP_ENABLED.get();
         componentInternetBlockLocalIPs = COMPONENT_INTERNET_BLOCK_LOCAL_IPS.get();
         componentNetworkMaxPacketSize = COMPONENT_NETWORK_MAX_PACKET_SIZE.get();
+        componentNetworkTransmissionSpeedBlocksPerSecond = COMPONENT_NETWORK_TRANSMISSION_SPEED_BLOCKS_PER_SEC.get();
     }
 }
