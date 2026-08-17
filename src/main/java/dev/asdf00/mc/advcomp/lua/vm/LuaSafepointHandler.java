@@ -67,6 +67,7 @@ public class LuaSafepointHandler implements LuaUserData {
                         lastBufferSend = now;
                     }
                 }
+                // check if we need to process delayed events
                 if (now - lastDelayedEventQueueChecked > SECOND / 50) {
                     acVm.processDelayedEventsAtSafepoint();
                     lastDelayedEventQueueChecked = now;
