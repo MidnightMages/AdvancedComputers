@@ -8,7 +8,6 @@ import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
-import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.Config;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.utils.MiscUtil;
@@ -76,12 +75,7 @@ public class NetworkUD extends BaseAcComponent {
         var path = ourNode.getShortestPathTo(targetComputer.getNetworkNode());
         if (path != null) { // if target is reachable
             var nodePath = path.nodePath();
-            AdvancedComputers.LOGGER.warn("Would send network packet from bp %s to %s with length %s.".formatted(
-                    nodePath[0].getPos(),
-                    nodePath[nodePath.length - 1].getPos(),
-                    path.length())
-            );
-            // TODO emit event with possible packet loss?
+
             LuaObject receiverSide = LuaObject.of("unknown");
             if (!nodePath[0].equals(nodePath[nodePath.length - 1])) {
                 var lastIntermediateBlockEntity = nodePath[nodePath.length - 2].getBlockEntity();

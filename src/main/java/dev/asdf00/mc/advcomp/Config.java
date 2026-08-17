@@ -90,7 +90,7 @@ public class Config {
     private static final ForgeConfigSpec.IntValue COMPONENT_NETWORK_TRANSMISSION_SPEED_BLOCKS_PER_SEC = BUILDER
             .comment("How quickly network packets travel across the world. Given in blocks per second.")
             .worldRestart()
-            .defineInRange("component.network.transmissionSpeedBlocksPerSecond", 250, 1, Integer.MAX_VALUE);
+            .defineInRange("component.network.transmissionSpeedBlocksPerSecond", 1000, 1, Integer.MAX_VALUE);
 
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
