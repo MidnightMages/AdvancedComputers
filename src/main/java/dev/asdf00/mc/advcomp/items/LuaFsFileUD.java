@@ -11,7 +11,9 @@ import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
 import dev.asdf00.mc.advcomp.utils.list.internal.CharacterList;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -149,8 +151,19 @@ public class LuaFsFileUD implements LuaUserData {
         if (!canWrite)
             throw new LuaJavaError("cannot call flush on a readonly handle");
 
+
+        // extra space needed in case we create the file
+        var realFsPath = parentFilesystemUD.getRealFsPath(fsFilePath);
         try {
-            Files.writeString(parentFilesystemUD.getRealFsPath(fsFilePath), new String(contents.toCharArray()));
+            var stringToWrite = new String(contents.toCharArray());
+            long filenameSpaceNeeded = stringToWrite.getBytes(StandardCharsets.UTF_8).length;
+            if (Files.exists(realFsPath)) // if the file already exists, compute the size difference 'new-old'
+                filenameSpaceNeeded += -Files.size(realFsPath);
+            else // if it does not already exist, compute newSize+newFilenameLength
+                filenameSpaceNeeded += Path.of(fsFilePath).getFileName().toString().length();
+
+            parentFilesystemUD.assertHaveEnoughExtraSpace((int) filenameSpaceNeeded);
+            Files.writeString(realFsPath, stringToWrite);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

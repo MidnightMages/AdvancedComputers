@@ -142,7 +142,7 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
         if (isLuaPathDirectory(filePath))
             throw new LuaJavaError("Expected file path, but path ended with a slash.");
 
-        filePath = normalizeEncodeAbsFilePath(filePath);
+        var encodedFilePath = normalizeEncodeAbsFilePath(filePath);
         if (!supportedBaseFileModes.contains(mode)) {
             throw new LuaJavaError("Unsupported file mode '%s'".formatted(mode));
         }
@@ -157,14 +157,14 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
             case 'r' -> {
                 if (!fileExists(filePath))
                     throw new LuaJavaError("file '%s' does not exist".formatted(filePath));
-                handle = createFileHandle(filePath, false, true, isPlusMode, false, false);
+                handle = createFileHandle(encodedFilePath, false, true, isPlusMode, false, false);
             }
             case 'w' -> {
-                handle = createFileHandle(filePath, true, isPlusMode, true, false, true);
+                handle = createFileHandle(encodedFilePath, true, isPlusMode, true, false, true);
                 handle.clear();
             }
             case 'a' -> {
-                handle = createFileHandle(filePath, true, false, true, true, false);
+                handle = createFileHandle(encodedFilePath, true, false, true, true, false);
             }
             default -> throw new IllegalStateException("unreachable");
         }
@@ -273,6 +273,15 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
             throw new LuaJavaError("source path is not a directory (implied by trailing slash)");
         }
 
+        int pathLengthDelta = 0; // how many more letters of space we are using for paths
+        for (int i = 0; i < realSrcPath.getNameCount(); i++) {
+            pathLengthDelta -= realSrcPath.getName(i).toString().length();
+        }
+        for (int i = 0; i < realDstPath.getNameCount(); i++) {
+            pathLengthDelta += realDstPath.getName(i).toString().length();
+        }
+        assertHaveEnoughExtraSpace(pathLengthDelta);
+
         try {
             Files.move(realSrcPath, realDstPath);
         } catch (IOException e) {
@@ -286,11 +295,16 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
         var normalizedPath = normalizeEncodeAbsFolderPath(path);
         // traverse the chain and see if any parent folder name is already taken by a file, which would be illegal
         var currentFilePath = getFsRealBasePath();
+        int extraSpaceNeeded = 0;
         for (String segment : normalizedPath.split("/")) {
             currentFilePath = currentFilePath.resolve(segment);
             if (Files.isRegularFile(currentFilePath))
                 throw new LuaJavaError("Unable to create directory or parents: a directory name is already in use by a file");
+            else if (!Files.isDirectory(currentFilePath)) { // if directory doesnt exist yet, we will create it, hence that will consume space
+                extraSpaceNeeded += segment.length();
+            }
         }
+        assertHaveEnoughExtraSpace(extraSpaceNeeded);
 
         // actually create the folders
         try {
@@ -336,6 +350,14 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
         return diskStorageId;
     }
 
+    void assertHaveEnoughExtraSpace(int extraSpaceNeeded) {
+        if (extraSpaceNeeded > 0 && // early exit
+            (spaceUsed() + extraSpaceNeeded > totalCapacityBytes)
+        ) {
+            throw new LuaJavaError("not enough space left on device");
+        }
+    }
+
     // ########################### SERIALIZATION ###########################
     @Override
     public byte[] luaSerialize(List<byte[]> serialData, Map<LuaObject, Integer> mappedObjs, Object additionalData) {
@@ -370,7 +392,7 @@ public class ManagedMassStorageUD extends BaseMassStorageUD {
         }
     }
 
-    private long getNameCost(Path realPath) {
+    private int getNameCost(Path realPath) {
         if (realPath.equals(getFsRealBasePath())) // no name-cost for the root folder of the filesystem
             return 0;
 
