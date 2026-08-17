@@ -11,6 +11,7 @@ public class GlobalDataStorage extends SavedData {
 
     private final AtomicInteger nextUniqueStorageId = new AtomicInteger(0);
     private final AtomicInteger nextUefiId = new AtomicInteger(0);
+    private final AtomicInteger nextIpAddress = new AtomicInteger(1);
     public int getNextFreeUniqueStorageId() {
         var rv = nextUniqueStorageId.getAndIncrement();
         setDirty();
@@ -18,6 +19,11 @@ public class GlobalDataStorage extends SavedData {
     }
     public int getNextUefiId() {
         var rv = nextUefiId.getAndIncrement();
+        setDirty();
+        return rv;
+    }
+    public int getUniqueAcIpAddress() {
+        var rv = nextIpAddress.getAndIncrement();
         setDirty();
         return rv;
     }

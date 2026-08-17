@@ -2,6 +2,7 @@ package dev.asdf00.mc.advcomp.blocks.computer;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.BasePeripheralOrHostBlock;
+import dev.asdf00.mc.advcomp.blocks.wan_router.WanRouterBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
@@ -129,6 +130,8 @@ public class ComputerBlock extends BasePeripheralOrHostBlock {
 
     @Override
     public void destroy(@NotNull LevelAccessor pLevel, @NotNull BlockPos pPos, @NotNull BlockState pState) {
+        if(pLevel.getBlockEntity(pPos) instanceof ComputerBlockEntity cbe)
+            cbe.onDestroy();
         super.destroy(pLevel, pPos, pState);
     }
 

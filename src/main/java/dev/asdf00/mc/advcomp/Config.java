@@ -82,6 +82,16 @@ public class Config {
             .worldRestart()
             .define("component.internet.blockLocalIps", true);
 
+    private static final ForgeConfigSpec.IntValue COMPONENT_NETWORK_MAX_PACKET_SIZE = BUILDER
+            .comment("The maximum amount of characters that a single network message can contain.")
+            .worldRestart()
+            .defineInRange("component.network.maxMessageSize", 8192, 1, Integer.MAX_VALUE);
+
+    private static final ForgeConfigSpec.IntValue COMPONENT_NETWORK_TRANSMISSION_SPEED_BLOCKS_PER_SEC = BUILDER
+            .comment("How quickly network packets travel across the world. Given in blocks per second.")
+            .worldRestart()
+            .defineInRange("component.network.transmissionSpeedBlocksPerSecond", 1000, 1, Integer.MAX_VALUE);
+
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
     public static boolean escapeUppercaseCharactersOnHost;
@@ -93,6 +103,8 @@ public class Config {
     public static int audioMaxDistance;
     public static boolean componentInternetHttpEnabled;
     public static boolean componentInternetBlockLocalIPs;
+    public static int componentNetworkMaxPacketSize;
+    public static int componentNetworkTransmissionSpeedBlocksPerSecond;
 
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
@@ -106,5 +118,7 @@ public class Config {
         RuntimeAssert.RuntimeAssert(audioVolume <= 1, "somehow the volume is greater than 1"); // just to avoid some ear-blasting accidents
         componentInternetHttpEnabled = COMPONENT_INTERNET_HTTP_ENABLED.get();
         componentInternetBlockLocalIPs = COMPONENT_INTERNET_BLOCK_LOCAL_IPS.get();
+        componentNetworkMaxPacketSize = COMPONENT_NETWORK_MAX_PACKET_SIZE.get();
+        componentNetworkTransmissionSpeedBlocksPerSecond = COMPONENT_NETWORK_TRANSMISSION_SPEED_BLOCKS_PER_SEC.get();
     }
 }

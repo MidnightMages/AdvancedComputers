@@ -41,6 +41,7 @@ public class ItemModelGenerator extends ItemModelProvider {
         }
 
         basicItem("punchcard");
+        basicItem("debugger");
 
         for (var type : "wood,iron,diamond,netherite,creative".split(",", -1)) {
             var blockType = type.equals("iron") ? "" : ("_" + type);

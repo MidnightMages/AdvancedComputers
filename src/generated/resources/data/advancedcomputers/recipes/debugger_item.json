@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "tag": "forge:ingots/copper"
+    },
+    "D": {
+      "item": "advancedcomputers:device_cable_block"
+    },
+    "I": {
+      "tag": "forge:ingots/iron"
+    },
+    "N": {
+      "item": "advancedcomputers:network_cable_block"
+    },
+    "R": {
+      "item": "minecraft:redstone_torch"
+    }
+  },
+  "pattern": [
+    " R ",
+    "DCN",
+    "III"
+  ],
+  "result": {
+    "item": "advancedcomputers:debugger_item"
+  },
+  "show_notification": true
+}

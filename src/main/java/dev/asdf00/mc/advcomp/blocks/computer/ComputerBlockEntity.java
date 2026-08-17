@@ -1,15 +1,11 @@
 package dev.asdf00.mc.advcomp.blocks.computer;
 
-import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.AudioHandler;
-import dev.asdf00.mc.advcomp.NetCodeUtils;
+import dev.asdf00.mc.advcomp.*;
 import dev.asdf00.mc.advcomp.NetCodeUtils.NetworkMessage;
-import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.api.ClusterHostEntity;
 import dev.asdf00.mc.advcomp.blocks.BaseCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.exceptions.ACError;
-import dev.asdf00.mc.advcomp.items.BaseDataStorageItem;
 import dev.asdf00.mc.advcomp.items.DiskItem;
 import dev.asdf00.mc.advcomp.items.FloppyDiskItem;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
@@ -17,6 +13,8 @@ import dev.asdf00.mc.advcomp.lua.components.AcBlockEntityComponent;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.lua.vm.State;
 import dev.asdf00.mc.advcomp.types.cluster.ClusterType;
+import dev.asdf00.mc.advcomp.types.network.AcNetworkHandler;
+import dev.asdf00.mc.advcomp.types.network.AcNetworkParticipant;
 import dev.asdf00.mc.advcomp.utils.NotifyingItemHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -42,12 +40,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-public class ComputerBlockEntity extends BaseCableConnectableBlockEntity implements MenuProvider, ClusterHostEntity {
+public class ComputerBlockEntity extends BaseCableConnectableBlockEntity implements MenuProvider, ClusterHostEntity, AcNetworkParticipant {
     public final NotifyingItemHandler itemHandler;
     private ComputerTier tier;
     private ComputerBlock block;
@@ -59,12 +58,25 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
     private final Object lockLVM = new Object();
     private boolean isFirstTick = true;
 
+    private static final HashMap<Integer, ComputerBlockEntity> acIpToComputerBlockEntityMap = new HashMap<>();
+    private AcNetworkHandler.NetworkNode netNode;
+    private int acIpAddress = -1;
+
+
 
     // set to STOPPED on first tick to reset block state to indicate stopped LVM
     private final AtomicReference<ComputerBlock.ComputerRunState> newRunState = new AtomicReference<>(ComputerBlock.ComputerRunState.STOPPED);
 
     public void setRunState(ComputerBlock.ComputerRunState rs) {
         newRunState.set(rs);
+    }
+
+    public int getAcIpAddress() {
+        return acIpAddress;
+    }
+
+    public ComputerBlockEntity getComputerBlockEntityForAcIp(int acIp) {
+        return acIpToComputerBlockEntityMap.get(acIp);
     }
 
     void itemHandler_onSlotChanged(int slot) {
@@ -140,6 +152,7 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
                 return 1;
             }
         };
+        netNode = AcNetworkHandler.INSTANCE.registerNewNode(false, this);
     }
 
     private boolean isServer() {
@@ -188,12 +201,18 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
     @Override
     protected void saveAdditional(@NotNull CompoundTag pTag) {
         itemHandler.saveContents(pTag);
+        pTag.putInt("acIpAddress", acIpAddress);
         super.saveAdditional(pTag);
     }
 
     @Override
     public void load(@NotNull CompoundTag pTag) {
         super.load(pTag);
+        int nbtIp = pTag.getInt("acIpAddress"); // returns 0 as default value
+        acIpAddress = nbtIp <= 0 ? -1 : nbtIp;
+        if (acIpAddress > 0)
+            acIpToComputerBlockEntityMap.put(this.acIpAddress, this);
+
         itemHandler.loadContents(pTag);
 
         // cannot init the lvm in here, somehow. Need to do it in onLoad() instead.
@@ -216,6 +235,7 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
                 AdvancedComputers.LOGGER.error("Associated block was not a computer blocK, but instead was somehow %s???".formatted(b.getName()));
             }
             AdvancedComputers.LOGGER.info("ON LOAD COMPUTER Tier: %s".formatted(tier.name()));
+            CableClusterHandler.markBlockPosForUpdate(level, this.getBlockPos());
         }
         lazyItemHandler = LazyOptional.of(() -> itemHandler);
     }
@@ -250,8 +270,8 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
     @Override
     public void onNetworkUpdated() {
         CableCluster deviceCluster = null;
-        CableCluster networkCluster = null;
         HashSet<CableCluster> alreadyProcessed = new HashSet<>();
+        boolean shouldHaveAcIpAddress = false;
         for (var cluster : connectedNetworks.values()) {
             if (!alreadyProcessed.add(cluster)) // skip already processed clusters as multiple faces may show the *same* one
                 continue;
@@ -260,12 +280,8 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
                 if (deviceCluster != null)
                     throw new IllegalStateException("somehow there were multiple device clusters??");
                 deviceCluster = cluster;
-
-            }
-            if (cluster.clusterType == AdvancedComputers.CLUSTER_TYPE_NETWORK) {
-                if (networkCluster != null)
-                    throw new IllegalStateException("somehow there were multiple network clusters??");
-                networkCluster = cluster;
+            } else if (cluster.clusterType == AdvancedComputers.CLUSTER_TYPE_NETWORK) {
+                shouldHaveAcIpAddress = true;
             }
         }
 
@@ -298,6 +314,18 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
                 existingBlockComponents = newComponentsSet;
             }
         }
+
+        boolean hasAcIpAddress = this.acIpAddress != -1;
+        if (hasAcIpAddress != shouldHaveAcIpAddress) {
+            if (!shouldHaveAcIpAddress) {
+                acIpToComputerBlockEntityMap.remove(this.acIpAddress);
+            }
+            acIpAddress = shouldHaveAcIpAddress ? AdvancedComputers.globalDataStorage.getUniqueAcIpAddress() : -1;
+            if (shouldHaveAcIpAddress) {
+                acIpToComputerBlockEntityMap.put(this.acIpAddress, this);
+            }
+        }
+        netNode.computeConnectedNodes(this.connectedNetworks);
     }
 
     // =================================================================================================================
@@ -338,6 +366,16 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
      */
     public void queueSoundForPlayOnClients(AudioHandler.QueuedSound sound) {
         AudioHandler.queueSoundOnClientsAt(level, getBlockPos(), sound);
+    }
+
+    @Override
+    public AcNetworkHandler.NetworkNode getNetworkNode() {
+        return netNode;
+    }
+
+    public void onDestroy() {
+        netNode.deleteAndDeregisterNode();
+        netNode = null;
     }
 
     // =================================================================================================================

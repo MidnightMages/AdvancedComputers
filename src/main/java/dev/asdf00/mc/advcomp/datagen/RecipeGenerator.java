@@ -182,6 +182,15 @@ public class RecipeGenerator extends RecipeProvider {
                 .unlockedBy("item", has(planks))
                 .save(pWriter);
 
+        shaped(AdvancedComputers.NET_ROUTER_BLOCK.blockItem().get())
+                .pattern("WNW")
+                .pattern("NIN")
+                .pattern("WNW")
+                .define('W', planks)
+                .define('N', AdvancedComputers.NETWORK_CABLE_BLOCK.blockItem().get())
+                .define('I', Items.IRON_INGOT)
+                .unlockedBy("item", has(AdvancedComputers.NETWORK_CABLE_BLOCK.blockItem().get()))
+                .save(pWriter);
 
         shaped(AdvancedComputers.MAINBOARD_TIER_1_ITEM.get())
                 .pattern("CXI")
@@ -215,6 +224,15 @@ public class RecipeGenerator extends RecipeProvider {
                 .pattern("CRC")
                 .pattern("WWW")
                 .define('W', Items.BLUE_WOOL)
+                .define('C', Tags.Items.INGOTS_COPPER)
+                .define('R', Tags.Items.DUSTS_REDSTONE)
+                .unlockedBy("item", has(Tags.Items.INGOTS_IRON))
+                .save(pWriter);
+        shaped(AdvancedComputers.NETWORK_CABLE_BLOCK.blockItem().get(), 16)
+                .pattern("WWW")
+                .pattern("CRC")
+                .pattern("WWW")
+                .define('W', Items.CYAN_WOOL)
                 .define('C', Tags.Items.INGOTS_COPPER)
                 .define('R', Tags.Items.DUSTS_REDSTONE)
                 .unlockedBy("item", has(Tags.Items.INGOTS_IRON))
@@ -297,7 +315,17 @@ public class RecipeGenerator extends RecipeProvider {
                 .unlockedBy("item", has(Items.LEVER))
                 .save(pWriter);
 
-
+        shaped(AdvancedComputers.DEBUGGER_ITEM.get())
+                .pattern(" R ")
+                .pattern("DCN")
+                .pattern("III")
+                .define('R', Items.REDSTONE_TORCH)
+                .define('D', AdvancedComputers.DEVICE_CABLE_BLOCK.blockItem().get())
+                .define('N', AdvancedComputers.NETWORK_CABLE_BLOCK.blockItem().get())
+                .define('C', Tags.Items.INGOTS_COPPER)
+                .define('I', Tags.Items.INGOTS_IRON)
+                .unlockedBy("item", has(Tags.Items.INGOTS_COPPER))
+                .save(pWriter);
     }
 
     public record PremadeFloppyInfo(String folderId, String resultFloppyLabel, ItemLike otherIngredient, int color) {}

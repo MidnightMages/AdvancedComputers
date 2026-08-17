@@ -20,7 +20,9 @@
 	"block.advancedcomputers.punchcard_reader_block": "Punchcard Reader",
 	"gui.advancedcomputers.punchcard_reader_block.title": "Punchcard Reader",
 	"item.advancedcomputers.punchcard_item": "Punchcard",
-	
+
+	"item.advancedcomputers.debugger_item": "Debugger",
+
 	"block.advancedcomputers.item_interface_block": "Item Interface",
 	"block.advancedcomputers.redstone_io_block": "Redstone I/O",
 	"block.advancedcomputers.keycard_reader_block": "Keycard Reader",
@@ -32,7 +34,6 @@
 	"block.advancedcomputers.device_cable_block": "Device Cable",
 	"block.advancedcomputers.network_cable_block": "Network Cable",
 
-	"item.advancedcomputers.example_item": "Example Item",
 	"item.advancedcomputers.keycard_basic_item": "Basic %s Keycard",
 	"item.advancedcomputers.keycard_advanced_item": "Advanced %s Keycard",
 	"item.advancedcomputers.floppy_disk_item": "%s Floppy Disk",

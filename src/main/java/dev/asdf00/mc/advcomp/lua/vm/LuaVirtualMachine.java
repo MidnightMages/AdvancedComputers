@@ -28,6 +28,7 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.stream.Collectors;
 
 public class LuaVirtualMachine {
@@ -50,6 +51,7 @@ public class LuaVirtualMachine {
     final LinkedHashSet<TextBufferUD> dirtyBuffers = new LinkedHashSet<>();
     final ConcurrentLinkedQueue<ScreenBlockEntity> dirtyScreenBlockEntities = new ConcurrentLinkedQueue<>();
     private boolean suppressDeviceNetworkUpdate = false;
+    final PriorityBlockingQueue<DelayedQueuedEvent> delayedEventQueue = new PriorityBlockingQueue<>();
 
     public LuaVirtualMachine(ComputerBlockEntity computerBlockEntity) {
         this.computerBlockEntity = computerBlockEntity;
@@ -61,7 +63,38 @@ public class LuaVirtualMachine {
     // =================================================================================================================
 
     public void triggerMachineEvent(String eventName, LuaObject... args) {
+        // If this event is a "network packet received"-event, check if the destination port is actually open.
+        // We do this here instead of during sending, as there is a slight delay between sending and the packet arriving which would open a sidechannel
+        // allowing the receiver to estimate the distance of the sender in certain cases.
+        if (NetworkUD.MESSAGE_RECEIVED_EVENT_NAME.equals(eventName)) {
+            var destinationPortArg = args[1];
+            RuntimeAssert.RuntimeAssert(destinationPortArg.isLong(), "expected this to be the port argument of the network message received event.");
+            var destinationPort = destinationPortArg.asLong();
+            RuntimeAssert.RuntimeAssert(destinationPort >= 0 && destinationPort <= Short.MAX_VALUE, "expected a valid 'short' port value.");
+
+            var netUd = componentReg.getSingleOfType(NetworkUD.class);
+            if (!netUd.canReceivePacketOnPort((int) destinationPort)) {
+                return; // skip event processing
+            }
+        }
         luaComputer.triggerMachineEvent(eventName, args);
+    }
+
+    public void queueDelayedMachineEvent(long delayByMs, String eventName, LuaObject... args) {
+        this.delayedEventQueue.add(new DelayedQueuedEvent(eventName, args, System.currentTimeMillis() + delayByMs));
+    }
+
+    // SOLE CALLER IS LuaSafepointHandler.
+    void processDelayedEventsAtSafepoint() {
+        while (!delayedEventQueue.isEmpty()) { // loop until we have no more elements, or we find an event that we shouldnt emit yet
+            var peek = delayedEventQueue.peek();
+            if (peek.shallEmitNow()) {
+                delayedEventQueue.remove();
+                triggerMachineEvent(peek.eventName, peek.args);
+            } else {
+                break;
+            }
+        }
     }
 
     public void requestScreenContents(ScreenBlockEntity sbe) {
@@ -80,6 +113,17 @@ public class LuaVirtualMachine {
     public State getState() {
         synchronized (state) {
             return state.getState();
+        }
+    }
+
+    private record DelayedQueuedEvent(String eventName, LuaObject[] args, long emitAtEpoch) implements Comparable<DelayedQueuedEvent> {
+        @Override
+        public int compareTo(@NotNull LuaVirtualMachine.DelayedQueuedEvent o) {
+            return Long.compare(emitAtEpoch, o.emitAtEpoch);
+        }
+
+        public boolean shallEmitNow() {
+            return System.currentTimeMillis() >= emitAtEpoch;
         }
     }
 
@@ -125,14 +169,14 @@ public class LuaVirtualMachine {
     }
 
     public void onBlockComponentRemoved(BaseCableConnectableBlockEntity blockEntity) {
-        if (suppressDeviceNetworkUpdate) return;
+        if (suppressDeviceNetworkUpdate || componentReg == null) return;
 
         AdvancedComputers.LOGGER.warn("Removing block component %s".formatted(blockEntity.toString()));
         componentReg.removeAllMatchingComponents(x -> x != null && x.getInventoryOwnerPos().equals(blockEntity.getBlockPos()));
     }
 
     public <T extends BlockEntity & AcBlockEntityComponent> void onBlockComponentAdded(T blockEntity) {
-        if (suppressDeviceNetworkUpdate) return;
+        if (suppressDeviceNetworkUpdate || componentReg == null) return;
 
         AdvancedComputers.LOGGER.warn("Adding block component %s".formatted(blockEntity.toString()));
         var blockEntityUD = blockEntity.createUserdata();
@@ -254,7 +298,7 @@ public class LuaVirtualMachine {
 
             // rebuild device cable cluster just in case
             suppressDeviceNetworkUpdate = true;
-            CableCluster.onBlockPosChangedInternal(computerBlockEntity.getLevel(), computerBlockEntity.getBlockPos(), AdvancedComputers.CLUSTER_TYPE_DEVICE);
+            CableCluster.rebuildDeviceNetImmediately(computerBlockEntity.getLevel(), computerBlockEntity.getBlockPos(), AdvancedComputers.CLUSTER_TYPE_DEVICE);
             suppressDeviceNetworkUpdate = false;
 
             if (tooManyComputersConnected()) {
@@ -272,6 +316,7 @@ public class LuaVirtualMachine {
             // add builtin components
             componentReg.addComponentInitAndNotify(luaComputer, null);
             componentReg.addComponentInitAndNotify(new InternetUD(), null);
+            componentReg.addComponentInitAndNotify(new NetworkUD(), null);
             componentReg.addComponentInitAndNotify(new GpuUD(), null);
 
             // set up inventory components
@@ -354,7 +399,7 @@ public class LuaVirtualMachine {
             AdvancedComputers.LOGGER.info("Trying to load suspended LVM");
 
             // rebuild device cable cluster just in case
-            CableCluster.onBlockPosChangedInternal(computerBlockEntity.getLevel(), computerBlockEntity.getBlockPos(), AdvancedComputers.CLUSTER_TYPE_DEVICE);
+            CableCluster.rebuildDeviceNetImmediately(computerBlockEntity.getLevel(), computerBlockEntity.getBlockPos(), AdvancedComputers.CLUSTER_TYPE_DEVICE);
 
             // initialize state of 'this'
             timeTracker = new LuaSafepointHandler(this, computerBlockEntity.getTier().threadExecutionSleepFactor);

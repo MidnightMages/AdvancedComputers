@@ -267,6 +267,7 @@ public class AdvancedComputers {
     public static final RegistryObject<Item> MAINBOARD_TIER_2_ITEM = RegisterItem("mainboard_tier2_item", () -> new MainboardItem(MainboardItem.MainboardTier.T2));
     public static final RegistryObject<Item> MAINBOARD_TIER_3_ITEM = RegisterItem("mainboard_tier3_item", () -> new MainboardItem(MainboardItem.MainboardTier.T3));
     public static final RegistryObject<Item> PUNCHCARD_ITEM = RegisterItem("punchcard_item", () -> new PunchcardItem(new Item.Properties()));
+    public static final RegistryObject<Item> DEBUGGER_ITEM = RegisterItem("debugger_item", () -> new DebuggerItem(new Item.Properties()));
 
     public static final RegistryObject<CreativeModeTab> creativeTab = CREATIVE_MODE_TABS.register("advanced_computers",
             () -> CreativeModeTab.builder()
@@ -331,6 +332,7 @@ public class AdvancedComputers {
         NetCodeUtils.registerMessage(ScreenBlockEntity.ScreenContentToClientEvent.class, ScreenBlockEntity.ScreenContentToClientEvent::decode);
         NetCodeUtils.registerMessage(PunchcardMachineBlockEntity.SyncToServerEvent.class, PunchcardMachineBlockEntity.SyncToServerEvent::decode);
         NetCodeUtils.registerMessage(PunchcardMachineBlockEntity.SyncToClientEvent.class, PunchcardMachineBlockEntity.SyncToClientEvent::decode);
+        NetCodeUtils.registerMessage(DebuggerItem.ToClientEvent.class, DebuggerItem.ToClientEvent::decode);
 
         MOD_VERSION = ModList.get().getModContainerById(MODID).orElseThrow().getModInfo().getVersion().toString();
         MINECRAFT_VERSION = ModList.get().getModContainerById("minecraft").orElseThrow().getModInfo().getVersion().toString();

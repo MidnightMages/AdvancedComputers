@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "advancedcomputers:net_router"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "item": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "advancedcomputers:network_cable_block"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "item",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "advancedcomputers:net_router"
+    ]
+  },
+  "sends_telemetry_event": false
+}

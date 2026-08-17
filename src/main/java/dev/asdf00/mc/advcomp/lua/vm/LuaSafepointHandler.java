@@ -25,6 +25,7 @@ public class LuaSafepointHandler implements LuaUserData {
     private long lastSafepointTimestamp = 0;
     private long lastCompilationStartedTimestamp = 0;
     private long lastBufferSend = 0;
+    private long lastDelayedEventQueueChecked = 0;
     private final double sleepFactor;
 
     LuaSafepointHandler(LuaVirtualMachine acVm, double sleepFactor) {
@@ -65,6 +66,11 @@ public class LuaSafepointHandler implements LuaUserData {
                     if (sendTextBufferUpdates()) {
                         lastBufferSend = now;
                     }
+                }
+                // check if we need to process delayed events
+                if (now - lastDelayedEventQueueChecked > SECOND / 50) {
+                    acVm.processDelayedEventsAtSafepoint();
+                    lastDelayedEventQueueChecked = now;
                 }
                 // do the timeout calculation
                 long timeSpentNs = (now - lastSafepointTimestamp);

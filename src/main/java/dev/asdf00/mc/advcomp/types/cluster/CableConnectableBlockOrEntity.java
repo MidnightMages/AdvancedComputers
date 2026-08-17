@@ -14,7 +14,7 @@ import java.util.HashMap;
 public interface CableConnectableBlockOrEntity {
     boolean canBePartOfCluster(ClusterType networkType);
     boolean canConnectTo(ClusterType type, Direction side);
-    boolean actsAsCable();
+    boolean actsAsCable(ClusterType clusterType);
     HashMap<Direction, CableCluster> getNetworkList();
     void onNetworkUpdated();
 }

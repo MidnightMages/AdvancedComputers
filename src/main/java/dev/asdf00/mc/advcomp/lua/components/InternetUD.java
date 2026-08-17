@@ -38,6 +38,11 @@ public final class InternetUD extends BaseAcComponent {
     }
 
     @LuaCallable
+    public boolean isConnectedToWan() {
+        return this.acVm.computerBlockEntity.getNetworkNode().isConnectedToWan();
+    }
+
+    @LuaCallable
     public HttpResponseUD sendHttpRequest(String url) {
         return sendHttpRequest(url, "GET", "", LuaObject.NIL);
     }
@@ -56,6 +61,9 @@ public final class InternetUD extends BaseAcComponent {
     public HttpResponseUD sendHttpRequest(String luaUrl, String method, String postData, LuaObject headers) {
         if (!isHttpEnabled())
             throw new LuaJavaError("HTTP is currently not enabled in the server's config!");
+
+        if (!isConnectedToWan())
+            throw new LuaJavaError("This computer cannot reach any WAN router, therefore HTTP is unavailable.");
 
         // =============== URL ===============
         var urlMatcher = Pattern.compile("^(\\w+)://").matcher(luaUrl);

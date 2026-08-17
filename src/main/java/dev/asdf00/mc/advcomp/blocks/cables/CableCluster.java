@@ -4,19 +4,25 @@ import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.api.ClusterHostEntity;
 import dev.asdf00.mc.advcomp.blocks.BaseCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.types.BaseCableBlock;
+import dev.asdf00.mc.advcomp.blocks.cables.types.BpInfo;
 import dev.asdf00.mc.advcomp.types.cluster.CableConnectableBlockOrEntity;
 import dev.asdf00.mc.advcomp.types.cluster.ClusterType;
+import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
+import dev.asdf00.mc.advcomp.utils.Tuple;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 public class CableCluster {
     public final BaseCableConnectableBlockEntity[] connectedEntities; // contains all connected devices
     private final ClusterHostEntity[] connectedHostEntities; // contains all connected devices that implement the interface ClusterHostEntity
     public final ClusterType clusterType;
+    private final int debugId;
+    private static final AtomicInteger next_debugId = new AtomicInteger(0);
 
     /**
      * Gets the host of this cluster if this cluster is valid. Otherwise, this method returns {@code null}.
@@ -50,135 +56,231 @@ public class CableCluster {
         this.connectedEntities = connectedEntities;
         this.connectedHostEntities = connectedHostEntities;
         this.clusterType = clusterType;
+        debugId = next_debugId.getAndIncrement();
     }
 
 
     public static void onBlockPosChanged(Level level, BlockPos initialBp) {
         var clusterTypes = AdvancedComputers.AC_CLUSTER_TYPE_MANAGER.getNetworkTypes();
-        boolean blockWasRemoved = level.getBlockState(initialBp).isAir();
 
-        Consumer<BlockPos> rebuildBp = (BlockPos bp) -> {
-            for (var cType : clusterTypes.values()) {
-                CableCluster.onBlockPosChangedInternal(level, bp, cType);
+        var updatesToEmit = new HashSet<CableConnectableBlockOrEntity>();
+        for (var cType : clusterTypes.values()) {
+            updatesToEmit.addAll(CableCluster.buildSingleNet2(level, initialBp, cType));
+                for (var dir : Direction.values()) {
+                    updatesToEmit.addAll(CableCluster.buildSingleNet2(level, initialBp.relative(dir), cType));
+                }
+        }
+
+        // defer updates as otherwise we tell a computer that the device net changed on load before having figured out the network connectivity,
+        // causing the ip to be reset
+        for (var ent : updatesToEmit)
+            ent.onNetworkUpdated();
+    }
+
+    public static void rebuildDeviceNetImmediately(Level level, BlockPos initialBp, ClusterType clusterType) { // probably is unnecessary anyway
+        // realistically this probably already works for non-devicenet too, but thats the only thing we actually use it for
+        RuntimeAssert.RuntimeAssert(clusterType.equals(AdvancedComputers.CLUSTER_TYPE_DEVICE), "not supported for non-device net");
+        buildSingleNet2(level, initialBp, clusterType);
+    }
+
+    private static BpInfo getInfoAboutBp(Level level, BlockPos bp, ClusterType clusterType) {
+        var blockEntity = level.getBlockEntity(bp);
+        var block = level.getBlockState(bp).getBlock();
+        var isOrActsAsCable = (block instanceof BaseCableBlock bcb && bcb.clusterType.equals(clusterType)) ||
+                              (blockEntity instanceof CableConnectableBlockOrEntity ccbe && ccbe.actsAsCable(clusterType));
+
+        boolean supportsCluster = (block instanceof BaseCableBlock bcb && bcb.clusterType.equals(clusterType)) ||
+                                  (blockEntity instanceof CableConnectableBlockOrEntity ccbe && ccbe.canBePartOfCluster(clusterType));
+
+        return new BpInfo(block, blockEntity, isOrActsAsCable, supportsCluster);
+    }
+
+    private static void forAllDirs(Consumer<Direction> x) {
+        for (var dir : Direction.values())
+            x.accept(dir);
+    }
+
+    // builds and assigns a single network
+    // Algorithm:
+    // rebuild from blockpos:
+    //	switch startposType:
+    //		case cable, blockEntityActsAsCable: --> single network, keep traversing until find a block that doesnt act as cable,
+    //						and assign to all crossed faces and to the face of the blocks that we didnt enter
+    //		case blockEntityNotCable:
+    //					--> 6 networks, start out in every direction. If block is cable then same as cable, otherwise create a net between just those 2 blocks
+    private static HashSet<CableConnectableBlockOrEntity> buildSingleNet2(Level level, BlockPos initialBp, ClusterType clusterType) {
+        var initialInfo = getInfoAboutBp(level, initialBp, clusterType);
+        if (!initialInfo.supportsCurrentCluster())
+            return new HashSet<>();
+
+        if (initialInfo.isOrActsAsCable()) {
+            ArrayList<Tuple<CableConnectableBlockOrEntity, Direction>> facesToAssignCurrentNetTo = new ArrayList<>();
+            ArrayList<Tuple<CableConnectableBlockOrEntity, Direction>> facesThatAreNotConnectedToCurrentClusterType = new ArrayList<>();
+            var clusterBaseCableConnectableEnts = new HashSet<BaseCableConnectableBlockEntity>();
+            var clusterHostBlockEntities = new HashSet<ClusterHostEntity>();
+            var foundActualCableBlocksOfThisType = new HashSet<BlockPos>();
+            // the initial block is either a cable or of type CableConnectableBlockOrEntity
+            var initialBe = initialInfo.blockEntity();
+            var initialBlock = initialInfo.block();
+            var initialIsActualCable = initialBe == null;
+            RuntimeAssert.RuntimeAssert(initialIsActualCable || initialBe instanceof CableConnectableBlockOrEntity, "!initialIsActualCable must imply :CableConnectableBlockOrEntity");
+            RuntimeAssert.RuntimeAssert(!initialIsActualCable || initialBlock instanceof BaseCableBlock, "initialIsActualCable must imply :BaseCableBlock");
+
+            var blockPosProcessingQueue = new ArrayDeque<BlockPos>(); // blockpsoes that we connect to which are or act as a cable
+            blockPosProcessingQueue.add(initialBp);
+            var alreadyProcessedBps = new HashSet<BlockPos>();
+            while (!blockPosProcessingQueue.isEmpty()) {
+                var currBp = blockPosProcessingQueue.remove();
+                var currInfo = getInfoAboutBp(level, currBp, clusterType);
+                RuntimeAssert.RuntimeAssert(currInfo.isOrActsAsCable(), "should be or act as a cable, why would we be traversing otherwise");
+
+                if (currInfo.blockEntity() instanceof BaseCableConnectableBlockEntity cableConnectableBe) {
+                    clusterBaseCableConnectableEnts.add(cableConnectableBe);
+                    if (cableConnectableBe instanceof ClusterHostEntity che && che.isHostForNetwork(clusterType))
+                        clusterHostBlockEntities.add(che);
+                }
+
+                if (currInfo.block() instanceof BaseCableBlock) foundActualCableBlocksOfThisType.add(currBp);
+
+
+                forAllDirs(dir -> {
+                    var newBp = currBp.relative(dir);
+                    var newInfo = getInfoAboutBp(level, newBp, clusterType);
+                    if (!newInfo.supportsCurrentCluster()) {
+                        if (currInfo.blockEntity() instanceof CableConnectableBlockOrEntity entToClearFaceOf)
+                            facesThatAreNotConnectedToCurrentClusterType.add(new Tuple<>(entToClearFaceOf, dir));
+                        return;
+                    }
+
+                    // src always acts as a cable --> just check if dest wants to connect
+                    var doesDestinationWantToConnectToSrc = newInfo.blockEntity() instanceof CableConnectableBlockOrEntity newCcbe &&
+                                                            newCcbe.canBePartOfCluster(clusterType) &&
+                                                            newCcbe.canConnectTo(clusterType, dir.getOpposite());
+                    if (doesDestinationWantToConnectToSrc) { // if dest wants to connect (and source can ofc definitely connect, add connection to whichever supports it)
+                        if (currInfo.blockEntity() instanceof CableConnectableBlockOrEntity ccbe2 && ccbe2.canBePartOfCluster(clusterType)) {
+                            facesToAssignCurrentNetTo.add(new Tuple<>(ccbe2, dir));
+                        }
+
+                        var newCcbe_copy_proven = (CableConnectableBlockOrEntity) newInfo.blockEntity();
+                        if (newCcbe_copy_proven.canBePartOfCluster(clusterType)) {
+                            facesToAssignCurrentNetTo.add(new Tuple<>(newCcbe_copy_proven, dir.getOpposite()));
+                        }
+                    } else if (newInfo.block() instanceof BaseCableBlock bcb && currInfo.blockEntity() instanceof CableConnectableBlockOrEntity blockWeAreComingFrom) {
+                        // if dest doesnt want to connect but is a cable, still track the face on our block if we are a block that wants to track this
+                        assert bcb.clusterType.equals(clusterType);
+                        facesToAssignCurrentNetTo.add(new Tuple<>(blockWeAreComingFrom, dir));
+                    }
+
+                    if (newInfo.isOrActsAsCable()) { // this is a cable --> trace from this startpoint
+                        if (alreadyProcessedBps.add(newBp))
+                            blockPosProcessingQueue.add(newBp); // recurse
+
+                    } else { // this is not a cable, but an entity that needs to be connected --> just track the face
+                        // this means, check if dest wants to connect, and then connect like in last case, but dont recurse
+                        //noinspection ConstantValue
+                        assert newInfo.supportsCurrentCluster();
+
+                        if (doesDestinationWantToConnectToSrc) { // if dest wants to connect (and source can ofc definitely connect, add connection to whichever supports it (already handled before))
+                            if (newInfo.blockEntity() instanceof BaseCableConnectableBlockEntity cableConnectableBe2) {
+                                clusterBaseCableConnectableEnts.add(cableConnectableBe2);
+                                if (cableConnectableBe2 instanceof ClusterHostEntity che2 && che2.isHostForNetwork(clusterType))
+                                    clusterHostBlockEntities.add(che2);
+                            }
+                        }
+                    }
+                });
             }
-        };
-        if (blockWasRemoved) {
-            for (var dir : Direction.values())
-                rebuildBp.accept(initialBp.relative(dir));
-        } else {
-            rebuildBp.accept(initialBp);
+
+            var cluster = new CableCluster(clusterBaseCableConnectableEnts.toArray(BaseCableConnectableBlockEntity[]::new),
+                    clusterHostBlockEntities.toArray(ClusterHostEntity[]::new), clusterType);
+
+            var updatesToEmit = new HashSet<CableConnectableBlockOrEntity>();
+            for (var tpl : facesThatAreNotConnectedToCurrentClusterType) {
+                var ent = tpl.x();
+                var netList = ent.getNetworkList();
+                var existingCluster = netList.get(tpl.y());
+                if (existingCluster != null && existingCluster.getClusterType() == clusterType) { // dont remove other clusters that we didnt touch
+                    netList.remove(tpl.y());
+                    updatesToEmit.add(ent);
+                }
+            }
+
+            for (var tpl : facesToAssignCurrentNetTo) {
+                var ent = tpl.x();
+                ent.getNetworkList().put(tpl.y(), cluster);
+                updatesToEmit.add(ent);
+            }
+            updateCableBlockStates(new ArrayList<>(foundActualCableBlocksOfThisType), cluster.getHostCount() <= 1, level);
+            return updatesToEmit;
+        } else { // is a block entity --> 6 nets
+            // if this is the initial block, clear all nets as we will rebuild them anyway
+//            if (initialInfo.blockEntity() instanceof CableConnectableBlockOrEntity entToClear) // TODO why doesnt this work?
+//                entToClear.getNetworkList().clear();
+            boolean[] runNetworkUpdate = new boolean[]{false};
+            var rv = new HashSet<CableConnectableBlockOrEntity>();
+            forAllDirs(dir -> {
+                var neighborPos = initialBp.relative(dir);
+                var neighborInfo = getInfoAboutBp(level, neighborPos, clusterType);
+                // if the neighbor isnt an interesting face, simply remove our network and be done
+                if (!neighborInfo.supportsCurrentCluster()) {
+                    if (initialInfo.blockEntity() instanceof BaseCableConnectableBlockEntity ent) { // clear existing net if the face doesnt support it
+                        var existingCluster = ent.getNetworkList().get(dir);
+                        if (existingCluster != null && existingCluster.clusterType == clusterType) {
+                            ent.getNetworkList().remove(dir);
+                            runNetworkUpdate[0] = true;
+                        }
+                    }
+                    return;
+                }
+
+                // if it does, its either a cable or a block entity
+                var neighborIsActualCable = neighborInfo.blockEntity() == null;
+                RuntimeAssert.RuntimeAssert(neighborIsActualCable || neighborInfo.blockEntity() instanceof CableConnectableBlockOrEntity,
+                        "!initialIsActualCable must imply :CableConnectableBlockOrEntity");
+
+                RuntimeAssert.RuntimeAssert(!neighborIsActualCable || neighborInfo.block() instanceof BaseCableBlock,
+                        "initialIsActualCable must imply :BaseCableBlock");
+
+                if (neighborIsActualCable) { // if it is a cable, just rebuilt from there
+                    rv.addAll(buildSingleNet2(level, neighborPos, clusterType));
+                } else { // if it is a block entity, spawn a network that connects just those two and assign it
+                    var connectedEntities = new BaseCableConnectableBlockEntity[]{
+                            (BaseCableConnectableBlockEntity) initialInfo.blockEntity(),
+                            (BaseCableConnectableBlockEntity) neighborInfo.blockEntity()
+                    };
+
+                    var cluster2 = new CableCluster(connectedEntities, Arrays.stream(connectedEntities)
+                            .filter(x -> x instanceof ClusterHostEntity che && che.isHostForNetwork(clusterType))
+                            .map(x -> ((ClusterHostEntity) x))
+                            .toArray(ClusterHostEntity[]::new),
+                            clusterType);
+
+                    connectedEntities[0].getNetworkList().put(dir, cluster2);
+                    connectedEntities[1].getNetworkList().put(dir.getOpposite(), cluster2);
+                    rv.add(connectedEntities[0]);
+                    rv.add(connectedEntities[1]);
+                    RuntimeAssert.RuntimeAssert(connectedEntities[0] != connectedEntities[1], "what?");
+                }
+            });
+            if (runNetworkUpdate[0]) {
+                if (initialInfo.blockEntity() instanceof BaseCableConnectableBlockEntity ent) {
+                    rv.add(ent);
+                } else {
+                    throw new IllegalStateException("should be unreachable");
+                }
+            }
+            return rv;
         }
     }
 
-    public static void onBlockPosChangedInternal(Level level, BlockPos initialBp, ClusterType clusterType) {
-        // what this does is:
-        // assume the given blockpos initialBp has been changing, meaining one of the following:
-        // computer, cable or CableConnectableBlockOrEntity was added, removed or somehow replaced
-        // approach:
-        //    (not implemented yet) if added: simply rebuild network from current initialBp
-        //    otherwise: this network and let the host know that it has changed
-        // whenever a network rebuild discovers a AcBaseCableConnectableBlockEntity, the network is read from that block and it is wiped off of any devices on that network
-        var blockPosesToCheck = new ArrayDeque<BlockPos>();
-        Consumer<BlockPos> addNeighbors = (BlockPos bp) -> {
-            var sourceBlock = level.getBlockEntity(bp);
-            for (var dir : Direction.values()) {
-                var newBp = bp.relative(dir);
-                var newlyAddedBlock = level.getBlockEntity(newBp);
-                var cantConnect = (sourceBlock instanceof CableConnectableBlockOrEntity sourceCableOrBlockEnt && // if source block doesnt allow connecting on that side
-                    !sourceCableOrBlockEnt.canConnectTo(clusterType, dir)
-                    ||
-                    (newlyAddedBlock instanceof CableConnectableBlockOrEntity newlyAddedCableOrBlockEnt) && // or same for dest block
-                    !newlyAddedCableOrBlockEnt.canConnectTo(clusterType, dir.getOpposite()));
-
-                if (!cantConnect) // if we can connect, add the block
-                    blockPosesToCheck.push(newBp);
-            }
-        };
-        blockPosesToCheck.push(initialBp);
-
-        HashSet<BlockPos> alreadyCheckedPoses = new HashSet<>();
-        HashSet<BlockPos> foundActualCableBlocksOfThisType = new HashSet<>();
-        HashSet<BlockPos> foundCableLikeBlocksOfThisType = new HashSet<>();
-        HashMap<BaseCableConnectableBlockEntity, BlockPos> foundEntities = new HashMap<>();
-        while (!blockPosesToCheck.isEmpty()) {
-            var currentBlockPos = blockPosesToCheck.remove(); // startpoint for an initial rebuild
-
-            if (alreadyCheckedPoses.contains(currentBlockPos))
-                continue;
-            alreadyCheckedPoses.add(currentBlockPos);
-
-            // do not check positions that are not loaded as that would forcefully load the chunk
-            if (!level.isLoaded(currentBlockPos))
-                continue;
-
-            var block = level.getBlockState(currentBlockPos).getBlock();
-            if (block instanceof BaseCableBlock cableBlock) { // if this is an actual cable
-                if (!cableBlock.clusterType.equals(clusterType)) { // if wrong type, ignore it
-                    continue;
-                }
-                foundActualCableBlocksOfThisType.add(currentBlockPos);
-                addNeighbors.accept(currentBlockPos);
-                foundCableLikeBlocksOfThisType.add(currentBlockPos); // for keeping track of which faces of a block we are connecting to
-
-                continue; // if this is a cable, it cannot be a computer or peripheral, etc.
-            }
-
-            var currentBlockEntity = level.getBlockEntity(currentBlockPos);
-            if (currentBlockEntity == null) // if there is no tileentity then we can skip this startpoint
-                continue;
-
-            // if this block does not support interacting with cables then we are done
-            if (!(currentBlockEntity instanceof CableConnectableBlockOrEntity baseCableConnectableEntity))
-                continue;
-
-            // if this startpoint does not support this cluster type then we are done
-            if (!baseCableConnectableEntity.canBePartOfCluster(clusterType))
-                continue;
-
-            foundCableLikeBlocksOfThisType.add(currentBlockPos); // for keeping track of which faces of a block we are connecting to
-
-
-            if (baseCableConnectableEntity instanceof BaseCableConnectableBlockEntity cableConnectableBe) {
-                // TODO TODO postpone this via foundEntities
-                //cableConnectableBe.getNetworkList().clear(); // TODO let the block know if a face was cleared and not actually re-discovered and restored
-                foundEntities.put(cableConnectableBe, currentBlockPos);
-
-                if (cableConnectableBe.actsAsCable()) {
-                    addNeighbors.accept(currentBlockPos);
-                }
-            }
-        }
-
-        var newCluster = new CableCluster(foundEntities.keySet().toArray(BaseCableConnectableBlockEntity[]::new),
-                foundEntities.keySet().stream()
-                        .filter(x -> x instanceof ClusterHostEntity host && host.isHostForNetwork(clusterType))
-                        .map(x -> ((ClusterHostEntity) x)).toArray(ClusterHostEntity[]::new),
-                clusterType);
-
-        for (var foundBlockEntity : foundEntities.keySet()) {
-            var entityBlockPos = foundEntities.get(foundBlockEntity);
-            var netList = foundBlockEntity.getNetworkList();
-            if (foundBlockEntity.actsAsCable()) { // if this acts as a cable then we can simply clear all networks
-                netList.clear();
-            } else { // otherwise we need to clear networks as they disconnect
-                throw new IllegalStateException("not implemented yet");
-            }
-
-            for (var dir : Direction.values()) {
-                if (foundCableLikeBlocksOfThisType.contains(entityBlockPos.relative(dir))) {
-                    netList.put(dir, newCluster);
-                }
-            }
-            foundBlockEntity.onNetworkUpdated();
-        }
-
-        UpdateCableBlockStates(new ArrayList<>(List.of(foundActualCableBlocksOfThisType.toArray(BlockPos[]::new))), newCluster.getHostCount() <= 1, level);
-    }
-
-    private static void UpdateCableBlockStates(ArrayList<BlockPos> connectedCables, boolean netIsOk, Level level) {
+    private static void updateCableBlockStates(ArrayList<BlockPos> connectedCables, boolean netIsOk, Level level) {
         for (var c : connectedCables) {
             var bs = level.getBlockState(c).setValue(BaseCableBlock.NETWORK_ERROR, !netIsOk);
             level.setBlock(c, bs, 2); // flags: 2 = sendToClient (NO block update)
         }
+    }
+
+    public int getDebugId() {
+        return this.debugId;
     }
 }
