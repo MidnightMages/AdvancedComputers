@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.Queue;
+import java.util.function.Supplier;
 
 public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEntity> {
 
@@ -26,6 +27,10 @@ public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEnt
         super("adapter", acVm, isAccessible, blockEntity);
     }
 
+    public <T> T runOnTickThread(Supplier<T> toExecute) {
+        return blockEntity.runOnTickThread(toExecute);
+    }
+
     @LuaCallable
     public String getBlockName() {
         var posToQuery = getTargetPosition();
@@ -33,9 +38,18 @@ public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEnt
         return "%s@[%s]".formatted(ForgeRegistries.BLOCKS.getKey(bs.getBlock()).toString(), posToQuery.toShortString()); // TODO remove debug coords
     }
 
-    private @NotNull BlockPos getTargetPosition() {
+    public @NotNull BlockPos getTargetPosition() {
         var direction = Direction.from3DDataValue(this.blockEntity.getBlockState().getValue(AdapterBlock.FACING).get3DDataValue());
         return blockEntity.getBlockPos().relative(direction);
+    }
+
+    @Override
+    public LuaObject luaGeneralGet(LuaObject key) throws LuaJavaError {
+        return super.luaGeneralGet(key);
+    }
+
+    public LuaObject[] generalCall(String key, LuaObject... args) {
+        return null;
     }
 
     @LuaCallable
