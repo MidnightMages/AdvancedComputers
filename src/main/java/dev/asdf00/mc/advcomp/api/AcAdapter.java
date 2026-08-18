@@ -22,8 +22,6 @@ public @interface AcAdapter {
     @interface Method {
         boolean isAbstract() default false;
 
-        boolean isVirtual() default false;
-
         String name() default "";
     }
 
@@ -32,8 +30,6 @@ public @interface AcAdapter {
     @interface PropertyGet {
         boolean isAbstract() default false;
 
-        boolean isVirtual() default false;
-
         String name() default "";
     }
 
@@ -41,8 +37,6 @@ public @interface AcAdapter {
     @Retention(RetentionPolicy.RUNTIME)
     @interface PropertySet {
         boolean isAbstract() default false;
-
-        boolean isVirtual() default false;
 
         String name() default "";
     }
