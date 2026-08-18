@@ -32,13 +32,18 @@ public final class InternetUD extends BaseAcComponent {
         super("internet", acVm, true);
     }
 
-    @LuaCallable
-    public boolean isHttpEnabled() {
+    @SuppressWarnings("unused")
+    @LuaExposed(LuaExposed.Policy.READ)
+    public final LuaProperty isHttpEnabled = LuaProperty.ofBoolean(this::isHttpEnabled, null);
+
+    @SuppressWarnings("unused")
+    @LuaExposed(LuaExposed.Policy.READ)
+    public final LuaProperty isConnectedToWan = LuaProperty.ofBoolean(this::isConnectedToWan, null);
+
+    private boolean isHttpEnabled() {
         return Config.componentInternetHttpEnabled;
     }
-
-    @LuaCallable
-    public boolean isConnectedToWan() {
+    private boolean isConnectedToWan() {
         return this.acVm.computerBlockEntity.getNetworkNode().isConnectedToWan();
     }
 
