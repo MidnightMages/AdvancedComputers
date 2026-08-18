@@ -15,7 +15,7 @@ Currently adds programmable computers into Minecraft, along with screens, periph
 **For server owners:**
 As far as resource usage goes, we are only setting up a lua execution environment per computer and **not** an entire virtual machine, meaning these computers have a very low ram and disk space requirement.
 
-Cpu time limiting based on computer tier is implemented, whereas ram & disk usage limiting currently is not.
+Cpu time limiting based on computer tier is implemented. Disk usage is limited too, but ram usage is currently not limited.
 
 ### Finding your way around
 The included OS (Advanced OS) comes with the basic commands such as `ls`, `rm` and even a text editor called `nano`, inspired by the GNU nano. Additionally there is also `pasteTextToFile`, which listens for pasted-text (paste via middle mouse button) and then writes that into the specified file. E.g. `pasteToFile someFile.lua`.
@@ -28,14 +28,14 @@ This combined with looking at the existing uefi.lua and operating system, both l
 
 You can also find the current mod and minecraft version in the global `_HOST` variable. E.g `AdvancedComputers 0.1.2-alpha; Minecraft 1.20.1`.
 
-### Planned stuff (for deeming the mod fit for Beta):
-- ~~Make the OS more usable (including rewriting the kernel), as currently it is very very bare (though does contain the `ls` and `lua` programs)~~
-- ~~Making a wiki on https://wiki.ac.ghxx.dev/ that lists & describes all the api functions~~
-- Finish adding anything that is missing from the Lua standard library (most notably some edgecase features in pattern matching, i.e. edgecases in string.gsub and related functions, though they mostly work)
-- Sending network packets between ingame computers (with some intelligent packet handling to avoid having to write a custom ingame IP protocol) 
+### Planned stuff:
+- ~~Make the OS more usable (including rewriting the kernel), as currently it is very very bare (though does contain the `ls` and `lua` programs)~~ (DONE)
+- ~~Making a wiki on https://wiki.ac.ghxx.dev/ that lists & describes all the api functions~~ (DONE)
+- ~~Sending network packets between ingame computers (with some intelligent packet handling to avoid having to write a custom ingame IP protocol)~~ (DONE)
+- ~~Make disk space limited and~~ (DONE)
 - Interaction with more minecraft blocks
-- Make disk space limited and add a soft computer ram limit
-- Adding ingame networking (computer to computer)
+- Add a soft computer ram limit
+- Finish adding anything that is missing from the Lua standard library (most notably some edgecase features in pattern matching, i.e. edgecases in string.gsub and related functions, though they mostly work)
 - Adding more fun stuff like servers, etc.
 
 ## Downloading
@@ -57,6 +57,8 @@ Feel free to use JLuaVm for another Minecraft mod too, as that is licensed as MI
 
 ## Contributing
 Bugfixes are always welcome in the form of Pull-Requests (For the mod and JLuaVm). For adding new features in the form of a PR, please get in touch with us on Discord (see link above) first to avoid doing duplicate work, etc (especially before the mod is content complete).
+
+If you would like to contribute to the wiki at <https://wiki.ac.ghxx.dev>, please join our Discord server and reach out to us.
 
 ## Lua 5.4 details
 This mod internally relies on another project of ours, which we solely started because of the lack of java-based Lua runtimes that also support state serialization.
