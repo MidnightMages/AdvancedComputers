@@ -38,7 +38,7 @@ package.path ="/lib/?.lua:/lib/?/init.lua"
 -- package.path ="/lib/?.lua:/lib/?/init.lua:./?.lua:./?/init.lua" TODO fix local paths
 -- TODO make findDriveAndDrivePath work with paths starting with ./, by taking current_process.currentWorkingDirectory into account
 
-local bootDrive = _ENV.bootDrive
+local bootDrive = _ENV.__UEFI.bootDrive
 assert(bootDrive, "BOOTLOADER: undefined boot drive")
 
 -- init modules before we have a filesystem set up

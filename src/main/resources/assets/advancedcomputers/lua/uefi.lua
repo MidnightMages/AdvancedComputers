@@ -17,8 +17,9 @@ _ENV = {
     setReboot
 }
 ]]
-print("heartbeat")
+print("starting...")
 
+__UEFI = {}
 local SLEEP_TIME <const> = 3
 
 
@@ -81,7 +82,7 @@ stackTraceOnCrash = not not stackTraceOnCrash
 -- init boot function
 local function bootFromMedium(medium)
     assert(type(medium)=="userdata", "attempted to boot from non-userdata drive")
-    _ENV.bootDrive = medium -- set boot drive
+    __UEFI.bootDrive = medium -- set boot drive
     local bootHandle = medium:open("boot.lua")
     local code = bootHandle:read(-1)
     bootHandle:close()
