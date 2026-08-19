@@ -1,6 +1,7 @@
 package dev.asdf00.mc.advcomp.items;
 
 import dev.asdf00.mc.advcomp.NetCodeUtils;
+import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlock;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.types.cluster.CableConnectableBlockOrEntity;
@@ -24,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.function.Function;
 
@@ -69,23 +71,28 @@ public class DebuggerItem extends Item {
             }
             if (be instanceof CableConnectableBlockOrEntity cableConnectable) {
                 StringBuilder clusterInfo = new StringBuilder("§6-- Connected Clusters --§r");
-                boolean anyClustersFound = false;
+                var alreadyPrinted = new HashSet<CableCluster>();
                 for (var dir : Direction.values()) {
                     var connectedCluster = cableConnectable.getNetworkList().get(dir);
                     if (connectedCluster != null) {
-                        var sideInfo = "[%s %d] %d participant(s): %s".formatted(
-                                connectedCluster.getClusterType().getClusterName(), connectedCluster.getDebugId(),
-                                connectedCluster.getEntityCount(),
-                                String.join(", ", Arrays.stream(connectedCluster.connectedEntities)
-                                        .map(x->x==cableConnectable ? "§dself§r" : getBlockName.apply(x.getBlockState().getBlock()))
-                                        .toArray(String[]::new)
-                                )
-                        );
-                        clusterInfo.append("\n§3%s:§r %s".formatted(dir.getName(), sideInfo));
-                        anyClustersFound = true;
+                        var prefix = "[%s %d]".formatted(connectedCluster.getClusterType().getClusterName(), connectedCluster.getDebugId());
+                        if (alreadyPrinted.add(connectedCluster)) {
+                            var sideInfo = "%s %d participant(s): %s".formatted(
+                                    prefix,
+                                    connectedCluster.getEntityCount(),
+                                    String.join(", ", Arrays.stream(connectedCluster.connectedEntities)
+                                            .map(x -> x == cableConnectable ? "§dself§r" : getBlockName.apply(x.getBlockState().getBlock()))
+                                            .toArray(String[]::new)
+                                    )
+                            );
+                            clusterInfo.append("\n§3%s:§r %s".formatted(dir.getName(), sideInfo));
+                        } else {
+                            clusterInfo.append("\n§3%s:§r %s".formatted(dir.getName(), prefix));
+                        }
                     }
                 }
-                if (!anyClustersFound) {
+
+                if (alreadyPrinted.isEmpty()) { // if we didnt find any clusters
                     clusterInfo = new StringBuilder("§6-- Connected Clusters:§r None");
                 }
                 messageToSend += "\n" + clusterInfo;
