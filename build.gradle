@@ -52,7 +52,7 @@ repositories {
         url = "https://modmaven.dev"
     }
     maven {
-        url "https://maven2.bai.lol"
+        url = "https://maven2.bai.lol"
         content {
             includeGroup "lol.bai"
             includeGroup "mcp.mobius.waila"
@@ -140,11 +140,14 @@ dependencies {
 
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
-    compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
-    compileOnly "mezz.jei:jei-${mc_version}-neoforge-api:${jei_version}"
+    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
     // We add the full version to localRuntime, not runtimeOnly, so that we do not publish a dependency on it
-    localRuntime "mezz.jei:jei-${mc_version}-neoforge:${jei_version}"
+    localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
 
+	// run against the full jar
+	  runtimeOnly "mcp.mobius.waila:wthit:neo-${wthitVersion}"
+	  runtimeOnly "lol.bai:badpackets:neo-${badpacketsVersion}"
     // Example mod dependency using a mod jar from ./libs with a flat dir repository
     // This maps to ./libs/coolmod-${mc_version}-${coolmod_version}.jar
     // The group id is ignored when searching -- in this case, it is "blank"
@@ -193,7 +196,7 @@ publishing {
     }
     repositories {
         maven {
-            url "file://${project.projectDir}/repo"
+            url = "file://${project.projectDir}/repo"
         }
     }
 }

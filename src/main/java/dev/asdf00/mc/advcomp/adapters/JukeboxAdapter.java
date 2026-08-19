@@ -5,7 +5,6 @@ import dev.asdf00.mc.advcomp.api.AcAdapter;
 import dev.asdf00.mc.advcomp.api.AcAdapterContext;
 import net.minecraft.world.level.block.JukeboxBlock;
 import net.minecraft.world.level.block.entity.JukeboxBlockEntity;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Objects;
 
@@ -28,7 +27,7 @@ public final class JukeboxAdapter {
         return ctx.adapter().runOnTickThread(() -> {
             var be = ctx.lvl().getBlockEntity(ctx.pos());
             if (be instanceof JukeboxBlockEntity jbe) {
-                var is = jbe.getFirstItem();
+                var is = jbe.getTheItem();
                 if (is.isEmpty()) {
                     return "";
                 }

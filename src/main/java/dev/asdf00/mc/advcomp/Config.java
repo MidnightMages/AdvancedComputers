@@ -6,6 +6,8 @@ import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.neoforged.fml.config.IConfigSpec;
+import net.neoforged.neoforge.common.NeoForgeConfig;
 
 @Mod.EventBusSubscriber(modid = AdvancedComputers.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Config {
@@ -92,7 +94,7 @@ public class Config {
             .worldRestart()
             .defineInRange("component.network.transmissionSpeedBlocksPerSecond", 1000, 1, Integer.MAX_VALUE);
 
-    static final ForgeConfigSpec SPEC = BUILDER.build();
+    static final IConfigSpec<?> SPEC = BUILDER.build();
 
     public static boolean escapeUppercaseCharactersOnHost;
     public static boolean luaVmCache2Enabled;

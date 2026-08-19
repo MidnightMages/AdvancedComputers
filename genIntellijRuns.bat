@@ -1,1 +1,1 @@
-gradlew.bat genIntellijRuns
+gradlew.bat idea

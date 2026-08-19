@@ -11,10 +11,10 @@ import dev.asdf00.mc.advcomp.lua.components.BaseAcBlockEntityComponentUD;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.RecordItem;
 import net.minecraft.world.level.block.NoteBlock;
 import net.minecraft.world.level.block.entity.JukeboxBlockEntity;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -39,7 +39,7 @@ public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEnt
     public String getBlockName() {
         var posToQuery = getTargetPosition();
         var bs = blockEntity.getLevel().getBlockState(posToQuery);
-        return "%s@[%s]".formatted(ForgeRegistries.BLOCKS.getKey(bs.getBlock()).toString(), posToQuery.toShortString()); // TODO remove debug coords
+        return "%s@[%s]".formatted(BuiltInRegistries.BLOCK.getKey(bs.getBlock()).toString(), posToQuery.toShortString()); // TODO remove debug coords
     }
 
     public @NotNull BlockPos getTargetPosition() {
@@ -76,11 +76,11 @@ public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEnt
             var posToQuery = getTargetPosition();
             var be = this.blockEntity.getLevel().getBlockEntity(posToQuery);
             if (be instanceof JukeboxBlockEntity jbe) {
-                var is = jbe.getFirstItem();
+                var is = jbe.getTheItem();
                 if (is.isEmpty()) {
                     return "";
                 }
-                return Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(is.getItem())).toString();
+                return Objects.requireNonNull(BuiltInRegistries.ITEM.getKey(is.getItem())).toString();
             } else {
                 throw new LuaJavaError("not pointing at a jukebox");
             }
@@ -106,13 +106,13 @@ public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEnt
             var posToQuery = getTargetPosition();
             var be = this.blockEntity.getLevel().getBlockEntity(posToQuery);
             if (be instanceof JukeboxBlockEntity jbe) {
-                var firstItem = jbe.getFirstItem();
+                var firstItem = jbe.getTheItem();
                 if (firstItem.isEmpty())
                     return null;
                 if (firstItem.getItem() instanceof RecordItem re) {
                     return re.getDisplayName().getString();
                 }
-                return jbe.getFirstItem().toString();
+                return firstItem.toString();
             } else {
                 throw new LuaJavaError("not pointing at a jukebox");
             }
