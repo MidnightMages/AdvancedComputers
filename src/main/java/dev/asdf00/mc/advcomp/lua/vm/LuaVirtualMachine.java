@@ -469,6 +469,11 @@ public class LuaVirtualMachine {
                     }
                     case EXECUTION_ERROR -> {
                         state.crash();
+                        stopCode = "\n" + Arrays.stream(res.returnVars())
+                                .filter(LuaObject::isString)
+                                .map(LuaObject::getString)
+                                .collect(Collectors.joining("\n"));
+
                         AdvancedComputers.LOGGER.error("vm exited with error: %s".formatted(res.toString().replace("\\n", "\n")));
                     }
                     case PAUSED -> {
