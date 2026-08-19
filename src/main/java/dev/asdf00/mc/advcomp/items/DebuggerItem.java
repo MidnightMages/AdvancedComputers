@@ -64,7 +64,7 @@ public class DebuggerItem extends Item {
                 }
                 computerInfo.append("State: %s".formatted(runState));
                 int ipAddress = computerBlockEntity.getAcIpAddress();
-                computerInfo.append(", AcIpAddress: §7%s§r".formatted(ipAddress <= 0 ? "NONE" : MiscUtil.AcIpToString(ipAddress)));
+                computerInfo.append("\nAcIpAddress: §7%s§r".formatted(ipAddress <= 0 ? "NONE" : MiscUtil.AcIpToString(ipAddress)));
                 messageToSend += "\n" + computerInfo;
             }
             if (be instanceof CableConnectableBlockOrEntity cableConnectable) {
@@ -90,6 +90,7 @@ public class DebuggerItem extends Item {
                 }
                 messageToSend += "\n" + clusterInfo;
             }
+            messageToSend = messageToSend.replace("\t", "  ");
             NetCodeUtils.sendToClient(PacketDistributor.PLAYER.with(() -> ((ServerPlayer) pContext.getPlayer())), new ToClientEvent(messageToSend));
         }
         return InteractionResult.sidedSuccess(level.isClientSide);

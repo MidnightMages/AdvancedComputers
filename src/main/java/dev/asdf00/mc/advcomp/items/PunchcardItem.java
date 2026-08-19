@@ -23,10 +23,13 @@ public class PunchcardItem extends Item {
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack pStack, @Nullable Level pLevel, List<Component> pTooltipComponents, @NotNull TooltipFlag pIsAdvanced) {
+    public void appendHoverText(@NotNull ItemStack pStack, @Nullable Level pLevel, @NotNull List<Component> pTooltipComponents, @NotNull TooltipFlag pIsAdvanced) {
         var data = getData(pStack);
         var text = data == null ? "§4NONE!§r" : data;
-        pTooltipComponents.add(Component.literal("Stamped instructions: %s".formatted(text)));
+
+        for (var line : "Stamped instructions: %s".formatted(text).split("\n")) {
+            pTooltipComponents.add(Component.literal(line));
+        }
         super.appendHoverText(pStack, pLevel, pTooltipComponents, pIsAdvanced);
     }
 
