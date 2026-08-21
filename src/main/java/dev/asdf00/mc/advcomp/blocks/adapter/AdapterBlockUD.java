@@ -35,6 +35,13 @@ public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEnt
         return blockEntity.runOnTickThread(toExecute);
     }
 
+    public void runOnTickThread(Runnable toExecute) {
+        runOnTickThread(() -> {
+            toExecute.run();
+            return null;
+        });
+    }
+
     @LuaCallable
     public String getBlockName() {
         var posToQuery = getTargetPosition();
