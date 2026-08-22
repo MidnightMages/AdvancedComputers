@@ -56,6 +56,16 @@ public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEnt
         throw new LuaJavaError("not implemented"); // TODO implement
     }
 
+    @Override
+    public String[] getExtraReadableUdKeys() {
+        return super.getExtraReadableUdKeys(); // TODO implement
+    }
+
+    @Override
+    public String[] getExtraWritableUdKeys() {
+        return super.getExtraWritableUdKeys(); // TODO implement
+    }
+
     public LuaObject[] generalCall(String key, LuaObject... args) {
         return null;
     }
