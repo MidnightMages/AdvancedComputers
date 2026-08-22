@@ -12,6 +12,7 @@ import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.RecordItem;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.NoteBlock;
 import net.minecraft.world.level.block.entity.JukeboxBlockEntity;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -40,6 +41,10 @@ public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEnt
             toExecute.run();
             return null;
         });
+    }
+
+    public void rebuildCompanion(Class<? extends Block> blockClass) {
+
     }
 
     @LuaCallable
@@ -214,6 +219,8 @@ public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEnt
 
     @LuaDeserializer
     public static AdapterBlockUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
-        return genericDeserialize(AdapterBlockEntity.class, AdapterBlockUD::new, objs, reader, postActions, additionalData);
+        var rv = genericDeserialize(AdapterBlockEntity.class, AdapterBlockUD::new, objs, reader, postActions, additionalData);
+        rv.getBlockEntity().setNewUD(rv);
+        return rv;
     }
 }

@@ -7,6 +7,7 @@ import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 import dev.asdf00.mc.advcomp.types.cluster.ClusterType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
@@ -17,10 +18,18 @@ public class AdapterBlockEntity extends BasePeripheralComponentBlockEntity imple
     public AdapterBlockEntity(BlockPos pPos, BlockState pBlockState) {
         super(AdvancedComputers.ADAPTER_BE.get(), pPos, pBlockState);
     }
+    private AdapterBlockUD currentUD = null;
+
+    public void setNewUD(AdapterBlockUD rv) {
+        currentUD.makeObjectInaccessible();
+        currentUD = rv;
+    }
 
     @Override
     public LuaUserDataComponent createUserdata() {
-        return new AdapterBlockUD(this);
+        var rv = new AdapterBlockUD(this);
+        setNewUD(rv);
+        return rv;
     }
 
     @Override
@@ -37,5 +46,16 @@ public class AdapterBlockEntity extends BasePeripheralComponentBlockEntity imple
             return super.getCapability(cap, side);
 
         return LazyOptional.empty();
+    }
+
+    public void rebuildCompanion() {
+        var blockClass = level.getBlockState(getBlockPos().relative(getBlockState().getValue(AdapterBlock.FACING))).getBlock().getClass();
+        currentUD.rebuildCompanion(blockClass);
+    }
+
+    @Override
+    public void load(CompoundTag pTag) {
+        super.load(pTag);
+        rebuildCompanion();
     }
 }

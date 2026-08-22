@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 
 public class AdapterBlock extends BasePeripheralOrHostBlock {
     public static final DirectionProperty FACING = DirectionProperty.create("facing");
@@ -28,6 +29,13 @@ public class AdapterBlock extends BasePeripheralOrHostBlock {
         super(pProperties);
         registerDefaultState(this.stateDefinition.any()
                 .setValue(FACING, Direction.NORTH));
+    }
+
+    @Override
+    public void neighborChanged(BlockState pState, @NotNull Level pLevel, BlockPos pPos, @NotNull Block pNeighborBlock, @NotNull BlockPos pNeighborPos, boolean pMovedByPiston) {
+        if (pNeighborPos == pPos.relative(pState.getValue(FACING))) {
+            ((AdapterBlockEntity) Objects.requireNonNull(pLevel.getBlockEntity(pPos))).rebuildCompanion();
+        }
     }
 
     @Override
