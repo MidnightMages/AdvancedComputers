@@ -5,6 +5,10 @@ import dev.asdf00.jluavm.LuaVM;
 import dev.asdf00.jluavm.internals.javac.PersistentJavaCompilationCache;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.api.ClusterTypeManager;
+import dev.asdf00.mc.advcomp.blocks.auto_crafter.AutoCrafterBlock;
+import dev.asdf00.mc.advcomp.blocks.auto_crafter.AutoCrafterBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.auto_crafter.AutoCrafterBlockMenu;
+import dev.asdf00.mc.advcomp.blocks.auto_crafter.AutoCrafterBlockScreen;
 import dev.asdf00.mc.advcomp.blocks.cables.DeviceCableBlock;
 import dev.asdf00.mc.advcomp.blocks.cables.NetworkCableBlock;
 import dev.asdf00.mc.advcomp.blocks.cables.model.CableModelLoader;
@@ -153,6 +157,9 @@ public class AdvancedComputers {
     public static final RegistryBlockItemPair<Block> MAINBOARD_PROGRAMMER_BLOCK = registerBlockWithItem("mainboard_programmer_block",
             () -> new MainboardProgrammerBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
 
+    public static final RegistryBlockItemPair<Block> AUTO_CRAFTER_BLOCK = registerBlockWithItem("auto_crafter_block",
+            () -> new AutoCrafterBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
+
     public static final RegistryBlockItemPair<Block> PUNCHCARD_MACHINE_BLOCK = registerBlockWithItem("punchcard_machine_block",
             () -> new PunchcardMachineBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
 
@@ -195,6 +202,9 @@ public class AdvancedComputers {
     public static final RegistryObject<BlockEntityType<MainboardProgrammerBlockEntity>> MAINBOARD_PROGRAMMER_BE = BLOCK_ENTITY_TYPES.register("mainboard_programmer_be",
             () -> BlockEntityType.Builder.of(MainboardProgrammerBlockEntity::new, MAINBOARD_PROGRAMMER_BLOCK.block().get()).build(null));
 
+    public static final RegistryObject<BlockEntityType<AutoCrafterBlockEntity>> AUTO_CRAFTER_BE = BLOCK_ENTITY_TYPES.register("auto_crafter_be",
+            () -> BlockEntityType.Builder.of(AutoCrafterBlockEntity::new, AUTO_CRAFTER_BLOCK.block().get()).build(null));
+
     public static final RegistryObject<BlockEntityType<PunchcardMachineBlockEntity>> PUNCHCARD_MACHINE_BE = BLOCK_ENTITY_TYPES.register("punchcard_machine_be",
             () -> BlockEntityType.Builder.of(PunchcardMachineBlockEntity::new, PUNCHCARD_MACHINE_BLOCK.block().get()).build(null));
 
@@ -221,6 +231,9 @@ public class AdvancedComputers {
 
     public static final RegistryObject<MenuType<MainboardProgrammerBlockMenu>> MAINBOARD_PROGRAMMER_MENU =
             registerMenuType("mainboard_programmer_menu", MainboardProgrammerBlockMenu::new);
+
+    public static final RegistryObject<MenuType<AutoCrafterBlockMenu>> AUTO_CRAFTER_MENU =
+            registerMenuType("auto_crafter_menu", AutoCrafterBlockMenu::new);
 
     public static final RegistryObject<MenuType<PunchcardMachineBlockMenu>> PUNCHCARD_MACHINE_MENU =
             registerMenuType("punchcard_machine_menu", PunchcardMachineBlockMenu::new);
@@ -418,6 +431,7 @@ public class AdvancedComputers {
             event.enqueueWork(() -> {
                 MenuScreens.register(COMPUTER_MENU.get(), ComputerBlockScreen::new);
                 MenuScreens.register(MAINBOARD_PROGRAMMER_MENU.get(), MainboardProgrammerBlockScreen::new);
+                MenuScreens.register(AUTO_CRAFTER_MENU.get(), AutoCrafterBlockScreen::new);
                 MenuScreens.register(PUNCHCARD_MACHINE_MENU.get(), PunchcardMachineBlockScreen::new);
                 MenuScreens.register(PUNCHCARD_READER_MENU.get(), PunchcardReaderBlockScreen::new);
                 MenuScreens.register(SCREEN_MENU.get(), ScreenBlockScreen::new);

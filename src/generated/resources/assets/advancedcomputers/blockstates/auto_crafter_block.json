@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "advancedcomputers:block/auto_crafter_block"
+    }
+  }
+}
