@@ -95,7 +95,7 @@ public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEnt
     public String getBlockName() {
         var posToQuery = getTargetPosition();
         var bs = blockEntity.getLevel().getBlockState(posToQuery);
-        return "%s@[%s]".formatted(ForgeRegistries.BLOCKS.getKey(bs.getBlock()).toString(), posToQuery.toShortString()); // TODO remove debug coords
+        return ForgeRegistries.BLOCKS.getKey(bs.getBlock()).toString();
     }
 
     @LuaDeserializer
