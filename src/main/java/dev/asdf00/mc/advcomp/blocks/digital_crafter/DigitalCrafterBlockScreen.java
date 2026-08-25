@@ -1,4 +1,4 @@
-package dev.asdf00.mc.advcomp.blocks.auto_crafter;
+package dev.asdf00.mc.advcomp.blocks.digital_crafter;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
@@ -10,21 +10,20 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
 
-public class AutoCrafterBlockScreen extends AbstractContainerScreen<AutoCrafterBlockMenu> {
-    private static final ResourceLocation TEXTURE = new ResourceLocation(AdvancedComputers.MODID, "textures/gui/auto_crafter_gui.png");
+public class DigitalCrafterBlockScreen extends AbstractContainerScreen<DigitalCrafterBlockMenu> {
+    private static final ResourceLocation TEXTURE = new ResourceLocation(AdvancedComputers.MODID, "textures/gui/digital_crafter_gui.png");
 
-    public AutoCrafterBlockScreen(AutoCrafterBlockMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
+    public DigitalCrafterBlockScreen(DigitalCrafterBlockMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
     }
 
-    private boolean isShifted = false;
     @Override
     protected void init() {
         super.init();
-        //this.titleLabelY = 1000; // hide top text
-
         topPos+=2;
         imageHeight+=2;
+        inventoryLabelY++;
+        titleLabelY--;
     }
 
     @Override

@@ -327,7 +327,7 @@ public class RecipeGenerator extends RecipeProvider {
                 .unlockedBy("item", has(Tags.Items.INGOTS_COPPER))
                 .save(pWriter);
 
-        shaped(AdvancedComputers.AUTO_CRAFTER_BLOCK.blockItem().get())
+        shaped(AdvancedComputers.DIGITAL_CRAFTER_BLOCK.blockItem().get())
                 .pattern("ICI")
                 .pattern("IGI")
                 .pattern("IOI")

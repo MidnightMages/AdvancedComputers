@@ -1,4 +1,4 @@
-package dev.asdf00.mc.advcomp.blocks.auto_crafter;
+package dev.asdf00.mc.advcomp.blocks.digital_crafter;
 
 import dev.asdf00.jluavm.api.userdata.LuaCallable;
 import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
@@ -27,14 +27,14 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.*;
 import java.util.function.Function;
 
-public class AutoCrafterBlockUD extends BaseAcBlockEntityComponentUD<AutoCrafterBlockEntity> {
+public class DigitalCrafterBlockUD extends BaseAcBlockEntityComponentUD<DigitalCrafterBlockEntity> {
 
-    public AutoCrafterBlockUD(AutoCrafterBlockEntity autoCrafterBlockEntity) {
-        super("autoCrafter", autoCrafterBlockEntity);
+    public DigitalCrafterBlockUD(DigitalCrafterBlockEntity digitalCrafterBlockEntity) {
+        super("digitalCrafter", digitalCrafterBlockEntity);
     }
 
-    private AutoCrafterBlockUD(LuaVirtualMachine acVm, boolean isAccessible, AutoCrafterBlockEntity autoCrafterBlockEntity) {
-        super("autoCrafter", acVm, isAccessible, autoCrafterBlockEntity);
+    private DigitalCrafterBlockUD(LuaVirtualMachine acVm, boolean isAccessible, DigitalCrafterBlockEntity digitalCrafterBlockEntity) {
+        super("digitalCrafter", acVm, isAccessible, digitalCrafterBlockEntity);
     }
 
     private long canCraftAgainAt = 0;
@@ -323,7 +323,7 @@ public class AutoCrafterBlockUD extends BaseAcBlockEntityComponentUD<AutoCrafter
     }
 
     @LuaDeserializer
-    public static AutoCrafterBlockUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
-        return genericDeserialize(AutoCrafterBlockEntity.class, AutoCrafterBlockUD::new, objs, reader, postActions, additionalData);
+    public static DigitalCrafterBlockUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
+        return genericDeserialize(DigitalCrafterBlockEntity.class, DigitalCrafterBlockUD::new, objs, reader, postActions, additionalData);
     }
 }

@@ -1,10 +1,9 @@
-package dev.asdf00.mc.advcomp.blocks.auto_crafter;
+package dev.asdf00.mc.advcomp.blocks.digital_crafter;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
 import dev.asdf00.mc.advcomp.blocks.BasePeripheralComponentBlockEntity;
-import dev.asdf00.mc.advcomp.items.MainboardItem;
 import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 import dev.asdf00.mc.advcomp.utils.NotifyingItemHandler;
 import net.minecraft.core.BlockPos;
@@ -26,16 +25,16 @@ import net.minecraftforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AutoCrafterBlockEntity extends BasePeripheralComponentBlockEntity implements MenuProvider {
-    public final NotifyingItemHandler itemHandler = new NotifyingItemHandler(this, AutoCrafterBlockMenu.TE_INVENTORY_SLOT_COUNT,
+public class DigitalCrafterBlockEntity extends BasePeripheralComponentBlockEntity implements MenuProvider {
+    public final NotifyingItemHandler itemHandler = new NotifyingItemHandler(this, DigitalCrafterBlockMenu.TE_INVENTORY_SLOT_COUNT,
             (slotIdx, itemStack) -> 64,
             this::itemHandler_onSlotChanged
     );
     private LazyOptional<IItemHandler> lazyItemHandler = LazyOptional.empty();
     protected final ContainerData data;
 
-    public AutoCrafterBlockEntity(BlockPos pPos, BlockState pBlockState) {
-        super(AdvancedComputers.AUTO_CRAFTER_BE.get(), pPos, pBlockState);
+    public DigitalCrafterBlockEntity(BlockPos pPos, BlockState pBlockState) {
+        super(AdvancedComputers.DIGITAL_CRAFTER_BE.get(), pPos, pBlockState);
         this.data = new ContainerData() {
             @Override
             public int get(int pIndex) {
@@ -68,7 +67,7 @@ public class AutoCrafterBlockEntity extends BasePeripheralComponentBlockEntity i
 
     @Override
     public @NotNull Component getDisplayName() {
-        return TranslationMap.GuiTitle("auto_crafter_block");
+        return TranslationMap.GuiTitle("digital_crafter_block");
     }
 
     @Override
@@ -98,7 +97,7 @@ public class AutoCrafterBlockEntity extends BasePeripheralComponentBlockEntity i
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int pContainerId, @NotNull Inventory pPlayerInventory, @NotNull Player pPlayer) {
-        return new AutoCrafterBlockMenu(pContainerId, pPlayerInventory, this, this.data);
+        return new DigitalCrafterBlockMenu(pContainerId, pPlayerInventory, this, this.data);
     }
 
     @Override
@@ -121,6 +120,6 @@ public class AutoCrafterBlockEntity extends BasePeripheralComponentBlockEntity i
 
     @Override
     public LuaUserDataComponent createUserdata() {
-        return new AutoCrafterBlockUD(this);
+        return new DigitalCrafterBlockUD(this);
     }
 }

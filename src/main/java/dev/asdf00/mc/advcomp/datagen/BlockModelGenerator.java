@@ -33,8 +33,8 @@ public class BlockModelGenerator extends BlockModelProvider {
         this.orientable("mainboard_programmer_block", rl("block/machine_base"),
                 rl("block/mainboard_programmer_block_front"), rl("block/machine_base"));
 
-        this.cubeBottomTop("auto_crafter_block", rl("block/auto_crafter_block_side"),
-                rl("block/machine_base"), rl("block/auto_crafter_block_top"));
+        this.cubeBottomTop("digital_crafter_block", rl("block/digital_crafter_block_side"),
+                rl("block/machine_base"), rl("block/digital_crafter_block_top"));
 
         this.orientable("punchcard_machine_block", rl("block/machine_base_wood"),
                 rl("block/punchcard_machine_block_front"), rl("block/machine_base_wood"));

@@ -1,8 +1,6 @@
-package dev.asdf00.mc.advcomp.blocks.auto_crafter;
+package dev.asdf00.mc.advcomp.blocks.digital_crafter;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.blocks.SlotItemHandlerRequireType;
-import dev.asdf00.mc.advcomp.items.MainboardItem;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -15,19 +13,19 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 
-public class AutoCrafterBlockMenu extends AbstractContainerMenu {
-    public final AutoCrafterBlockEntity blockEntity;
+public class DigitalCrafterBlockMenu extends AbstractContainerMenu {
+    public final DigitalCrafterBlockEntity blockEntity;
     private final Level level;
     private final ContainerData data;
 
-    public AutoCrafterBlockMenu(int pContainerId, Inventory inv, FriendlyByteBuf extraData) {
+    public DigitalCrafterBlockMenu(int pContainerId, Inventory inv, FriendlyByteBuf extraData) {
         this(pContainerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()), new SimpleContainerData(TE_INVENTORY_SLOT_COUNT));
     }
 
-    public AutoCrafterBlockMenu(int pContainerId, Inventory playerInv, BlockEntity be, ContainerData cd) {
-        super(AdvancedComputers.AUTO_CRAFTER_MENU.get(), pContainerId);
+    public DigitalCrafterBlockMenu(int pContainerId, Inventory playerInv, BlockEntity be, ContainerData cd) {
+        super(AdvancedComputers.DIGITAL_CRAFTER_MENU.get(), pContainerId);
         checkContainerSize(playerInv, TE_INVENTORY_SLOT_COUNT);
-        blockEntity = (AutoCrafterBlockEntity) be;
+        blockEntity = (DigitalCrafterBlockEntity) be;
         level = playerInv.player.level();
         data = cd;
 
@@ -117,6 +115,6 @@ public class AutoCrafterBlockMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(@NotNull Player pPlayer) {
-        return stillValid(ContainerLevelAccess.create(level, blockEntity.getBlockPos()), pPlayer, AdvancedComputers.AUTO_CRAFTER_BLOCK.block().get());
+        return stillValid(ContainerLevelAccess.create(level, blockEntity.getBlockPos()), pPlayer, AdvancedComputers.DIGITAL_CRAFTER_BLOCK.block().get());
     }
 }

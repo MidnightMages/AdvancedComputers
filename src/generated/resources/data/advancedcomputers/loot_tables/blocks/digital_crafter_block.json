@@ -11,11 +11,11 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "advancedcomputers:auto_crafter_block"
+          "name": "advancedcomputers:digital_crafter_block"
         }
       ],
       "rolls": 1.0
     }
   ],
-  "random_sequence": "advancedcomputers:blocks/auto_crafter_block"
+  "random_sequence": "advancedcomputers:blocks/digital_crafter_block"
 }
