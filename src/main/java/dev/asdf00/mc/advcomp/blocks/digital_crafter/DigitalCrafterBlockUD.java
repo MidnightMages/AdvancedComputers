@@ -315,7 +315,7 @@ public class DigitalCrafterBlockUD extends BaseAcBlockEntityComponentUD<DigitalC
             }
         });
 
-        canCraftAgainAt = System.currentTimeMillis() + Config.componentCrafterCooldownMilliseconds;
+        canCraftAgainAt = System.currentTimeMillis() + (int) (Config.componentCrafterCooldownMilliseconds * Math.sqrt(maxAmount));
         return maxAmount;
     }
 
