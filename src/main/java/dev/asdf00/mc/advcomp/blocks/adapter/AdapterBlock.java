@@ -56,12 +56,6 @@ public class AdapterBlock extends BasePeripheralOrHostBlock {
         return new AdapterBlockEntity(blockPos, blockState);
     }
 
-    @Override
-    public void appendHoverText(@NotNull ItemStack pStack, @Nullable BlockGetter pLevel, @NotNull List<Component> pTooltip, @NotNull TooltipFlag pFlag) {
-        pTooltip.add(Component.translatable("tooltip.advancedcomputers.shared.notimplemented"));
-        super.appendHoverText(pStack, pLevel, pTooltip, pFlag);
-    }
-
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level pLevel, @NotNull BlockState pState, @NotNull BlockEntityType<T> pBlockEntityType) {
