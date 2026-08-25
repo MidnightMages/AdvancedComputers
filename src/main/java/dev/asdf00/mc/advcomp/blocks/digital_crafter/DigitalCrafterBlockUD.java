@@ -7,6 +7,7 @@ import dev.asdf00.jluavm.api.userdata.LuaProperty;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
+import dev.asdf00.mc.advcomp.Config;
 import dev.asdf00.mc.advcomp.lua.components.BaseAcBlockEntityComponentUD;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import net.minecraft.core.Direction;
@@ -54,6 +55,10 @@ public class DigitalCrafterBlockUD extends BaseAcBlockEntityComponentUD<DigitalC
         var msRemaining = canCraftAgainAt - System.currentTimeMillis();
         return msRemaining > 0 ? Math.max(msRemaining / 1000d, 0.01) : 0;
     }, null);
+
+    @SuppressWarnings("unused")
+    @LuaExposed(LuaExposed.Policy.READ)
+    public final LuaProperty baseCooldown = LuaProperty.ofDouble(() -> Config.componentCrafterCooldownMilliseconds, null);
 
     @LuaCallable
     public LuaObject searchRecipesWithIngredient(String ingredientName) {
@@ -310,7 +315,7 @@ public class DigitalCrafterBlockUD extends BaseAcBlockEntityComponentUD<DigitalC
             }
         });
 
-        canCraftAgainAt = System.currentTimeMillis() + 1000;
+        canCraftAgainAt = System.currentTimeMillis() + Config.componentCrafterCooldownMilliseconds;
         return maxAmount;
     }
 
