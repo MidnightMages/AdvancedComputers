@@ -1,8 +1,8 @@
-package dev.asdf00.mc.advcomp.adapters;
+package dev.asdf00.mc.advcomp.integration.lua;
 
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
-import dev.asdf00.mc.advcomp.api.AcAdapter;
-import dev.asdf00.mc.advcomp.api.AcAdapterContext;
+import dev.asdf00.mc.advcomp.api.AcALIContext;
+import dev.asdf00.mc.advcomp.api.AcAdapterLuaImplementation;
 import net.minecraft.world.item.RecordItem;
 import net.minecraft.world.level.block.JukeboxBlock;
 import net.minecraft.world.level.block.entity.JukeboxBlockEntity;
@@ -10,10 +10,10 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Objects;
 
-@AcAdapter(block = JukeboxBlock.class)
-public final class JukeboxAdapter {
-    @AcAdapter.PropertyGet
-    public static boolean isPlaying(AcAdapterContext ctx) {
+@AcAdapterLuaImplementation(block = JukeboxBlock.class)
+public final class JukeboxALI {
+    @AcAdapterLuaImplementation.PropertyGet
+    public static boolean isPlaying(AcALIContext ctx) {
         return ctx.adapter().runOnTickThread(() -> {
             if (ctx.getBlockEntity() instanceof JukeboxBlockEntity jbe) {
                 return jbe.isRecordPlaying();
@@ -23,8 +23,8 @@ public final class JukeboxAdapter {
         });
     }
 
-    @AcAdapter.Method
-    public void restartPlaying(AcAdapterContext ctx) {
+    @AcAdapterLuaImplementation.Method
+    public void restartPlaying(AcALIContext ctx) {
         ctx.adapter().runOnTickThread(() -> {
             if (ctx.getBlockEntity() instanceof JukeboxBlockEntity jbe) {
                 jbe.startPlaying();
@@ -35,8 +35,8 @@ public final class JukeboxAdapter {
         });
     }
 
-    @AcAdapter.Method
-    public void eject(AcAdapterContext ctx) {
+    @AcAdapterLuaImplementation.Method
+    public void eject(AcALIContext ctx) {
         ctx.adapter().runOnTickThread(() -> {
             if (ctx.getBlockEntity() instanceof JukeboxBlockEntity jbe) {
                 jbe.popOutRecord();
@@ -47,8 +47,8 @@ public final class JukeboxAdapter {
         });
     }
 
-    @AcAdapter.PropertyGet
-    public String containedItem(AcAdapterContext ctx) {
+    @AcAdapterLuaImplementation.PropertyGet
+    public String containedItem(AcALIContext ctx) {
         return ctx.adapter().runOnTickThread(() -> {
             if (ctx.getBlockEntity() instanceof JukeboxBlockEntity jbe) {
                 var is = jbe.getFirstItem();
@@ -62,8 +62,8 @@ public final class JukeboxAdapter {
         });
     }
 
-    @AcAdapter.PropertyGet
-    public String recordName(AcAdapterContext ctx) {
+    @AcAdapterLuaImplementation.PropertyGet
+    public String recordName(AcALIContext ctx) {
         return ctx.adapter().runOnTickThread(() -> {
             if (ctx.getBlockEntity() instanceof JukeboxBlockEntity jbe) {
                 var firstItem = jbe.getFirstItem();

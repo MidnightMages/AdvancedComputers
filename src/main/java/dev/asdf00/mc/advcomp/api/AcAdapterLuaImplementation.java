@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface AcAdapter {
+public @interface AcAdapterLuaImplementation {
     /**
      * The block class that this adapter is built for. Block.class is used as a placeholder for purely abstract classes.
      */

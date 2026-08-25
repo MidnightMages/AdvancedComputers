@@ -1,15 +1,14 @@
-package dev.asdf00.mc.advcomp.adapters;
+package dev.asdf00.mc.advcomp.integration.lua;
 
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
-import dev.asdf00.mc.advcomp.api.AcAdapter;
-import dev.asdf00.mc.advcomp.api.AcAdapterContext;
-import net.minecraft.world.level.block.JukeboxBlock;
+import dev.asdf00.mc.advcomp.api.AcALIContext;
+import dev.asdf00.mc.advcomp.api.AcAdapterLuaImplementation;
 import net.minecraft.world.level.block.NoteBlock;
 
-@AcAdapter(block = JukeboxBlock.class)
-public final class NoteblockAdapter {
-    @AcAdapter.PropertyGet
-    public static String instrument(AcAdapterContext ctx) {
+@AcAdapterLuaImplementation(block = NoteBlock.class)
+public final class NoteblockALI {
+    @AcAdapterLuaImplementation.PropertyGet
+    public static String instrument(AcALIContext ctx) {
         return ctx.adapter().runOnTickThread(() -> {
             if (ctx.getBlock() instanceof NoteBlock) {
                 return ctx.getBlockState().getValue(NoteBlock.INSTRUMENT).getSerializedName();
@@ -19,8 +18,8 @@ public final class NoteblockAdapter {
         });
     }
 
-    @AcAdapter.PropertyGet
-    public static int notePitch(AcAdapterContext ctx) {
+    @AcAdapterLuaImplementation.PropertyGet
+    public static int notePitch(AcALIContext ctx) {
         return ctx.adapter().runOnTickThread(() -> {
             if (ctx.getBlock() instanceof NoteBlock) {
                 return ctx.getBlockState().getValue(NoteBlock.NOTE);
@@ -30,8 +29,8 @@ public final class NoteblockAdapter {
         });
     }
 
-    @AcAdapter.PropertySet
-    public static void notePitch(AcAdapterContext ctx, int pitch) {
+    @AcAdapterLuaImplementation.PropertySet
+    public static void notePitch(AcALIContext ctx, int pitch) {
         ctx.adapter().runOnTickThread(() -> {
             if (ctx.getBlock() instanceof NoteBlock) {
                 if (!NoteBlock.NOTE.getPossibleValues().contains(pitch)) {

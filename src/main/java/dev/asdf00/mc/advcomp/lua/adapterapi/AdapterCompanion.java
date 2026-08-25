@@ -3,12 +3,11 @@ package dev.asdf00.mc.advcomp.lua.adapterapi;
 import dev.asdf00.jluavm.api.functions.AtomicLuaFunction;
 import dev.asdf00.jluavm.api.functions.StatelessFunctionRegistry;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
-import dev.asdf00.jluavm.internals.LuaVM_RT;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.runtime.utils.Singletons;
 import dev.asdf00.jluavm.runtime.utils.UDTranslators;
-import dev.asdf00.mc.advcomp.api.AcAdapter;
-import dev.asdf00.mc.advcomp.api.AcAdapterContext;
+import dev.asdf00.mc.advcomp.api.AcALIContext;
+import dev.asdf00.mc.advcomp.api.AcAdapterLuaImplementation;
 import dev.asdf00.mc.advcomp.blocks.adapter.AdapterBlockUD;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -71,7 +70,7 @@ public class AdapterCompanion {
         MethodHandle getter = Objects.requireNonNull(propertyGetter.get(key), "this should only be called for existing getters");
         final Object result;
         try {
-            result = getter.invoke(new AcAdapterContext(adapter, lvl, pos));
+            result = getter.invoke(new AcALIContext(adapter, lvl, pos));
         } catch (LuaJavaError e) {
             throw e;
         } catch (Throwable e) {
@@ -84,7 +83,7 @@ public class AdapterCompanion {
         MethodHandle setter = Objects.requireNonNull(propertySetter.get(key), "this should only be called for existing setters");
         Object typeTranslated = convertToJavaType(toBoxedType(setter.type().parameterType(1)), value);
         try {
-            setter.invoke(new AcAdapterContext(adapter, lvl, pos), typeTranslated);
+            setter.invoke(new AcALIContext(adapter, lvl, pos), typeTranslated);
         } catch (LuaJavaError e) {
             throw e;
         } catch (Throwable e) {
@@ -131,7 +130,7 @@ public class AdapterCompanion {
         }
     }
 
-    private static Object[] prepareArgs(AcAdapterContext ctx, Class<?>[] targetTypes, LuaObject[] objects) {
+    private static Object[] prepareArgs(AcALIContext ctx, Class<?>[] targetTypes, LuaObject[] objects) {
         var r = new Object[targetTypes.length];
         r[0] = ctx;
         assert targetTypes.length - 1 <= objects.length - 1 : "insufficient objects";
@@ -181,12 +180,12 @@ public class AdapterCompanion {
             // check for remaining abstract methods
             var abstractMethods = foundMethods.stream()
                     .filter(m -> {
-                        if (m.isAnnotationPresent(AcAdapter.PropertyGet.class)) {
-                            return m.getAnnotation(AcAdapter.PropertyGet.class).isAbstract();
-                        } else if (m.isAnnotationPresent(AcAdapter.PropertySet.class)) {
-                            return m.getAnnotation(AcAdapter.PropertySet.class).isAbstract();
+                        if (m.isAnnotationPresent(AcAdapterLuaImplementation.PropertyGet.class)) {
+                            return m.getAnnotation(AcAdapterLuaImplementation.PropertyGet.class).isAbstract();
+                        } else if (m.isAnnotationPresent(AcAdapterLuaImplementation.PropertySet.class)) {
+                            return m.getAnnotation(AcAdapterLuaImplementation.PropertySet.class).isAbstract();
                         } else {
-                            return m.getAnnotation(AcAdapter.Method.class).isAbstract();
+                            return m.getAnnotation(AcAdapterLuaImplementation.Method.class).isAbstract();
                         }
                     })
                     .map(Method::getName)
@@ -205,17 +204,17 @@ public class AdapterCompanion {
             var methods = new HashMap<String, MethodHandle>();
             var clearMethodNames = new HashSet<String>();
             for (Method m : foundMethods) {
-                var propGet = m.getAnnotation(AcAdapter.PropertyGet.class);
+                var propGet = m.getAnnotation(AcAdapterLuaImplementation.PropertyGet.class);
                 if (propGet != null) {
                     // this is a getter
                     getters.put(m.getName(), makeMethodHandle(lookup, m));
                 }
-                var propSet = m.getAnnotation(AcAdapter.PropertySet.class);
+                var propSet = m.getAnnotation(AcAdapterLuaImplementation.PropertySet.class);
                 if (propSet != null) {
                     // this is a setter
                     setters.put(m.getName(), makeMethodHandle(lookup, m));
                 }
-                var propMeth = m.getAnnotation(AcAdapter.Method.class);
+                var propMeth = m.getAnnotation(AcAdapterLuaImplementation.Method.class);
                 if (propMeth != null) {
                     // this is a method
                     methods.put(mangleFuncName(m), makeMethodHandle(lookup, m));
@@ -223,7 +222,7 @@ public class AdapterCompanion {
                 }
             }
 
-            var blkClazz = adCls.getAnnotation(AcAdapter.class).block();
+            var blkClazz = adCls.getAnnotation(AcAdapterLuaImplementation.class).block();
             var companion = new AdapterCompanion(getters, setters, methods, clearMethodNames, blkClazz);
             ALL_COMPANIONS.put(blkClazz, companion);
 
@@ -235,15 +234,15 @@ public class AdapterCompanion {
     }
 
     private static String distinctFuncName(Method method) {
-        return method.isAnnotationPresent(AcAdapter.Method.class)
+        return method.isAnnotationPresent(AcAdapterLuaImplementation.Method.class)
                 ? mangleFuncName(method.getName(), method.getParameterCount() - 1)
-                : method.isAnnotationPresent(AcAdapter.PropertyGet.class)
+                : method.isAnnotationPresent(AcAdapterLuaImplementation.PropertyGet.class)
                 ? method.getName() + "#get"
                 : method.getName() + "#set";
     }
 
     private static String mangleFuncName(Method method) {
-        return method.isAnnotationPresent(AcAdapter.Method.class)
+        return method.isAnnotationPresent(AcAdapterLuaImplementation.Method.class)
                 ? mangleFuncName(method.getName(), method.getParameterCount() - 1)
                 : method.getName();
     }
@@ -286,7 +285,7 @@ public class AdapterCompanion {
     private static void checkClass(List<Class<?>> collected, String name, ClassLoader loader) {
         try {
             Class<?> adapterClazz = Class.forName(name, false, loader);
-            AcAdapter annotation = adapterClazz.getAnnotation(AcAdapter.class);
+            AcAdapterLuaImplementation annotation = adapterClazz.getAnnotation(AcAdapterLuaImplementation.class);
             if (annotation != null && annotation.block() != null) {
                 // basic class checks
                 if (!Modifier.isFinal(adapterClazz.getModifiers()) && !Modifier.isAbstract(adapterClazz.getModifiers()) || !Modifier.isPublic(adapterClazz.getModifiers())) {
@@ -305,7 +304,7 @@ public class AdapterCompanion {
     }
 
     private static Set<Method> processAdapterClass(Class<?> clazz) {
-        var annotation = clazz.getAnnotation(AcAdapter.class);
+        var annotation = clazz.getAnnotation(AcAdapterLuaImplementation.class);
 
         // process super methods
         var inheritedMethods = new LinkedHashSet<Method>();
@@ -330,7 +329,7 @@ public class AdapterCompanion {
         // process methods defined here
         var ownMethods = new LinkedHashSet<Method>();
         for (var m : clazz.getDeclaredMethods()) {
-            var propGet = m.getAnnotation(AcAdapter.PropertyGet.class);
+            var propGet = m.getAnnotation(AcAdapterLuaImplementation.PropertyGet.class);
             if (propGet != null) {
                 // this is a getter
                 checkGetter(m);
@@ -339,7 +338,7 @@ public class AdapterCompanion {
                 ownMethods.add(m);
                 continue;
             }
-            var propSet = m.getAnnotation(AcAdapter.PropertySet.class);
+            var propSet = m.getAnnotation(AcAdapterLuaImplementation.PropertySet.class);
             if (propSet != null) {
                 // this is a setter
                 checkSetter(m);
@@ -347,7 +346,7 @@ public class AdapterCompanion {
                 ownMethods.add(m);
                 continue;
             }
-            var propMeth = m.getAnnotation(AcAdapter.Method.class);
+            var propMeth = m.getAnnotation(AcAdapterLuaImplementation.Method.class);
             if (propMeth != null) {
                 // this is a method
                 checkMethod(m);
@@ -375,11 +374,11 @@ public class AdapterCompanion {
 
         // check for clashes between methods and properties
         var clearPropNames = ownMethods.stream()
-                .filter(m -> m.isAnnotationPresent(AcAdapter.PropertyGet.class) || m.isAnnotationPresent(AcAdapter.PropertySet.class))
+                .filter(m -> m.isAnnotationPresent(AcAdapterLuaImplementation.PropertyGet.class) || m.isAnnotationPresent(AcAdapterLuaImplementation.PropertySet.class))
                 .map(m -> m.getName())
                 .collect(Collectors.toSet());
         var collisions = ownMethods.stream()
-                .filter(m -> m.isAnnotationPresent(AcAdapter.Method.class) && clearPropNames.contains(m.getName()))
+                .filter(m -> m.isAnnotationPresent(AcAdapterLuaImplementation.Method.class) && clearPropNames.contains(m.getName()))
                 .map(Method::getName)
                 .toArray(String[]::new);
         if (collisions.length > 0) {
@@ -393,7 +392,7 @@ public class AdapterCompanion {
     }
 
     /**
-     * Getters must have the signature {@code public static <LuaConvertible> <name>(AcAdapterContext ctx)}.
+     * Getters must have the signature {@code public static <LuaConvertible> <name>(AcALIContext ctx)}.
      */
     private static void checkGetter(Method m) {
         if (!Modifier.isPublic(m.getModifiers()) || !Modifier.isStatic(m.getModifiers())) {
@@ -408,8 +407,8 @@ public class AdapterCompanion {
                     m.getName()
             ));
         }
-        if (m.getParameterCount() != 1 || m.getParameterTypes()[0] != AcAdapterContext.class) {
-            throw new IllegalStateException("Adapter-getters must take exactly one argument of type AcAdapterContext, %s#%s does not comply with this".formatted(
+        if (m.getParameterCount() != 1 || m.getParameterTypes()[0] != AcALIContext.class) {
+            throw new IllegalStateException("Adapter-getters must take exactly one argument of type AcALIContext, %s#%s does not comply with this".formatted(
                     m.getDeclaringClass().getName(),
                     m.getName()
             ));
@@ -417,7 +416,7 @@ public class AdapterCompanion {
     }
 
     /**
-     * Setters must have the signature {@code public static void <name>(AcAdapterContext ctx, <LuaConvertible> value}.
+     * Setters must have the signature {@code public static void <name>(AcALIContext ctx, <LuaConvertible> value}.
      */
     private static void checkSetter(Method m) {
         if (!Modifier.isPublic(m.getModifiers()) || !Modifier.isStatic(m.getModifiers())) {
@@ -433,8 +432,8 @@ public class AdapterCompanion {
             ));
         }
         var params = m.getParameterTypes();
-        if (params.length != 2 || params[0] != AcAdapterContext.class || !isFromLuaObjectConvertible(toBoxedType(params[1]))) {
-            throw new IllegalStateException("Adapter-getters must take a AcAdapterContext and one LuaObject-convertible as parameters, %s#%s does not comply with this".formatted(
+        if (params.length != 2 || params[0] != AcALIContext.class || !isFromLuaObjectConvertible(toBoxedType(params[1]))) {
+            throw new IllegalStateException("Adapter-getters must take a AcALIContext and one LuaObject-convertible as parameters, %s#%s does not comply with this".formatted(
                     m.getDeclaringClass().getName(),
                     m.getName()
             ));
@@ -442,7 +441,7 @@ public class AdapterCompanion {
     }
 
     /**
-     * Methods must have the signature {@code public static <void|LuaObject-convertible> <name>(AcAdapterContext ctx, <LuaConvertible> value}.
+     * Methods must have the signature {@code public static <void|LuaObject-convertible> <name>(AcALIContext ctx, <LuaConvertible> value}.
      */
     private static void checkMethod(Method m) {
         if (!Modifier.isPublic(m.getModifiers()) || !Modifier.isStatic(m.getModifiers())) {
@@ -465,8 +464,8 @@ public class AdapterCompanion {
                 break;
             }
         }
-        if (foundError || params.length < 1 || params[0] != AcAdapterContext.class) {
-            throw new IllegalStateException("Adapter-methods must take a AcAdapterContext and any number of LuaObject-convertible parameters, %s#%s does not comply with this".formatted(
+        if (foundError || params.length < 1 || params[0] != AcALIContext.class) {
+            throw new IllegalStateException("Adapter-methods must take a AcALIContext and any number of LuaObject-convertible parameters, %s#%s does not comply with this".formatted(
                     m.getDeclaringClass().getName(),
                     m.getName()
             ));

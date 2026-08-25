@@ -5,7 +5,7 @@ import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
-import dev.asdf00.mc.advcomp.api.AcAdapterContext;
+import dev.asdf00.mc.advcomp.api.AcALIContext;
 import dev.asdf00.mc.advcomp.lua.adapterapi.AdapterCompanion;
 import dev.asdf00.mc.advcomp.lua.components.BaseAcBlockEntityComponentUD;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
@@ -105,10 +105,10 @@ public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEnt
         return rv;
     }
 
-    public AcAdapterContext validateCall(AdapterCompanion attempted) {
+    public AcALIContext validateCall(AdapterCompanion attempted) {
         if (adapterCompanion != attempted) {
             throw new LuaJavaError("The block in front of the Adapter has changed!");
         }
-        return new AcAdapterContext(this, blockEntity.getLevel(), getTargetPosition());
+        return new AcALIContext(this, blockEntity.getLevel(), getTargetPosition());
     }
 }
