@@ -50,7 +50,7 @@ public class AdapterBlockEntity extends BasePeripheralComponentBlockEntity imple
 
     public void rebuildCompanion() {
         var blockClass = level.getBlockState(getBlockPos().relative(getBlockState().getValue(AdapterBlock.FACING))).getBlock().getClass();
-        currentUD.rebuildCompanion(blockClass);
+        currentUD.onTargetChanged(blockClass);
     }
 
     @Override

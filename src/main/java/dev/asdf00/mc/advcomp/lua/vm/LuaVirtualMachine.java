@@ -15,6 +15,7 @@ import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.punchcard_reader.PunchcardReaderBlockUD;
 import dev.asdf00.mc.advcomp.blocks.screen.ScreenBlockEntity;
 import dev.asdf00.mc.advcomp.items.MainboardItem;
+import dev.asdf00.mc.advcomp.lua.adapterapi.AdapterCompanion;
 import dev.asdf00.mc.advcomp.lua.components.*;
 import dev.asdf00.mc.advcomp.utils.AcPaths;
 import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
@@ -407,7 +408,11 @@ public class LuaVirtualMachine {
             // luaComputer and componentReg are initialized automatically during deserization
 
             // deserialize lua VM
-            vm = LuaVM.builder().withApiRegistry(BUILTIN_FUNCTIONS).fromState(serializedState, this).build();
+            vm = LuaVM.builder()
+                    .withApiRegistry(BUILTIN_FUNCTIONS)
+                    .withApiRegistry(AdapterCompanion.ADAPTER_FUNCTION_REGISTRY)
+                    .fromState(serializedState, this)
+                    .build();
             vm.eventCallback = timeTracker::handleVmEvent;
 
             // now the vm is suspended

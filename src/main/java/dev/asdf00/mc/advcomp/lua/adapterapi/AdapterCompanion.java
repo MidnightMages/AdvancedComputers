@@ -1,7 +1,12 @@
 package dev.asdf00.mc.advcomp.lua.adapterapi;
 
+import dev.asdf00.jluavm.api.functions.AtomicLuaFunction;
+import dev.asdf00.jluavm.api.functions.StatelessFunctionRegistry;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
+import dev.asdf00.jluavm.internals.LuaVM_RT;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
+import dev.asdf00.jluavm.runtime.utils.Singletons;
+import dev.asdf00.jluavm.runtime.utils.UDTranslators;
 import dev.asdf00.mc.advcomp.api.AcAdapter;
 import dev.asdf00.mc.advcomp.api.AcAdapterContext;
 import dev.asdf00.mc.advcomp.blocks.adapter.AdapterBlockUD;
@@ -23,20 +28,26 @@ import java.util.stream.Collectors;
 import static dev.asdf00.mc.advcomp.utils.MiscUtil.*;
 
 public class AdapterCompanion {
-    private static final AdapterCompanion EMPTY_ADAPTER_COMPANION = new AdapterCompanion(Map.of(), Map.of(), Map.of());
+    public static final AdapterCompanion EMPTY_COMPANION = new AdapterCompanion(Map.of(), Map.of(), Map.of(), Set.of(), null);
     private static final Map<Class<? extends Block>, AdapterCompanion> ALL_COMPANIONS = new HashMap<>();
 
     private final Map<String, MethodHandle> propertyGetter;
     private final Map<String, MethodHandle> propertySetter;
     private final Map<String, MethodHandle> callables;
+    private final Set<String> pureCallableNames;
+
+    private final Class<? extends Block> blockClazz;
 
     public final String[] readableKeys;
     public final String[] writableKeys;
 
-    private AdapterCompanion(Map<String, MethodHandle> propertyGetter, Map<String, MethodHandle> propertySetter, Map<String, MethodHandle> callables) {
+    private AdapterCompanion(Map<String, MethodHandle> propertyGetter, Map<String, MethodHandle> propertySetter,
+                             Map<String, MethodHandle> callables, Set<String> pureCallableNames, Class<? extends Block> blockClazz) {
         this.propertyGetter = propertyGetter;
         this.propertySetter = propertySetter;
         this.callables = callables;
+        this.pureCallableNames = pureCallableNames;
+        this.blockClazz = blockClazz;
         var readables = new ArrayList<String>(propertyGetter.size() + callables.size());
         readables.addAll(propertyGetter.keySet());
         readables.addAll(callables.keySet());
@@ -52,8 +63,8 @@ public class AdapterCompanion {
         return propertySetter.containsKey(key);
     }
 
-    public boolean isCallable(String key, int argCnt) {
-        return callables.containsKey(mangleFuncName(key, argCnt));
+    public boolean isCallable(String key) {
+        return pureCallableNames.contains(key);
     }
 
     public LuaObject get(AdapterBlockUD adapter, Level lvl, BlockPos pos, String key) {
@@ -81,13 +92,61 @@ public class AdapterCompanion {
         }
     }
 
-    public LuaObject[] call(AdapterBlockUD adapter, Level lvl, BlockPos pos, LuaObject... args) {
-        // TODO
-        return null;
+    public LuaObject getFunction(String name) {
+        return pureCallableNames.contains(name)
+                ? LuaObject.of(ADAPTER_FUNCTION_REGISTRY.getFunction(blockClazz.getName() + "#" + name))
+                : LuaObject.NIL;
+    }
+
+    private LuaObject[] call(String funcName, LuaObject... args) {
+        if (args.length < 1) {
+            throw new LuaJavaError("missing AdapterBlockUD as #1, use the Lua OOP call syntax to avoid this");
+        }
+        var possibleUd = args[0];
+        if (!possibleUd.isUserData()) {
+            throw new LuaJavaError("missing AdapterBlockUD as #1, use the Lua OOP call syntax to avoid this");
+        }
+        var adapterUd = UDTranslators.lo2ud(AdapterBlockUD.class, possibleUd);
+        var context = adapterUd.validateCall(this);
+        var mangled = mangleFuncName(funcName, args.length - 1);
+        if (!callables.containsKey(mangled)) {
+            throw new LuaJavaError("no overload found for %d arguments".formatted(args.length - 1));
+        }
+        var handle = callables.get(mangled);
+        var transformedArgs = prepareArgs(context, handle.type().parameterArray(), args);
+        var rType = handle.type().returnType();
+        try {
+            if (rType == void.class) {
+                handle.invoke(transformedArgs);
+                return Singletons.EMPTY_LUA_OBJ_ARRAY;
+            } else if (rType == LuaObject[].class) {
+                return (LuaObject[]) handle.invoke(transformedArgs);
+            } else {
+                return new LuaObject[]{convertToLuaObject(handle.invoke(transformedArgs))};
+            }
+        } catch (LuaJavaError e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static Object[] prepareArgs(AcAdapterContext ctx, Class<?>[] targetTypes, LuaObject[] objects) {
+        var r = new Object[targetTypes.length];
+        r[0] = ctx;
+        assert targetTypes.length - 1 <= objects.length - 1 : "insufficient objects";
+        // ignore objects[0] since that is the userdata
+        // ignore r[0] and targetTypes[0] since that is the context object
+        for (int i = 1; i < r.length; i++) {
+            assert isFromLuaObjectConvertible(targetTypes[i]);
+            r[i] = convertToJavaType(targetTypes[i], objects[i]);
+        }
+        return r;
     }
 
     public static AdapterCompanion ofBlock(Class<? extends Block> block) {
-        return ALL_COMPANIONS.getOrDefault(block, EMPTY_ADAPTER_COMPANION);
+        var c = ALL_COMPANIONS.get(block);
+        return c != null ? c : EMPTY_COMPANION;
     }
 
     private static String mangleFuncName(String name, int argCnt) {
@@ -98,6 +157,8 @@ public class AdapterCompanion {
     // =================================================================================================================
     // setup
     // =================================================================================================================
+
+    public static final StatelessFunctionRegistry ADAPTER_FUNCTION_REGISTRY = new StatelessFunctionRegistry("advanced_computers.adapter");
 
     static {
         // collect adapter classes from the class path
@@ -142,6 +203,7 @@ public class AdapterCompanion {
             var getters = new HashMap<String, MethodHandle>();
             var setters = new HashMap<String, MethodHandle>();
             var methods = new HashMap<String, MethodHandle>();
+            var clearMethodNames = new HashSet<String>();
             for (Method m : foundMethods) {
                 var propGet = m.getAnnotation(AcAdapter.PropertyGet.class);
                 if (propGet != null) {
@@ -157,10 +219,18 @@ public class AdapterCompanion {
                 if (propMeth != null) {
                     // this is a method
                     methods.put(mangleFuncName(m), makeMethodHandle(lookup, m));
+                    clearMethodNames.add(m.getName());
                 }
             }
 
-            ALL_COMPANIONS.put(adCls.getAnnotation(AcAdapter.class).block(), new AdapterCompanion(getters, setters, methods));
+            var blkClazz = adCls.getAnnotation(AcAdapter.class).block();
+            var companion = new AdapterCompanion(getters, setters, methods, clearMethodNames, blkClazz);
+            ALL_COMPANIONS.put(blkClazz, companion);
+
+            // register Lua functions
+            for (var name : clearMethodNames) {
+                registerAdapterFunction(companion, name);
+            }
         }
     }
 
@@ -409,5 +479,11 @@ public class AdapterCompanion {
         } catch (IllegalAccessException | NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    private static void registerAdapterFunction(AdapterCompanion companion, String name) {
+        ADAPTER_FUNCTION_REGISTRY.register(companion.blockClazz.getName() + "#" + name,
+                AtomicLuaFunction.vaForManyResults(ADAPTER_FUNCTION_REGISTRY, (vm, va) -> companion.call(name, va)));
     }
 }

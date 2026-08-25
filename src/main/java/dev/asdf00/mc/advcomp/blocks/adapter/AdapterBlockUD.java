@@ -5,6 +5,8 @@ import dev.asdf00.jluavm.api.userdata.LuaDeserializer;
 import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
+import dev.asdf00.mc.advcomp.api.AcAdapterContext;
+import dev.asdf00.mc.advcomp.lua.adapterapi.AdapterCompanion;
 import dev.asdf00.mc.advcomp.lua.components.BaseAcBlockEntityComponentUD;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import net.minecraft.core.BlockPos;
@@ -17,6 +19,8 @@ import java.util.Queue;
 import java.util.function.Supplier;
 
 public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEntity> {
+
+    private volatile AdapterCompanion adapterCompanion = AdapterCompanion.EMPTY_COMPANION;
 
     public AdapterBlockUD(AdapterBlockEntity blockEntity) {
         super("adapter", blockEntity);
@@ -42,32 +46,49 @@ public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEnt
         return blockEntity.getBlockPos().relative(direction);
     }
 
-    public void rebuildCompanion(Class<? extends Block> blockClass) {
-
+    public void onTargetChanged(Class<? extends Block> blockClass) {
+        adapterCompanion = AdapterCompanion.ofBlock(blockClass);
     }
 
     @Override
     public LuaObject luaGeneralGet(LuaObject key) throws LuaJavaError {
-        throw new LuaJavaError("not implemented"); // TODO implement
+        var adComp = adapterCompanion;
+        if (!key.isString()) {
+            throw new LuaJavaError("Adapters can only handle keys of type 'string', got '%s'".formatted(key.getTypeAsString()));
+        }
+        String k = key.getString();
+        if (adComp.isGetter(k)) {
+            return adComp.get(this, blockEntity.getLevel(), getTargetPosition(), k);
+        } else if (adComp.isCallable(k)) {
+            return adComp.getFunction(k);
+        } else {
+            return null;
+        }
     }
 
     @Override
     public boolean luaGeneralSet(LuaObject key, LuaObject value) throws LuaJavaError {
-        throw new LuaJavaError("not implemented"); // TODO implement
+        var adComp = adapterCompanion;
+        if (!key.isString()) {
+            throw new LuaJavaError("Adapters can only handle keys of type 'string', got '%s'".formatted(key.getTypeAsString()));
+        }
+        String k = key.getString();
+        if (adComp.isSetter(k)) {
+            adComp.set(this, blockEntity.getLevel(), getTargetPosition(), k, value);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
     public String[] getExtraReadableUdKeys() {
-        return super.getExtraReadableUdKeys(); // TODO implement
+        return adapterCompanion.readableKeys;
     }
 
     @Override
     public String[] getExtraWritableUdKeys() {
-        return super.getExtraWritableUdKeys(); // TODO implement
-    }
-
-    public LuaObject[] generalCall(String key, LuaObject... args) {
-        return null;
+        return adapterCompanion.writableKeys;
     }
 
     @LuaCallable
@@ -82,5 +103,12 @@ public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEnt
         var rv = genericDeserialize(AdapterBlockEntity.class, AdapterBlockUD::new, objs, reader, postActions, additionalData);
         rv.getBlockEntity().setNewUD(rv);
         return rv;
+    }
+
+    public AcAdapterContext validateCall(AdapterCompanion attempted) {
+        if (adapterCompanion != attempted) {
+            throw new LuaJavaError("The block in front of the Adapter has changed!");
+        }
+        return new AcAdapterContext(this, blockEntity.getLevel(), getTargetPosition());
     }
 }
