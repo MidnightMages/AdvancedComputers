@@ -102,7 +102,6 @@ public class DigitalCrafterBlockUD extends BaseAcBlockEntityComponentUD<DigitalC
 
     @LuaCallable // returns how many items were actually crafted. Crafting requires a slot to be free or freed up during the crafting process.
     public int craft(LuaObject inputItemNames, String resultItemName, int maxAmount, boolean outputIntoOwnInventory) {
-        // TODO water buckets probably wont return an empty bucket in the recipe
         var recipeManager = getRecipeManager();
         var registryAccess = blockEntity.getLevel().registryAccess();
 
