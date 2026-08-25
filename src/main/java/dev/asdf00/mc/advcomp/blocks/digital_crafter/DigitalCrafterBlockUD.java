@@ -22,6 +22,7 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.*;
@@ -164,15 +165,39 @@ public class DigitalCrafterBlockUD extends BaseAcBlockEntityComponentUD<DigitalC
         requiredCraftingIngredients.remove(Items.AIR);
 
         final var maxAmountFinal = maxAmount;
+        final var matchFinal = match;
         this.blockEntity.runOnTickThread(() -> {
             var ih = this.blockEntity.itemHandler;
             Function<Boolean, Integer> checkOrConsume = ((Boolean dryRun) -> {
                 // dryRun --> if true, do NOT consume any items, but just check if we have enough and how much space would be freed up
                 //            returns 0 if we cannot craft this; 1 if we can craft it by throwing it out the top; 2 if we can craft and store in inventory
+                //            3 --> we dont have enough room for storing intermediate outputs, e.g. empty buckets that originate from crafting a cake
                 // not dry run --> removes the items and returns 0.
 
                 var itemsLeftToConsume = new HashMap<>(requiredCraftingIngredients);
                 int freeSlotsAfterOperation = 0;
+                var remainingItems = matchFinal.getRemainingItems(fakeInventory);
+                var remainingItemsStacked = new ArrayList<ItemStack>();
+                for (var remainingStack : remainingItems) {
+                    for (int i = 0; i < remainingItemsStacked.size(); i++) {
+                        var candidateToStackWith = remainingItemsStacked.get(i);
+                        if (ItemHandlerHelper.canItemStacksStack(remainingStack, candidateToStackWith)) {
+                            var totalStackSize = candidateToStackWith.getCount() + remainingStack.getCount();
+                            var existingCount = Math.min(candidateToStackWith.getMaxStackSize(), totalStackSize);
+                            remainingItemsStacked.set(i, candidateToStackWith.copyWithCount(existingCount));
+                            remainingStack = remainingStack.copyWithCount(totalStackSize - existingCount);
+                        }
+
+                        var remainingCount = remainingStack.getCount();
+                        assert remainingCount >= 0;
+                        if (remainingCount == 0)
+                            break;
+                    }
+
+                    if (remainingStack.getCount() > 0) {
+                        remainingItemsStacked.add(remainingStack);
+                    }
+                }
 
                 var slotCnt = ih.getSlots();
                 for (int i = slotCnt - 1; i >= 0; i--) {
@@ -185,7 +210,6 @@ public class DigitalCrafterBlockUD extends BaseAcBlockEntityComponentUD<DigitalC
                     var neededItemsOfThisType = itemsLeftToConsume.getOrDefault(stack.getItem(), 0);
                     if (neededItemsOfThisType > 0) {
                         var consumeThisManyItemsOfThisStack = Math.min(stack.getCount(), neededItemsOfThisType);
-
                         var newCount = stack.getCount() - consumeThisManyItemsOfThisStack;
                         if (!dryRun) {
                             ih.setStackInSlot(i, newCount > 0 ? stack.copyWithCount(newCount) : ItemStack.EMPTY);
@@ -201,14 +225,38 @@ public class DigitalCrafterBlockUD extends BaseAcBlockEntityComponentUD<DigitalC
                     }
                 }
 
-                boolean hasEnoughFreeSlotsAfterOperation = freeSlotsAfterOperation > 0;
+                // left over items go back into inventory
+                boolean hasEnoughFreeSlotsAfterOperation = freeSlotsAfterOperation > remainingItemsStacked.size();
+                boolean hasEnoughFreeSlotsToStoreIngredients = freeSlotsAfterOperation >= remainingItemsStacked.size();
                 if (dryRun) {
                     if (!itemsLeftToConsume.isEmpty())
                         return 0;
-                    else { // now we need to know if theres a free slot or we can stack the result item
+                    else if (!hasEnoughFreeSlotsToStoreIngredients) {
+                        return 3;
+                    } else { // now we need to know if theres a free slot or we can stack the result item
                         return hasEnoughFreeSlotsAfterOperation ? 2 : 1;
                     }
                 } else {
+                    var extraOutputsLeftToReturn = new ArrayList<>(remainingItemsStacked);
+                    for (var currentStackToDistribute : extraOutputsLeftToReturn) {
+                        for (int i = 0; i < slotCnt; i++) {
+                            var slotStack = ih.getStackInSlot(i);
+                            if (slotStack.isEmpty()) {
+                                ih.setStackInSlot(i, currentStackToDistribute);
+                                currentStackToDistribute = ItemStack.EMPTY;
+                            } else if (ItemHandlerHelper.canItemStacksStack(currentStackToDistribute, slotStack)) {
+                                var totalStackSize = slotStack.getCount() + currentStackToDistribute.getCount();
+                                var existingCount = Math.min(slotStack.getMaxStackSize(), totalStackSize);
+                                ih.setStackInSlot(i, slotStack.copyWithCount(existingCount));
+                                currentStackToDistribute = currentStackToDistribute.copyWithCount(totalStackSize - existingCount);
+                            }
+                            assert currentStackToDistribute.getCount() >= 0;
+                            if (currentStackToDistribute.isEmpty())
+                                break;
+                        }
+                        assert currentStackToDistribute.isEmpty(); // if this triggers then we somehow ran out of inventory space
+                    }
+
                     return 0;
                 }
             });
@@ -221,6 +269,9 @@ public class DigitalCrafterBlockUD extends BaseAcBlockEntityComponentUD<DigitalC
                 }
                 case 2 -> { // success
                 }
+
+                // not sure if we will ever encounter this, but we handle it just in case.
+                case 3 -> throw new LuaJavaError("Not enough slots left to store intermediate outputs, e.g. empty buckets when crafting a cake.");
                 default -> throw new IllegalStateException("unreachable");
             }
 
@@ -228,7 +279,7 @@ public class DigitalCrafterBlockUD extends BaseAcBlockEntityComponentUD<DigitalC
             checkOrConsume.apply(false);
 
             // then spawn the result
-            var itemstackToSpawn = resultItemStack.copyWithCount(maxAmountFinal);
+            var itemstackToSpawn = resultItemStack.copyWithCount(maxAmountFinal * matchFinal.getResultItem(registryAccess).getCount());
             if (outputIntoOwnInventory) {
                 for (int i = 0; i < ih.getSlots(); i++) {
                     itemstackToSpawn = ih.insertItem(i, itemstackToSpawn, false);
