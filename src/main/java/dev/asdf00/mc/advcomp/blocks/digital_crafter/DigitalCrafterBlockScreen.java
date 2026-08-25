@@ -20,7 +20,6 @@ public class DigitalCrafterBlockScreen extends AbstractContainerScreen<DigitalCr
     @Override
     protected void init() {
         super.init();
-        topPos+=2;
         imageHeight+=2;
         inventoryLabelY++;
         titleLabelY--;
