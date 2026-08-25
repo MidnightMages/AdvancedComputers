@@ -21,7 +21,8 @@ public class AdapterBlockEntity extends BasePeripheralComponentBlockEntity imple
     private AdapterBlockUD currentUD = null;
 
     public void setNewUD(AdapterBlockUD rv) {
-        currentUD.makeObjectInaccessible();
+        if (currentUD != null)
+            currentUD.makeObjectInaccessible();
         currentUD = rv;
     }
 
