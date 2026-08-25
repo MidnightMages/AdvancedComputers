@@ -4,7 +4,6 @@ import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.datagen.util.ShapelessNbtRecipeBuilder;
 import dev.asdf00.mc.advcomp.items.FloppyDiskItem;
 import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
-import net.minecraft.client.Minecraft;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.*;
 import net.minecraft.resources.ResourceLocation;
@@ -336,6 +335,17 @@ public class RecipeGenerator extends RecipeProvider {
                 .define('G', Items.GOLD_BLOCK)
                 .define('O', Items.OBSIDIAN)
                 .unlockedBy("item", has(Items.OBSIDIAN))
+                .save(pWriter);
+
+        shaped(AdvancedComputers.ADAPTER_BLOCK.blockItem().get())
+                .pattern("CRC")
+                .pattern("RDR")
+                .pattern("CVC")
+                .define('C', Tags.Items.INGOTS_COPPER)
+                .define('R', Items.REDSTONE)
+                .define('D', Items.DAYLIGHT_DETECTOR)
+                .define('V', AdvancedComputers.DEVICE_CABLE_BLOCK.blockItem().get())
+                .unlockedBy("item", has(Items.REDSTONE))
                 .save(pWriter);
     }
 
