@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "advancedcomputers:block/digital_crafter_block"
+    }
+  }
+}

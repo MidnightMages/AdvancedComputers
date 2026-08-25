@@ -326,6 +326,17 @@ public class RecipeGenerator extends RecipeProvider {
                 .define('I', Tags.Items.INGOTS_IRON)
                 .unlockedBy("item", has(Tags.Items.INGOTS_COPPER))
                 .save(pWriter);
+
+        shaped(AdvancedComputers.DIGITAL_CRAFTER_BLOCK.blockItem().get())
+                .pattern("ICI")
+                .pattern("IGI")
+                .pattern("IOI")
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('C', Items.CRAFTING_TABLE)
+                .define('G', Items.GOLD_BLOCK)
+                .define('O', Items.OBSIDIAN)
+                .unlockedBy("item", has(Items.OBSIDIAN))
+                .save(pWriter);
     }
 
     public record PremadeFloppyInfo(String folderId, String resultFloppyLabel, ItemLike otherIngredient, int color) {}

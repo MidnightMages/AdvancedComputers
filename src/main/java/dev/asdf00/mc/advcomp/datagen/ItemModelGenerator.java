@@ -55,6 +55,7 @@ public class ItemModelGenerator extends ItemModelProvider {
 
         this.withExistingParent("keycard_reader_block", rl("block/keycard_reader_block"));
         this.withExistingParent("mainboard_programmer_block", rl("block/mainboard_programmer_block"));
+        this.withExistingParent("digital_crafter_block", rl("block/digital_crafter_block"));
         this.withExistingParent("punchcard_machine_block", rl("block/punchcard_machine_block"));
         this.withExistingParent("punchcard_reader_block", rl("block/punchcard_reader_block"));
         this.withExistingParent("item_interface_block", rl("block/item_interface_block"));

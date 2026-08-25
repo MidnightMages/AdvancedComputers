@@ -39,6 +39,7 @@ public class BlockStateGenerator extends BlockStateProvider {
         }
         orientedBlock(AdvancedComputers.KEYCARD_READER_BLOCK);
         orientedBlock(AdvancedComputers.MAINBOARD_PROGRAMMER_BLOCK);
+        simpleModel(AdvancedComputers.DIGITAL_CRAFTER_BLOCK);
         orientedBlock(AdvancedComputers.PUNCHCARD_MACHINE_BLOCK);
         orientedBlock(AdvancedComputers.PUNCHCARD_READER_BLOCK);
 

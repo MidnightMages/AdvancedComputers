@@ -15,6 +15,9 @@
 	"block.advancedcomputers.mainboard_programmer_block": "Mainboard Programmer",
 	"gui.advancedcomputers.mainboard_programmer_block.title": "Mainboard Programmer",
 
+	"block.advancedcomputers.digital_crafter_block": "Digital Crafter",
+	"gui.advancedcomputers.digital_crafter_block.title": "Digital Crafter",
+
 	"block.advancedcomputers.punchcard_machine_block": "Punchcard Machine",
 	"gui.advancedcomputers.punchcard_machine_block.title": "Punchcard Machine",
 	"block.advancedcomputers.punchcard_reader_block": "Punchcard Reader",

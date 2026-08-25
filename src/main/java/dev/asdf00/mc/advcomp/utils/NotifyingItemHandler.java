@@ -66,7 +66,7 @@ public class NotifyingItemHandler extends ItemStackHandler {
 
 
         var canInsertThisMuch = maxSizeToInsert - this.getStackInSlot(slot).getCount();
-        var extraItemsToReturn = stack.getCount() - canInsertThisMuch;
+        var extraItemsToReturn = Math.max(0, stack.getCount() - canInsertThisMuch);
 
         if (canInsertThisMuch <= 0) {
             return stack;

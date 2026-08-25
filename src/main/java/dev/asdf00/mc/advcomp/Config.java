@@ -92,6 +92,14 @@ public class Config {
             .worldRestart()
             .defineInRange("component.network.transmissionSpeedBlocksPerSecond", 1000, 1, Integer.MAX_VALUE);
 
+    private static final ForgeConfigSpec.IntValue COMPONENT_CRAFTER_COOLDOWN_MS = BUILDER
+            .comment("""
+                     How long the cooldown of the Digital Crafter block should be after every :craft() operation.
+                     Smaller values allow for more crafting operations.
+                     """)
+            .worldRestart()
+            .defineInRange("component.digitalCrafter.craftCooldownMs", 1000, 0, Integer.MAX_VALUE);
+
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
     public static boolean escapeUppercaseCharactersOnHost;
@@ -105,6 +113,7 @@ public class Config {
     public static boolean componentInternetBlockLocalIPs;
     public static int componentNetworkMaxPacketSize;
     public static int componentNetworkTransmissionSpeedBlocksPerSecond;
+    public static int componentCrafterCooldownMilliseconds;
 
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
@@ -120,5 +129,6 @@ public class Config {
         componentInternetBlockLocalIPs = COMPONENT_INTERNET_BLOCK_LOCAL_IPS.get();
         componentNetworkMaxPacketSize = COMPONENT_NETWORK_MAX_PACKET_SIZE.get();
         componentNetworkTransmissionSpeedBlocksPerSecond = COMPONENT_NETWORK_TRANSMISSION_SPEED_BLOCKS_PER_SEC.get();
+        componentCrafterCooldownMilliseconds = COMPONENT_CRAFTER_COOLDOWN_MS.get();
     }
 }

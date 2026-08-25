@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "minecraft:crafting_table"
+    },
+    "G": {
+      "item": "minecraft:gold_block"
+    },
+    "I": {
+      "tag": "forge:ingots/iron"
+    },
+    "O": {
+      "item": "minecraft:obsidian"
+    }
+  },
+  "pattern": [
+    "ICI",
+    "IGI",
+    "IOI"
+  ],
+  "result": {
+    "item": "advancedcomputers:digital_crafter_block"
+  },
+  "show_notification": true
+}
