@@ -11,16 +11,20 @@ import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
 
 public class AutoCrafterBlockScreen extends AbstractContainerScreen<AutoCrafterBlockMenu> {
-    private static final ResourceLocation TEXTURE = new ResourceLocation(AdvancedComputers.MODID, "textures/gui/mainboard_programmer_gui.png");
+    private static final ResourceLocation TEXTURE = new ResourceLocation(AdvancedComputers.MODID, "textures/gui/auto_crafter_gui.png");
 
     public AutoCrafterBlockScreen(AutoCrafterBlockMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
     }
 
+    private boolean isShifted = false;
     @Override
     protected void init() {
         super.init();
         //this.titleLabelY = 1000; // hide top text
+
+        topPos+=2;
+        imageHeight+=2;
     }
 
     @Override

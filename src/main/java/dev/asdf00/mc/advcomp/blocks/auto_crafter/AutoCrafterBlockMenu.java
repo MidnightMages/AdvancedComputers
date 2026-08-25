@@ -12,6 +12,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 
 public class AutoCrafterBlockMenu extends AbstractContainerMenu {
@@ -33,13 +34,15 @@ public class AutoCrafterBlockMenu extends AbstractContainerMenu {
         addPlayerInventory(playerInv);
         addPlayerHotbar(playerInv);
         this.blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(iItemHandler -> {
-            this.addSlot(new SlotItemHandlerRequireType(iItemHandler, 0, 80, 36, MainboardItem.class));
+            for (int i = 0; i < 3; i++) {
+                addSlotRow(iItemHandler, i*9, 8, i*18+17, 9);
+            }
         });
     }
 
     void addSlotRow(IItemHandler iItemHandler, int indexStart, int xPos, int yPos, int count) {
         for (int i = 0; i < count; i++) {
-            this.addSlot(new SlotItemHandlerRequireType(iItemHandler, indexStart + i, xPos + 18 * i, yPos, MainboardItem.class));
+            this.addSlot(new SlotItemHandler(iItemHandler, indexStart + i, xPos + 18 * i, yPos));
         }
     }
 
@@ -59,7 +62,7 @@ public class AutoCrafterBlockMenu extends AbstractContainerMenu {
     private static final int TE_INVENTORY_FIRST_SLOT_INDEX = VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT;
 
     // THIS YOU HAVE TO DEFINE!
-    public static final int TE_INVENTORY_SLOT_COUNT = 1;  // must be the number of slots you have!
+    public static final int TE_INVENTORY_SLOT_COUNT = 27;  // must be the number of slots you have!
 
     @Override
     public @NotNull ItemStack quickMoveStack(@NotNull Player playerIn, int pIndex) {

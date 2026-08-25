@@ -60,8 +60,12 @@ public abstract class BasePeripheralComponentBlockEntity extends BaseCableConnec
         super.setRemoved();
     }
 
-
-
+    public void runOnTickThread(Runnable toExecute) {
+        runOnTickThread(() -> {
+            toExecute.run();
+            return null;
+        });
+    }
 
     public <T> T runOnTickThread(Supplier<T> toExecute) {
         //noinspection unchecked

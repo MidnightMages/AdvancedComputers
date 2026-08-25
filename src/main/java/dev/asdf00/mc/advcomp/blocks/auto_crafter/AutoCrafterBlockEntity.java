@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class AutoCrafterBlockEntity extends BasePeripheralComponentBlockEntity implements MenuProvider {
     public final NotifyingItemHandler itemHandler = new NotifyingItemHandler(this, AutoCrafterBlockMenu.TE_INVENTORY_SLOT_COUNT,
-            (slotIdx, itemStack) -> slotIdx == 0 && (itemStack.getItem() instanceof MainboardItem)  ? 1 : 0,
+            (slotIdx, itemStack) -> 64,
             this::itemHandler_onSlotChanged
     );
     private LazyOptional<IItemHandler> lazyItemHandler = LazyOptional.empty();
