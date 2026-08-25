@@ -24,7 +24,7 @@ public final class JukeboxALI {
     }
 
     @AcAdapterLuaImplementation.Method
-    public void restartPlaying(AcALIContext ctx) {
+    public static void restartPlaying(AcALIContext ctx) {
         ctx.adapter().runOnTickThread(() -> {
             if (ctx.getBlockEntity() instanceof JukeboxBlockEntity jbe) {
                 jbe.startPlaying();
@@ -36,7 +36,7 @@ public final class JukeboxALI {
     }
 
     @AcAdapterLuaImplementation.Method
-    public void eject(AcALIContext ctx) {
+    public static void eject(AcALIContext ctx) {
         ctx.adapter().runOnTickThread(() -> {
             if (ctx.getBlockEntity() instanceof JukeboxBlockEntity jbe) {
                 jbe.popOutRecord();
@@ -48,7 +48,7 @@ public final class JukeboxALI {
     }
 
     @AcAdapterLuaImplementation.PropertyGet
-    public String containedItem(AcALIContext ctx) {
+    public static String containedItem(AcALIContext ctx) {
         return ctx.adapter().runOnTickThread(() -> {
             if (ctx.getBlockEntity() instanceof JukeboxBlockEntity jbe) {
                 var is = jbe.getFirstItem();
@@ -63,7 +63,7 @@ public final class JukeboxALI {
     }
 
     @AcAdapterLuaImplementation.PropertyGet
-    public String recordName(AcALIContext ctx) {
+    public static String recordName(AcALIContext ctx) {
         return ctx.adapter().runOnTickThread(() -> {
             if (ctx.getBlockEntity() instanceof JukeboxBlockEntity jbe) {
                 var firstItem = jbe.getFirstItem();

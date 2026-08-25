@@ -49,7 +49,7 @@ public class AdapterCompanion {
         this.blockClazz = blockClazz;
         var readables = new ArrayList<String>(propertyGetter.size() + callables.size());
         readables.addAll(propertyGetter.keySet());
-        readables.addAll(callables.keySet());
+        readables.addAll(pureCallableNames);
         readableKeys = readables.toArray(String[]::new);
         writableKeys = propertySetter.keySet().toArray(String[]::new);
     }
@@ -112,16 +112,16 @@ public class AdapterCompanion {
             throw new LuaJavaError("no overload found for %d arguments".formatted(args.length - 1));
         }
         var handle = callables.get(mangled);
-        var transformedArgs = prepareArgs(context, handle.type().parameterArray(), args);
+        Object[] transformedArgs = prepareArgs(context, handle.type().parameterArray(), args);
         var rType = handle.type().returnType();
         try {
             if (rType == void.class) {
-                handle.invoke(transformedArgs);
+                handle.invokeWithArguments(transformedArgs);
                 return Singletons.EMPTY_LUA_OBJ_ARRAY;
             } else if (rType == LuaObject[].class) {
-                return (LuaObject[]) handle.invoke(transformedArgs);
+                return (LuaObject[]) handle.invokeWithArguments(transformedArgs);
             } else {
-                return new LuaObject[]{convertToLuaObject(handle.invoke(transformedArgs))};
+                return new LuaObject[]{convertToLuaObject(handle.invokeWithArguments(transformedArgs))};
             }
         } catch (LuaJavaError e) {
             throw e;
@@ -259,7 +259,8 @@ public class AdapterCompanion {
                 String path = root.toURI().relativize(file.toURI()).getPath();
                 String className = path
                         .substring(0, path.length() - 6)
-                        .replace(File.separatorChar, '.');
+                        .replace('\\','/')
+                        .replace('/', '.');
                 checkClass(collected, className, loader);
             }
         }
@@ -401,7 +402,7 @@ public class AdapterCompanion {
                     m.getName()
             ));
         }
-        if (!isLuaObjectConvertible(m.getReturnType())) {
+        if (!isLuaObjectConvertible(toBoxedType(m.getReturnType()))) {
             throw new IllegalStateException("Adapter-getters must return a LuaObject-convertible object, %s#%s does not comply with this".formatted(
                     m.getDeclaringClass().getName(),
                     m.getName()
@@ -474,7 +475,7 @@ public class AdapterCompanion {
 
     private static MethodHandle makeMethodHandle(MethodHandles.Lookup lookup, Method m) {
         try {
-            return lookup.findVirtual(m.getDeclaringClass(), m.getName(), MethodType.methodType(m.getReturnType(), m.getParameterTypes()));
+            return lookup.findStatic(m.getDeclaringClass(), m.getName(), MethodType.methodType(m.getReturnType(), m.getParameterTypes()));
         } catch (IllegalAccessException | NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
