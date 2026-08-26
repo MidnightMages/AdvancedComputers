@@ -6,11 +6,11 @@ This is of course inspired by OpenComputers (for Minecraft 1.12) and the origina
 
 Feel free to join our Discord server for support or any kind of questions: https://discord.gg/YBvURmhN9f
 
-## THIS IS AN ALPHA
-At this point there is still some fundamental content missing (thus the alpha tag) and there might also be a number of bugs present (please open an issue ticket if you find one).
+## THIS IS A BETA
+Most of the content is in and we think the mod is in pretty good shape, but there might still be bugs present. If you find one, please open an issue ticket.
 
 ## Features
-Currently adds programmable computers into Minecraft, along with screens, peripheral cables, real-world-internet-access, and redstone and inventory-interface peripherals, all being interactable through Lua 5.4.
+Adds programmable computers into Minecraft, along with screens, peripheral cables, real-world-internet-access, and redstone and inventory-interface peripherals and much more, all being interactable through Lua 5.4.
 
 **For server owners:**
 As far as resource usage goes, we are only setting up a lua execution environment per computer and **not** an entire virtual machine, meaning these computers have a very low ram and disk space requirement.
@@ -20,9 +20,9 @@ Cpu time limiting based on computer tier is implemented. Disk usage is limited t
 ### Finding your way around
 The included OS (Advanced OS) comes with the basic commands such as `ls`, `rm` and even a text editor called `nano`, inspired by the GNU nano. Additionally there is also `pasteTextToFile`, which listens for pasted-text (paste via middle mouse button) and then writes that into the specified file. E.g. `pasteToFile someFile.lua`.
 
-(Almost all of) the api is documented in our wiki: https://wiki.ac.ghxx.dev/
+All the api is documented on our wiki: https://wiki.ac.ghxx.dev/
 
-You can also use the lua code `vm.listUDKeys(components:getFirst("computer"))` to programmatically figure out which fields a userdata object contains (in your current mod version). 'userdata' is a special Lua type that represents a Java object. All components are represented as userdata objects.
+You can also use the lua code `vm.listUdKeys(components:getFirst("computer"))` to programmatically figure out which fields a userdata object contains (in your current mod version). 'userdata' is a special Lua type that represents a Java object. All components are represented as userdata objects.
 
 This combined with looking at the existing uefi.lua and operating system, both located in `src/main/resources/assets/advancedcomputers/lua/*` should hopefully give a decent point to start out with.
 
@@ -33,17 +33,16 @@ You can also find the current mod and minecraft version in the global `_HOST` va
 - ~~Making a wiki on https://wiki.ac.ghxx.dev/ that lists & describes all the api functions~~ (DONE)
 - ~~Sending network packets between ingame computers (with some intelligent packet handling to avoid having to write a custom ingame IP protocol)~~ (DONE)
 - ~~Make disk space limited and~~ (DONE)
-- Interaction with more minecraft blocks
+- ~~Interaction with more minecraft blocks~~ (DONE)
 - Add a soft computer ram limit
 - Finish adding anything that is missing from the Lua standard library (most notably some edgecase features in pattern matching, i.e. edgecases in string.gsub and related functions, though they mostly work)
 - Adding more fun stuff like servers, etc.
 
 ## Downloading
-You can download this mod from [Modrinth](https://modrinth.com/mod/advanced-computers) and possibly in the future also CurseForge.
-While in alpha, versions can also be downloaded via the [github releases section](https://github.com/MidnightMages/AdvancedComputers/releases), though we will stop shipping binary releases here at some point and then just focus on Modrinth and CurseForge.
+You can download this mod from [Modrinth](https://modrinth.com/mod/advanced-computers) and possibly in the future also CurseForge. We will no longer be providing binary releases on GitHub, use Modrinth instead.
 
 ## Targeted minecraft versions
-Currently this targets Minecraft 1.20.1 (forge), but we do plan to extend that once the mod reaches the Release state (i.e. containing very few bugs and being mostly content complete).
+Currently this targets Minecraft 1.20.1 (forge), but we do plan to update to newer versions in the future.
 
 ## License & Attribution
 Feel free to include this mod in any modpacks without attributing us. 
@@ -67,3 +66,4 @@ The runtime is called JLuaVm, written entirely in java, from scratch, and suppor
 - Most of the debug library
 - Anything that would interact with the host system (as it is meant to be sandboxed). Functionality like writing to disk is implemented by this mod itself, for example.
 - Type extension functions, essentially allowing for the same functionality as using __index of debug.setmetatable() for types like string, boolean, etc., but on a per-_ENV basis rather than globally.
+For more differences between JLuaVM and LuaC, see <https://wiki.ac.ghxx.dev/JLuaVM>.
