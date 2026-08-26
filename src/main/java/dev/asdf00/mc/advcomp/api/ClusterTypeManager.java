@@ -28,6 +28,9 @@ public final class ClusterTypeManager {
         }
     }
 
+    /**
+     * SHALL ONLY BE CALLED BY ADVANCED COMPUTERS
+     */
     public void closeRegistration() {
         isClosed = true;
     }
