@@ -24,6 +24,8 @@
 	"gui.advancedcomputers.punchcard_reader_block.title": "Punchcard Reader",
 	"item.advancedcomputers.punchcard_item": "Punchcard",
 
+	"block.advancedcomputers.adapter_block": "Adapter",
+
 	"item.advancedcomputers.debugger_item": "Debugger",
 
 	"block.advancedcomputers.item_interface_block": "Item Interface",

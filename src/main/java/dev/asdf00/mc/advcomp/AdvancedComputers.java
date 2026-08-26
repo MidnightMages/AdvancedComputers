@@ -5,6 +5,8 @@ import dev.asdf00.jluavm.LuaVM;
 import dev.asdf00.jluavm.internals.javac.PersistentJavaCompilationCache;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.api.ClusterTypeManager;
+import dev.asdf00.mc.advcomp.blocks.adapter.AdapterBlock;
+import dev.asdf00.mc.advcomp.blocks.adapter.AdapterBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.DeviceCableBlock;
 import dev.asdf00.mc.advcomp.blocks.cables.NetworkCableBlock;
 import dev.asdf00.mc.advcomp.blocks.cables.model.CableModelLoader;
@@ -187,6 +189,9 @@ public class AdvancedComputers {
     public static final RegistryBlockItemPair<Block> NET_ROUTER_BLOCK = registerBlockWithItem("net_router",
             () -> new NetRouterBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK).noOcclusion()));
 
+    public static final RegistryBlockItemPair<Block> ADAPTER_BLOCK = registerBlockWithItem("adapter_block",
+            () -> new AdapterBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
+
     public static final RegistryObject<BlockEntityType<ComputerBlockEntity>> COMPUTER_BE = BLOCK_ENTITY_TYPES.register("computer_be",
             () -> BlockEntityType.Builder.of(ComputerBlockEntity::new, COMPUTER_BLOCK.block().get(), COMPUTER_BLOCK_WOOD.block().get(),
                     COMPUTER_BLOCK_DIAMOND.block().get(), COMPUTER_BLOCK_NETHERITE.block().get(),
@@ -225,6 +230,9 @@ public class AdvancedComputers {
 
     public static final RegistryObject<BlockEntityType<NetRouterBlockEntity>> NET_ROUTER_BE = BLOCK_ENTITY_TYPES.register("net_router_be",
             () -> BlockEntityType.Builder.of(NetRouterBlockEntity::new, NET_ROUTER_BLOCK.block().get()).build(null));
+
+    public static final RegistryObject<BlockEntityType<AdapterBlockEntity>> ADAPTER_BE = BLOCK_ENTITY_TYPES.register("adapter_be",
+            () -> BlockEntityType.Builder.of(AdapterBlockEntity::new, ADAPTER_BLOCK.block().get()).build(null));
 
     public static final RegistryObject<MenuType<ComputerBlockMenu>> COMPUTER_MENU =
             registerMenuType("computer_menu", ComputerBlockMenu::new);

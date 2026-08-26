@@ -5,6 +5,7 @@ import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.RegistryBlockItemPair;
 import dev.asdf00.mc.advcomp.blocks.cables.model.CableModelLoader;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlock;
+import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
@@ -42,6 +43,7 @@ public class BlockStateGenerator extends BlockStateProvider {
         simpleModel(AdvancedComputers.DIGITAL_CRAFTER_BLOCK);
         orientedBlock(AdvancedComputers.PUNCHCARD_MACHINE_BLOCK);
         orientedBlock(AdvancedComputers.PUNCHCARD_READER_BLOCK);
+        orientableWithBottom_alignedAlongFacing(AdvancedComputers.ADAPTER_BLOCK);
 
         cable(AdvancedComputers.DEVICE_CABLE_BLOCK, "device");
         cable(AdvancedComputers.NETWORK_CABLE_BLOCK, "network");
@@ -97,8 +99,11 @@ public class BlockStateGenerator extends BlockStateProvider {
                                     .modelFile(mf("block/" + blockName));
                             if (is6Facing) {
                                 var facing = state.getValue(BlockStateProperties.FACING);
-                                b = b.rotationX(facing.getStepX());
-                                b = b.rotationX(facing.getStepY());
+                                if (facing.getAxis() == Direction.Axis.Y) {
+                                    b = b.rotationX(facing.getStepX() * -90);
+                                } else {
+                                    b = b.rotationY(((int) facing.toYRot() + 180) % 360);
+                                }
                             } else {
                                 b = b.rotationY(((int) state.getValue(BlockStateProperties.HORIZONTAL_FACING).toYRot() + 180) % 360);
                             }
@@ -128,6 +133,22 @@ public class BlockStateGenerator extends BlockStateProvider {
                     .rotationX(facing.getStepY() * 90)
                     .rotationY(((int) facing.toYRot() + 180) % 360)
                     .build();
+        });
+    }
+
+    private void orientableWithBottom_alignedAlongFacing(RegistryBlockItemPair<Block> breg) {
+        var block = breg.block().get();
+        var blockName = removeModPrefix(block);
+        getVariantBuilder(block).forAllStates(state -> {
+            var b = ConfiguredModel.builder().modelFile(mf("block/" + blockName));
+            var facing = state.getValue(BlockStateProperties.FACING);
+            if (facing.getAxis() == Direction.Axis.Y) { // up, down
+                b = b.rotationX((facing.getStepY()-1) * (-90));
+            } else { // north east south west
+                b = b.rotationY((facing.get2DDataValue()*90+180)%360).rotationX(90);
+            }
+
+            return b.build();
         });
     }
 

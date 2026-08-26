@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "tag": "forge:ingots/copper"
+    },
+    "D": {
+      "item": "minecraft:daylight_detector"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "V": {
+      "item": "advancedcomputers:device_cable_block"
+    }
+  },
+  "pattern": [
+    "CRC",
+    "RDR",
+    "CVC"
+  ],
+  "result": {
+    "item": "advancedcomputers:adapter_block"
+  },
+  "show_notification": true
+}
