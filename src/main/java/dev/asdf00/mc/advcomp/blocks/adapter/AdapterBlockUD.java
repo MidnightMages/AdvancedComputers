@@ -11,7 +11,6 @@ import dev.asdf00.mc.advcomp.lua.components.BaseAcBlockEntityComponentUD;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.Block;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,8 +18,6 @@ import java.util.Queue;
 import java.util.function.Supplier;
 
 public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEntity> {
-
-    private volatile AdapterCompanion adapterCompanion = AdapterCompanion.EMPTY_COMPANION;
 
     public AdapterBlockUD(AdapterBlockEntity blockEntity) {
         super("adapter", blockEntity);
@@ -46,13 +43,9 @@ public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEnt
         return blockEntity.getBlockPos().relative(direction);
     }
 
-    public void onTargetChanged(Class<? extends Block> blockClass) {
-        adapterCompanion = AdapterCompanion.ofBlock(blockClass);
-    }
-
     @Override
     public LuaObject luaGeneralGet(LuaObject key) throws LuaJavaError {
-        var adComp = adapterCompanion;
+        var adComp = blockEntity.adapterCompanion;
         if (!key.isString()) {
             throw new LuaJavaError("Adapters can only handle keys of type 'string', got '%s'".formatted(key.getTypeAsString()));
         }
@@ -68,7 +61,7 @@ public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEnt
 
     @Override
     public boolean luaGeneralSet(LuaObject key, LuaObject value) throws LuaJavaError {
-        var adComp = adapterCompanion;
+        var adComp = blockEntity.adapterCompanion;
         if (!key.isString()) {
             throw new LuaJavaError("Adapters can only handle keys of type 'string', got '%s'".formatted(key.getTypeAsString()));
         }
@@ -83,12 +76,12 @@ public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEnt
 
     @Override
     public String[] getExtraReadableUdKeys() {
-        return adapterCompanion.readableKeys;
+        return blockEntity.adapterCompanion.readableKeys;
     }
 
     @Override
     public String[] getExtraWritableUdKeys() {
-        return adapterCompanion.writableKeys;
+        return blockEntity.adapterCompanion.writableKeys;
     }
 
     @LuaCallable
@@ -106,7 +99,7 @@ public class AdapterBlockUD extends BaseAcBlockEntityComponentUD<AdapterBlockEnt
     }
 
     public AcALIContext validateCall(AdapterCompanion attempted) {
-        if (adapterCompanion != attempted) {
+        if (blockEntity.adapterCompanion != attempted) {
             throw new LuaJavaError("The block in front of the Adapter has changed!");
         }
         return new AcALIContext(this, blockEntity.getLevel(), getTargetPosition());

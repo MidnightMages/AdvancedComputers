@@ -6,6 +6,7 @@ import dev.asdf00.jluavm.exceptions.LuaJavaError;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.runtime.utils.Singletons;
 import dev.asdf00.jluavm.runtime.utils.UDTranslators;
+import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.api.AcALIContext;
 import dev.asdf00.mc.advcomp.api.AcAdapterLuaImplementation;
 import dev.asdf00.mc.advcomp.blocks.adapter.AdapterBlockUD;
@@ -224,13 +225,22 @@ public class AdapterCompanion {
 
             var blkClazz = adCls.getAnnotation(AcAdapterLuaImplementation.class).block();
             var companion = new AdapterCompanion(getters, setters, methods, clearMethodNames, blkClazz);
-            ALL_COMPANIONS.put(blkClazz, companion);
+            if (ALL_COMPANIONS.put(blkClazz, companion) != null)
+                throw new IllegalStateException("Adapter integration %s was defined at least twice!".formatted(blkClazz.getName()));
 
             // register Lua functions
             for (var name : clearMethodNames) {
                 registerAdapterFunction(companion, name);
             }
         }
+
+        AdvancedComputers.LOGGER.info("Loaded %s AdapterLuaImplementations for [%s].".formatted(
+                ALL_COMPANIONS.size(),
+                ALL_COMPANIONS.keySet()
+                        .stream()
+                        .map(Class::getName)
+                        .collect(Collectors.joining(", "))
+        ));
     }
 
     private static String distinctFuncName(Method method) {

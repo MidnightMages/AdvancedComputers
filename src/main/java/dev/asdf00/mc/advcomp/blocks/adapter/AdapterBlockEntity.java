@@ -2,12 +2,12 @@ package dev.asdf00.mc.advcomp.blocks.adapter;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.BasePeripheralComponentBlockEntity;
+import dev.asdf00.mc.advcomp.lua.adapterapi.AdapterCompanion;
 import dev.asdf00.mc.advcomp.lua.components.AcBlockEntityComponent;
 import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 import dev.asdf00.mc.advcomp.types.cluster.ClusterType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
@@ -19,6 +19,7 @@ public class AdapterBlockEntity extends BasePeripheralComponentBlockEntity imple
         super(AdvancedComputers.ADAPTER_BE.get(), pPos, pBlockState);
     }
     private AdapterBlockUD currentUD = null;
+    volatile AdapterCompanion adapterCompanion = AdapterCompanion.EMPTY_COMPANION;
 
     public void setNewUD(AdapterBlockUD rv) {
         if (currentUD != null)
@@ -51,12 +52,12 @@ public class AdapterBlockEntity extends BasePeripheralComponentBlockEntity imple
 
     public void rebuildCompanion() {
         var blockClass = level.getBlockState(getBlockPos().relative(getBlockState().getValue(AdapterBlock.FACING))).getBlock().getClass();
-        currentUD.onTargetChanged(blockClass);
+        adapterCompanion = AdapterCompanion.ofBlock(blockClass);
     }
 
     @Override
-    public void load(CompoundTag pTag) {
-        super.load(pTag);
+    public void onLoad() {
+        super.onLoad();
         rebuildCompanion();
     }
 }
