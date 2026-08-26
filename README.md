@@ -18,9 +18,9 @@ As far as resource usage goes, we are only setting up a lua execution environmen
 Cpu time limiting based on computer tier is implemented. Disk usage is limited too, but ram usage is currently not limited.
 
 ### Finding your way around
-The included OS (Advanced OS) comes with the basic commands such as `ls`, `rm` and even a text editor called `nano`, inspired by the GNU nano. Additionally there is also `pasteTextToFile`, which listens for pasted-text (paste via middle mouse button) and then writes that into the specified file. E.g. `pasteToFile someFile.lua`.
+All the api is documented on our wiki, <https://wiki.ac.ghxx.dev/>, which also contains a introductory guide <https://wiki.ac.ghxx.dev/Introduction>.
 
-All the api is documented on our wiki: https://wiki.ac.ghxx.dev/
+The included OS (Advanced OS) comes with the basic commands such as `ls`, `rm` and even a text editor called `nano`, inspired by the GNU nano. Additionally there is also `pasteTextToFile`, which listens for pasted-text (paste via middle mouse button) and then writes that into the specified file. E.g. `pasteToFile someFile.lua`.
 
 You can also use the lua code `vm.listUdKeys(components:getFirst("computer"))` to programmatically figure out which fields a userdata object contains (in your current mod version). 'userdata' is a special Lua type that represents a Java object. All components are represented as userdata objects.
 
