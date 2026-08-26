@@ -86,13 +86,15 @@ public class CableCluster {
     private static BpInfo getInfoAboutBp(Level level, BlockPos bp, ClusterType clusterType) {
         var blockEntity = level.getBlockEntity(bp);
         var block = level.getBlockState(bp).getBlock();
-        var isOrActsAsCable = (block instanceof BaseCableBlock bcb && bcb.clusterType.equals(clusterType)) ||
+        boolean isRealCableOfCurrentType = (block instanceof BaseCableBlock bcb && bcb.clusterType.equals(clusterType));
+        var isOrActsAsCable = isRealCableOfCurrentType ||
                               (blockEntity instanceof CableConnectableBlockOrEntity ccbe && ccbe.actsAsCable(clusterType));
 
-        boolean supportsCluster = (block instanceof BaseCableBlock bcb && bcb.clusterType.equals(clusterType)) ||
+        boolean supportsCluster = isRealCableOfCurrentType ||
                                   (blockEntity instanceof CableConnectableBlockOrEntity ccbe && ccbe.canBePartOfCluster(clusterType));
 
-        return new BpInfo(block, blockEntity, isOrActsAsCable, supportsCluster);
+
+        return new BpInfo(block, blockEntity, isOrActsAsCable, supportsCluster, isRealCableOfCurrentType);
     }
 
     private static void forAllDirs(Consumer<Direction> x) {
@@ -146,7 +148,14 @@ public class CableCluster {
                 forAllDirs(dir -> {
                     var newBp = currBp.relative(dir);
                     var newInfo = getInfoAboutBp(level, newBp, clusterType);
-                    if (!newInfo.supportsCurrentCluster()) {
+                    if (!newInfo.supportsCurrentCluster() ||
+                        (newInfo.blockEntity() instanceof CableConnectableBlockOrEntity ccbe &&
+                         ccbe.canBePartOfCluster(clusterType) &&
+                         !ccbe.canConnectTo(clusterType, dir.getOpposite())) ||
+                        (currInfo.blockEntity() instanceof CableConnectableBlockOrEntity cccbe &&
+                         cccbe.canBePartOfCluster(clusterType) &&
+                         !cccbe.canConnectTo(clusterType, dir))
+                    ) {
                         if (currInfo.blockEntity() instanceof CableConnectableBlockOrEntity entToClearFaceOf)
                             facesThatAreNotConnectedToCurrentClusterType.add(new Tuple<>(entToClearFaceOf, dir));
                         return;
@@ -171,7 +180,7 @@ public class CableCluster {
                         facesToAssignCurrentNetTo.add(new Tuple<>(blockWeAreComingFrom, dir));
                     }
 
-                    if (newInfo.isOrActsAsCable()) { // this is a cable --> trace from this startpoint
+                    if (newInfo.isOrActsAsCable() && doesDestinationWantToConnectToSrc || newInfo.isRealCableOfCurrentType()) { // this is a cable --> trace from this startpoint
                         if (alreadyProcessedBps.add(newBp))
                             blockPosProcessingQueue.add(newBp); // recurse
 
@@ -222,11 +231,19 @@ public class CableCluster {
                 var neighborPos = initialBp.relative(dir);
                 var neighborInfo = getInfoAboutBp(level, neighborPos, clusterType);
                 // if the neighbor isnt an interesting face, simply remove our network and be done
-                if (!neighborInfo.supportsCurrentCluster()) {
+                if (!neighborInfo.supportsCurrentCluster() ||
+                    (initialInfo.blockEntity() instanceof CableConnectableBlockOrEntity ccbe && !ccbe.canConnectTo(clusterType, dir)) ) {
                     if (initialInfo.blockEntity() instanceof BaseCableConnectableBlockEntity ent) { // clear existing net if the face doesnt support it
                         var existingCluster = ent.getNetworkList().get(dir);
                         if (existingCluster != null && existingCluster.clusterType == clusterType) {
                             ent.getNetworkList().remove(dir);
+                            runNetworkUpdate[0] = true;
+                        }
+                    }
+                    if (neighborInfo.blockEntity() instanceof BaseCableConnectableBlockEntity ent) { // clear existing net if the face doesnt support it
+                        var existingCluster = ent.getNetworkList().get(dir.getOpposite());
+                        if (existingCluster != null && existingCluster.clusterType == clusterType) {
+                            ent.getNetworkList().remove(dir.getOpposite());
                             runNetworkUpdate[0] = true;
                         }
                     }

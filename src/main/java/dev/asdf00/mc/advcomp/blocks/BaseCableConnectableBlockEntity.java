@@ -1,6 +1,7 @@
 package dev.asdf00.mc.advcomp.blocks;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.CableClusterHandler;
 import dev.asdf00.mc.advcomp.api.ClusterHostEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
@@ -83,5 +84,11 @@ public abstract class BaseCableConnectableBlockEntity extends BlockEntity implem
         }
 
         return allHosts.size() == 1 ? (ComputerBlockEntity) allHosts.iterator().next() : null;
+    }
+
+    @Override
+    public void onLoad() {
+        assert level != null;
+        CableClusterHandler.markBlockPosForUpdate(level, getBlockPos());
     }
 }
