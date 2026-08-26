@@ -38,7 +38,10 @@ import dev.asdf00.mc.advcomp.blocks.redstone_io.RedstoneIoBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.*;
 import dev.asdf00.mc.advcomp.blocks.wan_router.*;
 import dev.asdf00.mc.advcomp.datagen.*;
+import dev.asdf00.mc.advcomp.integration.lua.JukeboxALI;
 import dev.asdf00.mc.advcomp.items.*;
+import dev.asdf00.mc.advcomp.lua.adapterapi.AcAliRegistry;
+import dev.asdf00.mc.advcomp.lua.adapterapi.AdapterCompanion;
 import dev.asdf00.mc.advcomp.types.DualLayerItemColorHandler;
 import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
 import dev.asdf00.mc.advcomp.types.GlobalDataStorage;
@@ -104,6 +107,7 @@ public class AdvancedComputers {
     // Directly reference a slf4j logger
     public static final Logger LOGGER = LogUtils.getLogger();
     public static final ClusterTypeManager AC_CLUSTER_TYPE_MANAGER = ClusterTypeManager.getInstance();
+    public static final AcAliRegistry AC_ADAPTER_LUA_IMPLEMENTATION_REGISTRY = new AcAliRegistry();
     // Create a Deferred Register to hold Blocks which will all be registered under the "examplemod" namespace
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MODID);
@@ -359,6 +363,7 @@ public class AdvancedComputers {
 
         MOD_VERSION = ModList.get().getModContainerById(MODID).orElseThrow().getModInfo().getVersion().toString();
         MINECRAFT_VERSION = ModList.get().getModContainerById("minecraft").orElseThrow().getModInfo().getVersion().toString();
+        AC_ADAPTER_LUA_IMPLEMENTATION_REGISTRY.registerAllInSamePackageAs(JukeboxALI.class);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
@@ -427,6 +432,8 @@ public class AdvancedComputers {
     @SubscribeEvent
     public void onServerStarted(ServerStartedEvent event) {
         AC_CLUSTER_TYPE_MANAGER.closeRegistration();
+        AC_ADAPTER_LUA_IMPLEMENTATION_REGISTRY.closeRegistration();
+        AdapterCompanion.init();
     }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent

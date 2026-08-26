@@ -10,22 +10,17 @@ import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.api.AcALIContext;
 import dev.asdf00.mc.advcomp.api.AcAdapterLuaImplementation;
 import dev.asdf00.mc.advcomp.blocks.adapter.AdapterBlockUD;
+import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.Type;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
-import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
 import static dev.asdf00.mc.advcomp.utils.MiscUtil.*;
@@ -149,6 +144,7 @@ public class AdapterCompanion {
 
     public static AdapterCompanion ofBlock(Class<? extends Block> block) {
         var c = ALL_COMPANIONS.get(block);
+        RuntimeAssert.RuntimeAssert(initFinished, "not initialized yet!!!");
         return c != null ? c : EMPTY_COMPANION;
     }
 
@@ -162,23 +158,12 @@ public class AdapterCompanion {
     // =================================================================================================================
 
     public static final StatelessFunctionRegistry ADAPTER_FUNCTION_REGISTRY = new StatelessFunctionRegistry("advanced_computers.adapter");
-
-    static {
+    private static volatile boolean initFinished = false;
+    public static void init() {
+        RuntimeAssert.RuntimeAssert(AdvancedComputers.AC_ADAPTER_LUA_IMPLEMENTATION_REGISTRY.isClosed(),
+                "why are we initting adapter lua implemenations while mods are still allowed to register new ones?");
         // collect adapter classes from the class path
-        var loader = Thread.currentThread().getContextClassLoader();
-        var adapterClasses = new ArrayList<Class<?>>();
-        AdvancedComputers.LOGGER.info("Scanning for adapter functionality...");
-        var startedAt = System.currentTimeMillis();
-        for (String entry : System.getProperty("java.class.path").split(File.pathSeparator)) {
-            File file = new File(entry);
-            if (file.isDirectory()) {
-                scanDirectory(adapterClasses, file, file, loader);
-            } else if (entry.endsWith(".jar")) {
-                scanJar(adapterClasses, file, loader);
-            }
-        }
-        var timeTaken = System.currentTimeMillis() - startedAt;
-        AdvancedComputers.LOGGER.info("Scanning for adapter functionality finished in %sms.".formatted(timeTaken));
+        var adapterClasses = AdvancedComputers.AC_ADAPTER_LUA_IMPLEMENTATION_REGISTRY.getRegisteredClasses();
 
         // process adapter classes
         for (Class<?> adCls : adapterClasses) {
@@ -248,6 +233,7 @@ public class AdapterCompanion {
                         .map(Class::getName)
                         .collect(Collectors.joining(", "))
         ));
+        initFinished = true;
     }
 
     private static String distinctFuncName(Method method) {
@@ -263,187 +249,6 @@ public class AdapterCompanion {
                 ? mangleFuncName(method.getName(), method.getParameterCount() - 1)
                 : method.getName();
     }
-
-    private static void scanDirectory(List<Class<?>> collected, File root, File dir, ClassLoader loader) {
-        File[] files = dir.listFiles();
-        if (files == null) {
-            return;
-        }
-        for (File file : files) {
-            if (file.isDirectory()) {
-                scanDirectory(collected, root, file, loader);
-            } else if (file.getName().endsWith(".class")) {
-                String path = root.toURI().relativize(file.toURI()).getPath();
-                String className = path
-                        .substring(0, path.length() - 6)
-                        .replace('\\','/')
-                        .replace('/', '.');
-                checkClass(collected, className, loader);
-            }
-        }
-    }
-
-    private static void scanJar(List<Class<?>> collected, File file, ClassLoader loader) {
-        try (JarFile jar = new JarFile(file)) {
-            jar.stream()
-                    .filter(e -> !e.isDirectory())
-                    .filter(e -> e.getName().endsWith(".class"))
-                    .forEach(e -> {
-                        String className = e.getName()
-                                .substring(0, e.getName().length() - 6)
-                                .replace(File.separatorChar, '.');
-                        checkClass(collected, className, loader);
-                    });
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static void checkClass(List<Class<?>> collected, String name, ClassLoader loader) {
-        try {
-            //AdvancedComputers.LOGGER.warn("checking class " + name);
-
-            // first check it without loading it, so forge doesnt get angry when we touch @OnlyIn(Dist.CLIENT) stuff
-            if (!isClassTaggedWithAnnot(name, loader, AcAdapterLuaImplementation.class)) return;
-
-            Class<?> adapterClazz;
-            try {
-                adapterClazz = Class.forName(name, false, loader);
-            } catch (RuntimeException e) {
-                if (e.getClass() != RuntimeException.class) // net.minecraftforge.fml.loading.RuntimeDistCleaner throws a RuntimeException if dist is wrong.
-                    throw e;
-                AdvancedComputers.LOGGER.error("""
-                        It appears that Adapter-checking of class %s failed. Likely this class indirectly accesses a @OnlyIn(Dist.CLIENT) class and therefore
-                        is not available on the server, assuming we are running the dedicated server currently. We will skip this class for now.
-                        Its functionality will not be available. Please report this to the author of the mod that adds this class."""
-                        .formatted(name));
-                return;
-            }
-            AcAdapterLuaImplementation annotation = adapterClazz.getAnnotation(AcAdapterLuaImplementation.class);
-            if (annotation != null && annotation.block() != null) {
-                // basic class checks
-                if (!Modifier.isFinal(adapterClazz.getModifiers()) && !Modifier.isAbstract(adapterClazz.getModifiers()) || !Modifier.isPublic(adapterClazz.getModifiers())) {
-                    throw new IllegalStateException("Adapter-classes must be 'public final' or 'public abstract', %s does not comply with this".formatted(adapterClazz.getName()));
-                }
-                if (annotation.block() == Block.class || Modifier.isAbstract(adapterClazz.getModifiers()) || Modifier.isAbstract(annotation.block().getModifiers())) {
-                    // this is an abstract adapter class, we ignore this class here
-                } else {
-                    // this might be a specific class, we take those
-                    collected.add(adapterClazz);
-                }
-            }
-        } catch (TypeNotPresentException | ClassNotFoundException ignored) {
-            // do nothing and skip this class
-        }
-    }
-
-    private static boolean isClassTaggedWithAnnot(String name, ClassLoader loader, Class<?> attribClass) {
-        var classFilename = name.replace('.', '/') + ".class";
-        try (InputStream in = loader.getResourceAsStream(classFilename)) {
-            if (in == null)
-                return false;
-
-            ClassReader reader = new ClassReader(in);
-            boolean[] isTaggedWithAttrib = new boolean[]{false};
-            reader.accept(new org.objectweb.asm.ClassVisitor(org.objectweb.asm.Opcodes.ASM9) {
-                @Override
-                public org.objectweb.asm.AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-                    if (Type.getDescriptor(attribClass).equals(descriptor)) {
-                        isTaggedWithAttrib[0] = true;
-                    }
-                    return null;
-                }
-            }, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-            return isTaggedWithAttrib[0];
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to determine if class %s is tagged as ClientOnly.".formatted(name), e);
-        }
-    }
-
-//    private static ConcurrentHashMap<String, Boolean> definiteClassLoadibilities = new ConcurrentHashMap<>(); // true = isVisibleToServer; false = notVisible
-//    private static boolean isClassVisibleToServer(String name, ClassLoader loader) {
-//        return isClassVisibleToServerInner(name, loader, new HashSet<>());
-//    }
-//    private static boolean isClassVisibleToServerInner(String name, ClassLoader loader, HashSet<String> alreadyChecking) {
-//        if (definiteClassLoadibilities.containsKey(name)) {
-//            return definiteClassLoadibilities.get(name);
-//        }
-//
-//        var classesToProcess = new ArrayDeque<String>();
-//        classesToProcess.add(name);
-//        var nodes = new HashMap<String, VisitedNode>();
-//
-//        while (!classesToProcess.isEmpty()) {
-//            var currName = classesToProcess.remove();
-//            var currClassFilename = currName.replace('.', '/') + ".class";
-//            var directInfo = getDirectClassVisibleToServerAndSupers(currClassFilename, loader);
-//
-//            var referencedClasses = directInfo;
-//            var node = new VisitedNode()
-//            nodes.put(currName, node)
-//            if (!directInfo.x()) { // if the class is not loadable, mark as unloadable and same for all parents
-//
-//            }
-//        }
-//    }
-//
-//    private static class VisitedNode {
-//        public void markAsUnavailable() {
-//
-//        }
-//
-//        public void addReferencedNodes() {
-//
-//        }
-//    }
-//
-//    private  static Tuple<Boolean, String[]> getDirectClassVisibleToServerAndSupers(String classFilename, ClassLoader loader) {
-//        try (InputStream in = loader.getResourceAsStream(classFilename)) {
-//            if (in == null)
-//                throw new IllegalStateException("failed to open class stream");
-//
-//            ClassReader reader = new ClassReader(in);
-//            boolean[] isTaggedWithClientOnly = new boolean[]{false};
-//
-//            reader.accept(new org.objectweb.asm.ClassVisitor(org.objectweb.asm.Opcodes.ASM9) {
-//                @Override
-//                public org.objectweb.asm.AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-//                    if (Type.getDescriptor(OnlyIn.class).equals(descriptor)) {
-//                        return new org.objectweb.asm.AnnotationVisitor(org.objectweb.asm.Opcodes.ASM9) {
-//                            @Override
-//                            public void visitEnum(String name, String descriptor, String value) {
-//                                if ("value".equals(name) && Type.getDescriptor(Dist.class).equals(descriptor) && "CLIENT".equals(value)) {
-//                                    isTaggedWithClientOnly[0] = true;
-//                                }
-//                            }
-//                        };
-//                    }
-//
-//                    return null;
-//                }
-//
-//                @Override
-//                public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-//                    super.visit(version, access, name, signature, superName, interfaces);
-//                }
-//            }, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-//
-//            boolean isLoadable = !isTaggedWithClientOnly[0];
-//
-//            var supers = new ArrayList<String>();
-//            var superName = reader.getSuperName();
-//            if(superName != null)
-//                supers.add(superName);
-//
-//            var superInterfaces = reader.getInterfaces();
-//            supers.addAll(Arrays.asList(superInterfaces));
-//            // TODO maybe add generic args
-//            return new Tuple<>(isLoadable, supers.toArray(String[]::new));
-//        } catch (IOException e) {
-//            throw new RuntimeException("Failed to determine if class %s is tagged as ClientOnly.".formatted(name), e);
-//        }
-//    }
 
     private static Set<Method> processAdapterClass(Class<?> clazz) {
         var annotation = clazz.getAnnotation(AcAdapterLuaImplementation.class);

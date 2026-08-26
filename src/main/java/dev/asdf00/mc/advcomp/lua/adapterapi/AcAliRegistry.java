@@ -1,0 +1,61 @@
+package dev.asdf00.mc.advcomp.lua.adapterapi;
+
+import dev.asdf00.mc.advcomp.api.AcAdapterLuaImplementation;
+import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.HashSet;
+
+public class AcAliRegistry {
+    private boolean isClosed = false;
+    private final HashSet<Class<?>> registeredTypes = new HashSet<>();
+
+    public Class<?>[] getRegisteredClasses() {
+        return registeredTypes.toArray(Class[]::new);
+    }
+
+
+    /**
+     * Registers a single class tagged with AcAdapterLuaImplementation
+     */
+    public void register(Class<?> clazz) {
+        RuntimeAssert.RuntimeAssert(!isClosed, "Adapter registry is already closed. Please register your stuff earlier.");
+        RuntimeAssert.RuntimeAssert(clazz.isAnnotationPresent(AcAdapterLuaImplementation.class),
+                "The given class %s is not tagged with AcAdapterLuaImplementation!");
+        registeredTypes.add(clazz);
+    }
+
+    /**
+     * Registers all AcAdapterLuaImplementations that are located in the given package
+     */
+    public void registerAllInSamePackageAs(Class<?> clazz) {
+        var packageName = clazz.getPackageName();
+        var classLoader = ClassLoader.getSystemClassLoader();
+        try (var stream = classLoader.getResourceAsStream(packageName.replace('.', '/'))) {
+            RuntimeAssert.RuntimeAssert(stream != null, "couldnt find package '%s'!".formatted(packageName));
+            var reader = new BufferedReader(new InputStreamReader(stream));
+            var foundClassNames = reader.lines().filter(l -> l.endsWith(".class")).toArray(String[]::new);
+            for (var name : foundClassNames) {
+
+                var loadedClass = Class.forName(packageName + "." + name.substring(0, name.length() - ".class".length()));
+                if (loadedClass.getAnnotation(AcAdapterLuaImplementation.class) != null)
+                    register(loadedClass);
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * SHALL ONLY BE CALLED BY ADVANCED COMPUTERS
+     */
+    public void closeRegistration() {
+        isClosed = true;
+    }
+
+    public boolean isClosed() {
+        return isClosed;
+    }
+}
