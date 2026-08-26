@@ -33,7 +33,7 @@ public class AdapterBlock extends BasePeripheralOrHostBlock {
 
     @Override
     public void neighborChanged(BlockState pState, @NotNull Level pLevel, BlockPos pPos, @NotNull Block pNeighborBlock, @NotNull BlockPos pNeighborPos, boolean pMovedByPiston) {
-        if (pNeighborPos.equals(pPos.relative(pState.getValue(FACING)))) {
+        if (!pLevel.isClientSide() && pNeighborPos.equals(pPos.relative(pState.getValue(FACING)))) {
             ((AdapterBlockEntity) Objects.requireNonNull(pLevel.getBlockEntity(pPos))).rebuildCompanion();
         }
     }

@@ -38,7 +38,9 @@ import dev.asdf00.mc.advcomp.blocks.redstone_io.RedstoneIoBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.*;
 import dev.asdf00.mc.advcomp.blocks.wan_router.*;
 import dev.asdf00.mc.advcomp.datagen.*;
+import dev.asdf00.mc.advcomp.integration.lua.ComputerALI;
 import dev.asdf00.mc.advcomp.integration.lua.JukeboxALI;
+import dev.asdf00.mc.advcomp.integration.lua.NoteblockALI;
 import dev.asdf00.mc.advcomp.items.*;
 import dev.asdf00.mc.advcomp.lua.adapterapi.AcAliRegistry;
 import dev.asdf00.mc.advcomp.lua.adapterapi.AdapterCompanion;
@@ -76,6 +78,7 @@ import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -363,7 +366,6 @@ public class AdvancedComputers {
 
         MOD_VERSION = ModList.get().getModContainerById(MODID).orElseThrow().getModInfo().getVersion().toString();
         MINECRAFT_VERSION = ModList.get().getModContainerById("minecraft").orElseThrow().getModInfo().getVersion().toString();
-        AC_ADAPTER_LUA_IMPLEMENTATION_REGISTRY.registerAllInSamePackageAs(JukeboxALI.class);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
@@ -394,6 +396,14 @@ public class AdvancedComputers {
 
     public static Path getAcWorldSaveSubFolder() {
         return serverReference.getWorldPath(LevelResource.ROOT).normalize().toAbsolutePath().resolve("advancedComputers");
+    }
+
+    @SubscribeEvent
+    public void onServerAboutToStart(ServerAboutToStartEvent event) {
+//        AC_ADAPTER_LUA_IMPLEMENTATION_REGISTRY.registerAllInSamePackageAs(JukeboxALI.class);
+        AC_ADAPTER_LUA_IMPLEMENTATION_REGISTRY.register(JukeboxALI.class);
+        AC_ADAPTER_LUA_IMPLEMENTATION_REGISTRY.register(ComputerALI.class);
+        AC_ADAPTER_LUA_IMPLEMENTATION_REGISTRY.register(NoteblockALI.class);
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call

@@ -58,6 +58,7 @@ public class AdapterBlockEntity extends BasePeripheralComponentBlockEntity imple
     @Override
     public void onLoad() {
         super.onLoad();
-        rebuildCompanion();
+        if (!level.isClientSide())
+            rebuildCompanion();
     }
 }
