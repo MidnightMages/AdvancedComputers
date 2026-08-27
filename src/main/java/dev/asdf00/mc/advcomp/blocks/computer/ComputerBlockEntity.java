@@ -265,7 +265,7 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
         return type.equals(AdvancedComputers.CLUSTER_TYPE_DEVICE);
     }
 
-    private Set<BaseCableConnectableBlockEntity> existingBlockComponents = new HashSet<>();
+    public Set<AcBlockEntityComponent> existingBlockComponents = new HashSet<>();
 
     @Override
     public void onNetworkUpdated() {
@@ -299,16 +299,22 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
 
             if (lvm != null) {
                 var newComponents = deviceCluster.connectedEntities.clone();
-                Set<BaseCableConnectableBlockEntity> newComponentsSet = Arrays.stream(newComponents).collect(Collectors.toSet());
-                for (BaseCableConnectableBlockEntity x : existingBlockComponents.stream().filter(x -> !newComponentsSet.contains(x))
-                        .toArray(BaseCableConnectableBlockEntity[]::new))
-                    lvm.onBlockComponentRemoved(x);
+                Set<AcBlockEntityComponent> newComponentsSet = Arrays.stream(newComponents)
+                        .filter(x -> x instanceof AcBlockEntityComponent)
+                        .map(x -> ((AcBlockEntityComponent) x))
+                        .collect(Collectors.toSet());
 
-                for (BaseCableConnectableBlockEntity x : newComponentsSet.stream().filter(x -> !existingBlockComponents.contains(x))
-                        .toArray(BaseCableConnectableBlockEntity[]::new)) {
-                    if (x instanceof AcBlockEntityComponent acBlockEntityComponent) {
-                        lvm.onBlockComponentAdded((BlockEntity & AcBlockEntityComponent) acBlockEntityComponent);
-                    }
+                // during vm deserialization, this field is set to null by the deserializer, indicating that this first update shall be skipped
+                if (existingBlockComponents == null)
+                    existingBlockComponents = newComponentsSet;
+
+                for (AcBlockEntityComponent x : existingBlockComponents.stream().filter(x -> !newComponentsSet.contains(x))
+                        .toArray(AcBlockEntityComponent[]::new))
+                    lvm.onBlockComponentRemoved((BlockEntity) x);
+
+                for (AcBlockEntityComponent x : newComponentsSet.stream().filter(x -> !existingBlockComponents.contains(x))
+                        .toArray(AcBlockEntityComponent[]::new)) {
+                    lvm.onBlockComponentAdded((BlockEntity & AcBlockEntityComponent) x);
                 }
 
                 existingBlockComponents = newComponentsSet;

@@ -20,7 +20,9 @@ import dev.asdf00.mc.advcomp.lua.components.*;
 import dev.asdf00.mc.advcomp.utils.AcPaths;
 import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.common.extensions.IForgeBlockEntity;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
@@ -169,7 +171,7 @@ public class LuaVirtualMachine {
         return newItemStack;
     }
 
-    public void onBlockComponentRemoved(BaseCableConnectableBlockEntity blockEntity) {
+    public void onBlockComponentRemoved(BlockEntity blockEntity) {
         if (suppressDeviceNetworkUpdate || componentReg == null) return;
 
         AdvancedComputers.LOGGER.warn("Removing block component %s".formatted(blockEntity.toString()));
@@ -335,6 +337,8 @@ public class LuaVirtualMachine {
                 luaComputer.setupMainboard(mainboardInfo);
 
             // set up peripheral devices from IO-net
+
+            computerBlockEntity.existingBlockComponents.clear();
             computerBlockEntity.connectedNetworks.values().stream()
                     .filter(x -> x.clusterType.getClusterName().equals("device"))
                     .flatMap(x -> Arrays.stream(x.connectedEntities))
@@ -343,6 +347,7 @@ public class LuaVirtualMachine {
                         // add peripheral device to registry
                         if (be instanceof AcBlockEntityComponent bec) {
                             onBlockComponentAdded((BlockEntity & AcBlockEntityComponent) bec);
+                            computerBlockEntity.existingBlockComponents.add(bec);
                         }
                         // clear all found screens
                         if (be instanceof ScreenBlockEntity sbe) {
@@ -399,6 +404,7 @@ public class LuaVirtualMachine {
             }
             AdvancedComputers.LOGGER.info("Trying to load suspended LVM");
 
+            computerBlockEntity.existingBlockComponents = null; // this is a special state to prevent re-registration of userdata objects during the first network discovery
             // rebuild device cable cluster just in case
             CableCluster.rebuildDeviceNetImmediately(computerBlockEntity.getLevel(), computerBlockEntity.getBlockPos(), AdvancedComputers.CLUSTER_TYPE_DEVICE);
 
