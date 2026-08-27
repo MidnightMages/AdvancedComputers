@@ -78,7 +78,6 @@ import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -90,6 +89,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.network.IContainerFactory;
 import net.minecraftforge.registries.DeferredRegister;
@@ -327,6 +327,7 @@ public class AdvancedComputers {
 
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
+        modEventBus.addListener(this::onLoadComplete);
 
         // Register the Deferred Register to the mod event bus so blocks get registered
         BLOCKS.register(modEventBus);
@@ -369,7 +370,11 @@ public class AdvancedComputers {
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
-        // Some common setup code
+        event.enqueueWork(() -> {
+            AC_ADAPTER_LUA_IMPLEMENTATION_REGISTRY.register(JukeboxALI.class);
+            AC_ADAPTER_LUA_IMPLEMENTATION_REGISTRY.register(ComputerALI.class);
+            AC_ADAPTER_LUA_IMPLEMENTATION_REGISTRY.register(NoteblockALI.class);
+        });
     }
 
     private void registerDatagen(final GatherDataEvent event) {
@@ -396,14 +401,6 @@ public class AdvancedComputers {
 
     public static Path getAcWorldSaveSubFolder() {
         return serverReference.getWorldPath(LevelResource.ROOT).normalize().toAbsolutePath().resolve("advancedComputers");
-    }
-
-    @SubscribeEvent
-    public void onServerAboutToStart(ServerAboutToStartEvent event) {
-//        AC_ADAPTER_LUA_IMPLEMENTATION_REGISTRY.registerAllInSamePackageAs(JukeboxALI.class);
-        AC_ADAPTER_LUA_IMPLEMENTATION_REGISTRY.register(JukeboxALI.class);
-        AC_ADAPTER_LUA_IMPLEMENTATION_REGISTRY.register(ComputerALI.class);
-        AC_ADAPTER_LUA_IMPLEMENTATION_REGISTRY.register(NoteblockALI.class);
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
@@ -441,6 +438,9 @@ public class AdvancedComputers {
 
     @SubscribeEvent
     public void onServerStarted(ServerStartedEvent event) {
+    }
+
+    public void onLoadComplete(FMLLoadCompleteEvent event) {
         AC_CLUSTER_TYPE_MANAGER.closeRegistration();
         AC_ADAPTER_LUA_IMPLEMENTATION_REGISTRY.closeRegistration();
         AdapterCompanion.init();

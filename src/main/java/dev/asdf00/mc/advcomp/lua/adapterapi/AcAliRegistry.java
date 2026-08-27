@@ -6,11 +6,14 @@ import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
 import java.util.HashSet;
 
 public class AcAliRegistry {
-    private boolean isClosed = false;
+    private volatile boolean isClosed = false;
     private final HashSet<Class<?>> registeredTypes = new HashSet<>();
+    private final Object lockObj = new Object();
 
     public Class<?>[] getRegisteredClasses() {
-        return registeredTypes.toArray(Class[]::new);
+        synchronized (lockObj) {
+            return registeredTypes.toArray(Class[]::new);
+        }
     }
 
 
@@ -21,7 +24,9 @@ public class AcAliRegistry {
         RuntimeAssert.RuntimeAssert(!isClosed, "Adapter registry is already closed. Please register your stuff earlier.");
         RuntimeAssert.RuntimeAssert(clazz.isAnnotationPresent(AcAdapterLuaImplementation.class),
                 "The given class %s is not tagged with AcAdapterLuaImplementation!");
-        registeredTypes.add(clazz);
+        synchronized (lockObj) {
+            registeredTypes.add(clazz);
+        }
     }
 
 //    /**
@@ -51,6 +56,7 @@ public class AcAliRegistry {
      * SHALL ONLY BE CALLED BY ADVANCED COMPUTERS
      */
     public void closeRegistration() {
+        RuntimeAssert.RuntimeAssert(!isClosed, "registry already closed?");
         isClosed = true;
     }
 

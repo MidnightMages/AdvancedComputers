@@ -1,6 +1,7 @@
 package dev.asdf00.mc.advcomp.api;
 
 import dev.asdf00.mc.advcomp.types.cluster.ClusterType;
+import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,7 +11,7 @@ public final class ClusterTypeManager {
     private static final ClusterTypeManager SINGLETON = new ClusterTypeManager();
 
     private final HashMap<String, ClusterType> clusterTypesByName = new HashMap<>();
-    private boolean isClosed = false;
+    private volatile boolean isClosed = false;
     private final Object lockObj = new Object();
 
 
@@ -32,6 +33,7 @@ public final class ClusterTypeManager {
      * SHALL ONLY BE CALLED BY ADVANCED COMPUTERS
      */
     public void closeRegistration() {
+        RuntimeAssert.RuntimeAssert(!isClosed, "registry already closed?");
         isClosed = true;
     }
 
