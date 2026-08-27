@@ -184,8 +184,17 @@ public class ComponentRegistryUD implements LuaUserData {
         luaIdentity = self;
     }
 
-    private static final ExecutorService UD_DESCRIPTOR_COMPILATION_POOL = new ThreadPoolExecutor(0, 1,
-            3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
+    private static ExecutorService UD_DESCRIPTOR_COMPILATION_POOL;
+    public static void StartThreadPool() {
+        UD_DESCRIPTOR_COMPILATION_POOL = new ThreadPoolExecutor(0, 1,
+                3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
+    }
+
+    public static void StopThreadPool() {
+        UD_DESCRIPTOR_COMPILATION_POOL.shutdownNow();
+        UD_DESCRIPTOR_COMPILATION_POOL = null;
+    }
+
 
     private static void triggerUserdataDescriptorCompilation(Class<? extends LuaUserData> udType) {
         if (LuaVM_RT.isDescriptorAvailable(udType)) // threadsafety: if this check is true, we _definitely_ already compiled this

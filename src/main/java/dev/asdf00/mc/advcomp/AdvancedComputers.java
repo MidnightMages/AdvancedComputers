@@ -44,6 +44,7 @@ import dev.asdf00.mc.advcomp.integration.lua.NoteblockALI;
 import dev.asdf00.mc.advcomp.items.*;
 import dev.asdf00.mc.advcomp.lua.adapterapi.AcAliRegistry;
 import dev.asdf00.mc.advcomp.lua.adapterapi.AdapterCompanion;
+import dev.asdf00.mc.advcomp.lua.components.ComponentRegistryUD;
 import dev.asdf00.mc.advcomp.types.DualLayerItemColorHandler;
 import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
 import dev.asdf00.mc.advcomp.types.GlobalDataStorage;
@@ -80,6 +81,7 @@ import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
@@ -438,6 +440,14 @@ public class AdvancedComputers {
 
     @SubscribeEvent
     public void onServerStarted(ServerStartedEvent event) {
+        LOGGER.info("Started UD compilation threadpool");
+        ComponentRegistryUD.StartThreadPool();
+    }
+
+    @SubscribeEvent
+    public void onServerStopped(ServerStoppedEvent event) {
+        LOGGER.info("Stopping UD compilation threadpool");
+        ComponentRegistryUD.StartThreadPool();
     }
 
     public void onLoadComplete(FMLLoadCompleteEvent event) {
