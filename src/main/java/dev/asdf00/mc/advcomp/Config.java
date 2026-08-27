@@ -72,6 +72,13 @@ public class Config {
             .worldRestart()
             .define("debug.lua.printToServerConsole", false);
 
+    private static final ForgeConfigSpec.BooleanValue DEBUG_ENABLE_EXTRA_DEVELOPMENT_LOGGING = BUILDER
+            .comment("""
+                    If this is set to true, there will be a bit more logging. Useful for debugging.
+                    """)
+            .worldRestart()
+            .define("debug.enableExtraDevelopmentLogging", false);
+
     private static final ForgeConfigSpec.BooleanValue COMPONENT_INTERNET_HTTP_ENABLED = BUILDER
             .comment("Whether to allow http(s) requests to the real-world network.")
             .worldRestart()
@@ -107,6 +114,7 @@ public class Config {
     public static int luaVmCache2MaxFiles;
     public static boolean luaVmPrecompileUefiAndOs;
     public static boolean debugLuaPrintToServerConsole;
+    public static boolean debugEnableExtraDevelopmentLogging;
     public static float audioVolume;
     public static int audioMaxDistance;
     public static boolean componentInternetHttpEnabled;
@@ -122,6 +130,7 @@ public class Config {
         luaVmCache2MaxFiles = LUA_VM_CACHE2_MAX_FILES.get();
         luaVmPrecompileUefiAndOs = LUA_VM_PRECOMPILE_UEFI_AND_OS.get();
         debugLuaPrintToServerConsole = DEBUG_LUA_PRINT_TO_SERVER_CONSOLE.get();
+        debugEnableExtraDevelopmentLogging = DEBUG_ENABLE_EXTRA_DEVELOPMENT_LOGGING.get();
         audioVolume = AUDIO_VOLUME.get() / 100f;
         audioMaxDistance = AUDIO_MAX_DISTANCE.get();
         RuntimeAssert.RuntimeAssert(audioVolume <= 1, "somehow the volume is greater than 1"); // just to avoid some ear-blasting accidents

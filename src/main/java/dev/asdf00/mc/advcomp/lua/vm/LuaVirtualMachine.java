@@ -9,7 +9,6 @@ import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.Config;
 import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.api.ItemCanBeInitialized;
-import dev.asdf00.mc.advcomp.blocks.BaseCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.punchcard_reader.PunchcardReaderBlockUD;
@@ -20,9 +19,7 @@ import dev.asdf00.mc.advcomp.lua.components.*;
 import dev.asdf00.mc.advcomp.utils.AcPaths;
 import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.extensions.IForgeBlockEntity;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
@@ -107,7 +104,8 @@ public class LuaVirtualMachine {
     public void tryKill(String reason) {
         synchronized (state) {
             if (state.getState().killable) {
-                AdvancedComputers.LOGGER.error(reason);
+                if (Config.debugEnableExtraDevelopmentLogging)
+                    AdvancedComputers.LOGGER.warn("Killing vm for reason: '%s'".formatted(reason));
                 executorThread.interrupt();
             }
         }
@@ -174,14 +172,16 @@ public class LuaVirtualMachine {
     public void onBlockComponentRemoved(BlockEntity blockEntity) {
         if (suppressDeviceNetworkUpdate || componentReg == null) return;
 
-        AdvancedComputers.LOGGER.warn("Removing block component %s".formatted(blockEntity.toString()));
+        if (Config.debugEnableExtraDevelopmentLogging)
+            AdvancedComputers.LOGGER.warn("Removing block component %s".formatted(blockEntity.toString()));
         componentReg.removeAllMatchingComponents(x -> x != null && x.getInventoryOwnerPos().equals(blockEntity.getBlockPos()));
     }
 
     public <T extends BlockEntity & AcBlockEntityComponent> void onBlockComponentAdded(T blockEntity) {
         if (suppressDeviceNetworkUpdate || componentReg == null) return;
 
-        AdvancedComputers.LOGGER.warn("Adding block component %s".formatted(blockEntity.toString()));
+        if (Config.debugEnableExtraDevelopmentLogging)
+            AdvancedComputers.LOGGER.warn("Adding block component %s".formatted(blockEntity.toString()));
         var blockEntityUD = blockEntity.createUserdata();
         componentReg.addComponentInitAndNotify(blockEntityUD, AcComponentSlotInfo.ofBlockComponent(blockEntity));
     }
@@ -267,7 +267,7 @@ public class LuaVirtualMachine {
             if (state.getState() != State.CRASHED) {
                 executorThread = new Thread(this::startLuaExecution);
                 executorThread.start();
-            } else {
+            } else if (Config.debugEnableExtraDevelopmentLogging) {
                 AdvancedComputers.LOGGER.warn("Computer failed to start: %s".formatted(stopCode));
             }
         }
@@ -296,7 +296,8 @@ public class LuaVirtualMachine {
             if (!state.getState().resting) {
                 throw new IllegalStateException("trying to initialize non-resting LVM");
             }
-            AdvancedComputers.LOGGER.info("Trying to start LVM");
+            if (Config.debugEnableExtraDevelopmentLogging)
+                AdvancedComputers.LOGGER.info("Trying to start LVM (cold boot)");
             state.initialize();
 
             // rebuild device cable cluster just in case
@@ -402,7 +403,8 @@ public class LuaVirtualMachine {
             if (state.getState() != State.UNINITIALIZED) {
                 throw new IllegalStateException("trying to initialize non-resting LVM");
             }
-            AdvancedComputers.LOGGER.info("Trying to load suspended LVM");
+            if (Config.debugEnableExtraDevelopmentLogging)
+                AdvancedComputers.LOGGER.info("Trying to load suspended LVM (deserialized boot)");
 
             computerBlockEntity.existingBlockComponents = null; // this is a special state to prevent re-registration of userdata objects during the first network discovery
             // rebuild device cable cluster just in case
@@ -476,7 +478,8 @@ public class LuaVirtualMachine {
                 switch (res.state()) {
                     case SUCCESS -> {
                         state.stop();
-                        AdvancedComputers.LOGGER.info("vm exited with result: %s".formatted(res.toString().replace("\\n", "\n")));
+                        if (Config.debugEnableExtraDevelopmentLogging)
+                            AdvancedComputers.LOGGER.info("vm exited with result: %s".formatted(res.toString().replace("\\n", "\n")));
                     }
                     case EXECUTION_ERROR -> {
                         state.crash();
@@ -485,16 +488,19 @@ public class LuaVirtualMachine {
                                 .map(LuaObject::getString)
                                 .collect(Collectors.joining("\n"));
 
-                        AdvancedComputers.LOGGER.error("vm exited with error: %s".formatted(res.toString().replace("\\n", "\n")));
+                        if (Config.debugEnableExtraDevelopmentLogging)
+                            AdvancedComputers.LOGGER.error("vm exited with error: %s".formatted(res.toString().replace("\\n", "\n")));
                     }
                     case PAUSED -> {
                         state.suspend();
-                        AdvancedComputers.LOGGER.info("vm paused");
+                        if (Config.debugEnableExtraDevelopmentLogging)
+                            AdvancedComputers.LOGGER.info("vm paused");
                     }
                 }
             } catch (LvmKillException kill) {
                 state.crash();
-                AdvancedComputers.LOGGER.error("vm killed");
+                if (Config.debugEnableExtraDevelopmentLogging)
+                    AdvancedComputers.LOGGER.error("vm killed");
             }
         } catch (Exception ex) {
             state.crash();

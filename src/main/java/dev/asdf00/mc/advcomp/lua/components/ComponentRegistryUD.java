@@ -8,6 +8,7 @@ import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
 import dev.asdf00.mc.advcomp.AdvancedComputers;
+import dev.asdf00.mc.advcomp.Config;
 import dev.asdf00.mc.advcomp.items.BaseMassStorageUD;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
@@ -217,7 +218,8 @@ public class ComponentRegistryUD implements LuaUserData {
                 var removedComponent = itemstackAssociationMap.remove((AcComponentSlotInfo) key);
                 if (removedComponent != null) {
                     removedComponent.makeObjectInaccessible();
-                    AdvancedComputers.LOGGER.warn("component was removed! %s".formatted(removedComponent.getComponentType()));
+                    if (Config.debugEnableExtraDevelopmentLogging)
+                        AdvancedComputers.LOGGER.warn("component was removed! %s".formatted(removedComponent.getComponentType()));
                     lvm.triggerMachineEvent("componentRemoved", LuaObject.of(removedComponent));
                 }
             }

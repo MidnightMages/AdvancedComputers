@@ -232,9 +232,10 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
                 this.block = c;
                 this.tier = this.block.TIER;
             } else {
-                AdvancedComputers.LOGGER.error("Associated block was not a computer blocK, but instead was somehow %s???".formatted(b.getName()));
+                AdvancedComputers.LOGGER.error("Associated block was not a computer block, but instead was somehow %s???".formatted(b.getName()));
             }
-            AdvancedComputers.LOGGER.info("ON LOAD COMPUTER Tier: %s".formatted(tier.name()));
+            if (Config.debugEnableExtraDevelopmentLogging)
+                AdvancedComputers.LOGGER.info("ON LOAD COMPUTER Tier: %s".formatted(tier.name()));
             CableClusterHandler.markBlockPosForUpdate(level, this.getBlockPos());
         }
         lazyItemHandler = LazyOptional.of(() -> itemHandler);
@@ -290,10 +291,12 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
             if (hostCount > 1) {
                 lvm.tryKill("Too many computers connected to this network");
 
-                AdvancedComputers.LOGGER.info("invalid network for computer at bp %s. Computer count: %s"
+                if (Config.debugEnableExtraDevelopmentLogging)
+                    AdvancedComputers.LOGGER.info("invalid network for computer at bp %s. Computer count: %s"
                         .formatted(this.getBlockPos(), hostCount));
             } else {
-                AdvancedComputers.LOGGER.info("valid network for computer at bp %s. Peripheral count: %s"
+                if (Config.debugEnableExtraDevelopmentLogging)
+                    AdvancedComputers.LOGGER.info("valid network for computer at bp %s. Peripheral count: %s"
                         .formatted(this.getBlockPos(), deviceCluster.getEntityCount()));
             }
 
