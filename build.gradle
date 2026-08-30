@@ -168,8 +168,8 @@ tasks.named('jar').configure {
         !it.contains("submodules/JLuaVM") && (it.trim() != "")
     }
     boolean jluavmIsDirty = gitStatus.contains("submodules/JLuaVM")
-    var mainHash = "git rev-parse --verify HEAD".execute().text.trim() + (mainIsDirty ? "+Uncommited" : "")
-    var jluaHash = "git submodule status".execute().text.trim().split(" ")[0] + (jluavmIsDirty ? "+Uncommited" : "")
+    var mainHash = "git rev-parse --verify HEAD".execute().text.trim() + (mainIsDirty ? "+Uncommitted" : "")
+    var jluaHash = "git submodule status".execute().text.trim().split(" ")[0] + (jluavmIsDirty ? "+Uncommitted" : "")
     println("Jar sources main hash: $mainHash; JLuaVM hash: $jluaHash")
     manifest {
         attributes([
