@@ -397,7 +397,7 @@ public class AdapterCompanion {
                     m.getName()
             ));
         }
-        if (m.getReturnType() != void.class && isLuaObjectConvertible(toBoxedType(m.getReturnType()))) {
+        if (m.getReturnType() != void.class && !isLuaObjectConvertible(toBoxedType(m.getReturnType()))) {
             throw new IllegalStateException("Adapter-methods must return void or a LuaObject-convertible object, %s#%s does not comply with this".formatted(
                     m.getDeclaringClass().getName(),
                     m.getName()
@@ -406,7 +406,7 @@ public class AdapterCompanion {
         var params = m.getParameterTypes();
         boolean foundError = false;
         for (int i = 1; i < params.length; i++) {
-            if (!isFromLuaObjectConvertible(params[i])) {
+            if (!isFromLuaObjectConvertible(toBoxedType(params[i]))) {
                 foundError = true;
                 break;
             }
