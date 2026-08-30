@@ -5,6 +5,7 @@ import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.NetCodeUtils;
 import dev.asdf00.mc.advcomp.TranslationMap;
 import dev.asdf00.mc.advcomp.blocks.BaseCableConnectableBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.BasePeripheralComponentBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
 import dev.asdf00.mc.advcomp.exceptions.ACError;
@@ -32,10 +33,10 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 
-public class ScreenBlockEntity extends BaseCableConnectableBlockEntity implements MenuProvider, AcBlockEntityComponent {
+public class ScreenBlockEntity extends BasePeripheralComponentBlockEntity implements MenuProvider, AcBlockEntityComponent {
 
     public ScreenBlockEntity(BlockPos pPos, BlockState pBlockState) {
-        super(AdvancedComputers.SCREEN_BE.get(), pPos, pBlockState, Collections.singletonList(AdvancedComputers.CLUSTER_TYPE_DEVICE));
+        super(AdvancedComputers.SCREEN_BE.get(), pPos, pBlockState);
     }
 
     @Override

@@ -2,6 +2,7 @@ package dev.asdf00.mc.advcomp.blocks.redstone_io;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.blocks.BaseCableConnectableBlockEntity;
+import dev.asdf00.mc.advcomp.blocks.BasePeripheralComponentBlockEntity;
 import dev.asdf00.mc.advcomp.lua.components.AcBlockEntityComponent;
 import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
 import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
@@ -12,12 +13,12 @@ import net.minecraftforge.server.ServerLifecycleHooks;
 
 import java.util.Collections;
 
-public class RedstoneIoBlockEntity extends BaseCableConnectableBlockEntity implements AcBlockEntityComponent {
+public class RedstoneIoBlockEntity extends BasePeripheralComponentBlockEntity implements AcBlockEntityComponent {
     // TODO save this array when saving the world
     private final int[] outputStrengths = new int[]{0, 0, 0, 0, 0, 0}; // DOWN UP NORTH SOUTH WEST EAST
 
     public RedstoneIoBlockEntity(BlockPos pPos, BlockState pBlockState) {
-        super(AdvancedComputers.REDSTONE_IO_BE.get(), pPos, pBlockState, Collections.singletonList(AdvancedComputers.CLUSTER_TYPE_DEVICE));
+        super(AdvancedComputers.REDSTONE_IO_BE.get(), pPos, pBlockState);
     }
 
     @Override

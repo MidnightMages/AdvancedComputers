@@ -1,6 +1,7 @@
 package dev.asdf00.mc.advcomp.items;
 
 import dev.asdf00.mc.advcomp.NetCodeUtils;
+import dev.asdf00.mc.advcomp.blocks.BasePeripheralComponentBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlock;
 import dev.asdf00.mc.advcomp.blocks.computer.ComputerBlockEntity;
@@ -52,7 +53,9 @@ public class DebuggerItem extends Item {
                 return regEntry == null ? "???" : regEntry.toString().replace("advancedcomputers:", "");
             };
             var messageToSend = "§6============== Block information ==============§r\nChecking block %s at [%s].".formatted(getBlockName.apply(bs.getBlock()), pos.toShortString());
-
+            if (be instanceof BasePeripheralComponentBlockEntity be2) {
+                messageToSend += "\nUnique Userdata Id: §7%s§r".formatted(be2.getUniqueUdId());
+            }
             if (be instanceof ComputerBlockEntity computerBlockEntity) {
                 StringBuilder computerInfo = new StringBuilder("§6-- Computer Info:§r ");
                 String runState = "UNKNOWN STATE!!!";

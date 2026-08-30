@@ -1,8 +1,11 @@
 package dev.asdf00.mc.advcomp.lua.components;
 
+import dev.asdf00.jluavm.api.userdata.LuaExposed;
+import dev.asdf00.jluavm.api.userdata.LuaProperty;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.jluavm.utils.ByteArrayBuilder;
 import dev.asdf00.jluavm.utils.ByteArrayReader;
+import dev.asdf00.mc.advcomp.blocks.BasePeripheralComponentBlockEntity;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
 import dev.asdf00.mc.advcomp.utils.LuaSerializationUtils;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -12,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-public abstract class BaseAcBlockEntityComponentUD<BE extends BlockEntity> extends BaseAcComponent {
+public abstract class BaseAcBlockEntityComponentUD<BE extends BasePeripheralComponentBlockEntity> extends BaseAcComponent {
     protected final BE blockEntity;
 
     protected BaseAcBlockEntityComponentUD(String componentType, BE blockEntity) {
@@ -24,6 +27,10 @@ public abstract class BaseAcBlockEntityComponentUD<BE extends BlockEntity> exten
         super(componentType, acVm, isAccessible);
         this.blockEntity = blockEntity;
     }
+
+    @SuppressWarnings("unused")
+    @LuaExposed(LuaExposed.Policy.READ)
+    public final LuaProperty uniqueId = LuaProperty.ofLong(() -> getBlockEntity().getUniqueUdId(), null);
 
     public BE getBlockEntity() {
         return blockEntity;
