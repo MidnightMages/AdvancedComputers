@@ -38,6 +38,7 @@ import dev.asdf00.mc.advcomp.blocks.redstone_io.RedstoneIoBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.screen.*;
 import dev.asdf00.mc.advcomp.blocks.wan_router.*;
 import dev.asdf00.mc.advcomp.datagen.*;
+import dev.asdf00.mc.advcomp.integration.lua.Ae2InterfaceALI;
 import dev.asdf00.mc.advcomp.integration.lua.ComputerALI;
 import dev.asdf00.mc.advcomp.integration.lua.JukeboxALI;
 import dev.asdf00.mc.advcomp.integration.lua.NoteblockALI;
@@ -376,6 +377,13 @@ public class AdvancedComputers {
             AC_ADAPTER_LUA_IMPLEMENTATION_REGISTRY.register(JukeboxALI.class);
             AC_ADAPTER_LUA_IMPLEMENTATION_REGISTRY.register(ComputerALI.class);
             AC_ADAPTER_LUA_IMPLEMENTATION_REGISTRY.register(NoteblockALI.class);
+            if (ModList.get().getModContainerById("ae2").isPresent()) {
+                try {
+                    AC_ADAPTER_LUA_IMPLEMENTATION_REGISTRY.register(Ae2InterfaceALI.class);
+                } catch (Exception e) {
+                    AdvancedComputers.LOGGER.error("Failed to load Applied Energistics 2 interface integration", e);
+                }
+            }
         });
     }
 
