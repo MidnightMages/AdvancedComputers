@@ -93,6 +93,12 @@ repositories {
     }
 
     maven {
+        url 'https://www.cursemaven.com'
+        content {
+            includeGroup "curse.maven"
+        }
+    }
+    maven {
         // location of the maven that hosts JEI files before January 2023
         name = "Progwml6's maven"
         url = "https://dvs1.progwml6.com/files/maven/"
@@ -112,6 +118,14 @@ repositories {
         content {
             includeGroup "lol.bai"
             includeGroup "mcp.mobius.waila"
+        }
+    }
+	maven {
+        name "Modmaven"
+        url "https://modmaven.dev/"
+        // For Gradle 5.1 and above, limit it to just AE2
+        content {
+            includeGroup 'appeng'
         }
     }
 }
@@ -142,6 +156,14 @@ dependencies {
     runtimeOnly(fg.deobf("mcp.mobius.waila:wthit:forge-${wthitVersion}"))
     runtimeOnly(fg.deobf("lol.bai:badpackets:forge-${badpacketsVersion}"))
     //------
+	
+	//------ ae2
+    //compileOnly("appeng:appliedenergistics2-forge:${ae2_version}")
+	compileOnly fg.deobf("appeng:appliedenergistics2-forge:${ae2_version}:api")
+	runtimeOnly fg.deobf("appeng:appliedenergistics2-forge:${ae2_version}")	
+    compileOnly fg.deobf("curse.maven:guideme-1173950:8204776")
+    runtimeOnly fg.deobf("curse.maven:guideme-1173950:8204776")
+	//------
 }
 
 tasks.named('processResources', ProcessResources).configure {
