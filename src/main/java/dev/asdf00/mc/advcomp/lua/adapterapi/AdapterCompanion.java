@@ -136,8 +136,9 @@ public class AdapterCompanion {
         // ignore objects[0] since that is the userdata
         // ignore r[0] and targetTypes[0] since that is the context object
         for (int i = 1; i < r.length; i++) {
-            assert isFromLuaObjectConvertible(targetTypes[i]);
-            r[i] = convertToJavaType(targetTypes[i], objects[i]);
+            var boxed = toBoxedType(targetTypes[i]);
+            assert isFromLuaObjectConvertible(boxed);
+            r[i] = convertToJavaType(boxed, objects[i]);
         }
         return r;
     }
