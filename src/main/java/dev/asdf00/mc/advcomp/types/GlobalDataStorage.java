@@ -40,12 +40,16 @@ public class GlobalDataStorage extends SavedData {
     public GlobalDataStorage(CompoundTag tag) {
         nextUniqueStorageId.set(tag.getInt("nextManagedDiskId")); // TODO before release? maybe rename this to nextUniqueStorageId
         nextUefiId.set(tag.getInt("nextUefiId"));
+        nextIpAddress.set(tag.getInt("nextIpAddress"));
+        nextUniqueUdId.set(tag.getInt("nextUniqueUdId"));
     }
 
     @Override
     public @NotNull CompoundTag save(@NotNull CompoundTag compoundTag) {
         compoundTag.putInt("nextManagedDiskId", nextUniqueStorageId.get());
         compoundTag.putInt("nextUefiId", nextUefiId.get());
+        compoundTag.putInt("nextIpAddress", nextIpAddress.get());
+        compoundTag.putInt("nextUniqueUdId", nextUniqueUdId.get());
         return compoundTag;
     }
 
