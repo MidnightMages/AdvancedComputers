@@ -36,7 +36,7 @@ local function registerDriver(path)
     local newSyscalls = dofile(path)
     assert(type(newSyscalls) == "table", "driver did not return a syscall table")
     for key, value in pairs(newSyscalls) do
-        assert(syscalls[key] == nil, "syscall "..tostring(key).." is already registered!")
+        assert(syscalls[key] == nil, "syscall " .. tostring(key) .. " is already registered!")
         syscalls[key] = value
     end
 end
@@ -59,7 +59,7 @@ function scheduler:enqueue(proc)
 end
 
 function scheduler:block(blocked, blocking)
-    
+
 end
 
 function scheduler:registerEventCallback(eventName, callbackFunc)
@@ -85,6 +85,7 @@ registerDriver("/sys/drivers/process.lua")
 function panic(msg)
     -- TODO
 end
+
 function doSyscall()
     -- TODO
 end
@@ -123,7 +124,7 @@ local function runTasks()
     while true do
         -- process events
         while true do
-            local machineEvent = {computer:getMachineEvent()}
+            local machineEvent = { computer:getMachineEvent() }
             if #machineEvent == 0 then break end -- no event available
 
             if machineEvent[1] == "shutdown" then
@@ -132,10 +133,11 @@ local function runTasks()
 
             for _, process in ipairs(runningProcesses) do -- walk through all registered handlers and spawn new threads
                 for i = 1, 2 do
-                    local handlers = (scheduler.registeredEventCallbacksByTypeAndProcess[i == 1 and "*" or machineEvent[1]] or {})[process] or {}
+                    local handlers = (scheduler.registeredEventCallbacksByTypeAndProcess[i == 1 and "*" or machineEvent[1]] or {})
+                        [process] or {}
                     for j = 1, #handlers do
                         --print("created event thread :)", table.unpack(machineEvent))
-                        scheduler:spawnNewThreadInProcess(process,handlers[j],table.unpack(machineEvent))
+                        scheduler:spawnNewThreadInProcess(process, handlers[j], table.unpack(machineEvent))
                     end
                 end
             end
@@ -160,19 +162,21 @@ local function runTasks()
             end
             currentlyRunningProcess = processToRun
             local unblockedThreads = processToRun.unblockedThreads
-            for  j = 1, #unblockedThreads do
+            for j = 1, #unblockedThreads do
                 local currThreadToRun = unblockedThreads[j]
                 if (currThreadToRun.pausedUntil or -1) < computer:getEpoch() then
                     --print("resuming with args: ", currThreadToRun.coroutine_resumptionArgs)
-                    local result = table.pack(coroutine.resume(currThreadToRun.coroutine, table.unpack(currThreadToRun.coroutine_resumptionArgs or {})))
+                    local result = table.pack(coroutine.resume(currThreadToRun.coroutine,
+                        table.unpack(currThreadToRun.coroutine_resumptionArgs or {})))
                     if type(result[3]) == "string" and result[3] ~= "sleep" then
                         --print("PACKED: ", table.unpack(result))
                     end
                     -- handle syscalls / result
                     if not result[1] then -- if error
                         -- TODO kill process
-                            print("we need to kill a process (proc errored) :(\nInitial error: "..tostring(result[2])..":"..tostring(result[3]))
-                            markCurrentProcessForErrorKilling(); break
+                        print("we need to kill a process (proc errored) :(\nInitial error: " ..
+                            tostring(result[2]) .. ":" .. tostring(result[3]))
+                        markCurrentProcessForErrorKilling(); break
                     else -- success
                         if origCo.status(currThreadToRun.coroutine) == "dead" then
                             --print("a thread of '"..tostring(processToRun.description).."' has ended. removing.")
@@ -189,14 +193,16 @@ local function runTasks()
                                 else
                                     local syscallFunc = syscalls[syscallName]
                                     if syscallFunc then
-                                        currThreadToRun.coroutine_resumptionArgs = table.pack(syscallFunc(table.unpack(result, 4)))
+                                        currThreadToRun.coroutine_resumptionArgs = table.pack(syscallFunc(table.unpack(
+                                            result, 4)))
                                     else
-                                        print("we need to kill a process (bad syscall name) "..tostring(syscallName).." :(")
+                                        print("we need to kill a process (bad syscall name) " ..
+                                            tostring(syscallName) .. " :(")
                                         markCurrentProcessForErrorKilling(); break
                                     end
                                 end
                             else
-                                print("we need to kill a process (bad action) "..tostring(action).." :(")
+                                print("we need to kill a process (bad action) " .. tostring(action) .. " :(")
                                 markCurrentProcessForErrorKilling(); break
                             end
                         end
@@ -224,7 +230,7 @@ local function runTasks()
             local diedPid_aka_i = diedProcessIds[j]
             local procObj = runningProcesses[diedPid_aka_i]
             procObj.endedSuccessfully = procObj.endedSuccessfully ~=
-            false                                                          -- we have set this to false already if the process errored. So if it was not set, all was well
+                false -- we have set this to false already if the process errored. So if it was not set, all was well
             procObj.state = PROCESS_RUNSTATE.dead
             -- reset used screens
             local k = 1
@@ -275,10 +281,10 @@ syscalls["sleep"] = function()
 end
 
 --[[
-local function readonlyView(x)    
+local function readonlyView(x)
     return setmetatable({}, {
         __index = function(_, k)
-            local rv = rawget(x, k) 
+            local rv = rawget(x, k)
             print("access: ", k, "-->", rv)
             if type(rv) == "table" then return readonlyView(rv) end
             return rv
@@ -297,7 +303,7 @@ syscalls["registerProcessEventCallback"] = function(eventName, callback)
 end
 
 function syscalls.allocTextBuffer(proc, width, height)
-    width = width or 110 -- default width
+    width = width or 110  -- default width
     height = height or 44 -- default height
     local gpu = components:getFirst("gpu")
     local ok, buffer = pcall(function() return gpu:newBuffer(width, height) end)
