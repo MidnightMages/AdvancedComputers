@@ -333,6 +333,21 @@ public class DigitalCrafterBlockUD extends BaseAcBlockEntityComponentUD<DigitalC
         return LuaObject.tableFromArray(result);
     }
 
+    @LuaCallable
+    public LuaObject searchItemsByDisplayName(String searchString) {
+        if (searchString == null || searchString.isEmpty())
+            throw new LuaJavaError("Search string cannot be empty");
+
+        var result = ForgeRegistries.ITEMS.getValues()
+                .stream()
+                .filter(x -> x.getName(new ItemStack(x.asItem())).getString().toLowerCase().contains(searchString.toLowerCase()))
+                .limit(100)
+                .map(x -> LuaObject.of(x.getName(new ItemStack(x.asItem())).getString()))
+                .toArray(LuaObject[]::new);
+
+        return LuaObject.tableFromArray(result);
+    }
+
     private LuaObject toLuaRecipe(CraftingRecipe recipe) {
         var recipeItems = new Ingredient[9];
         var ingredients = recipe.getIngredients();
