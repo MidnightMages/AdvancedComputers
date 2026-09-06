@@ -322,7 +322,7 @@ function syscalls.showTextBuffer(proc, textBuffer, ...)
         error("this process does not own the given text buffer")
     end
     local gpu = components:getFirst("gpu")
-    if select("#", ...) then
+    if select("#", ...) <= 0 then
         -- all screens are affected
         if textBuffer == nil then
             -- reset all screens to parent
