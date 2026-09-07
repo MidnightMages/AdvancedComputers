@@ -5,6 +5,7 @@ import dev.asdf00.jluavm.LuaVM;
 import dev.asdf00.jluavm.internals.javac.PersistentJavaCompilationCache;
 import dev.asdf00.jluavm.runtime.types.LuaObject;
 import dev.asdf00.mc.advcomp.api.ClusterTypeManager;
+import dev.asdf00.mc.advcomp.blocks.BaseCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.adapter.AdapterBlock;
 import dev.asdf00.mc.advcomp.blocks.adapter.AdapterBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.cables.DeviceCableBlock;
@@ -80,6 +81,7 @@ import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
@@ -426,7 +428,7 @@ public class AdvancedComputers {
         if (PersistentJavaCompilationCache.isCacheActive())
             PersistentJavaCompilationCache.deactivateCache();
 
-        if(Config.luaVmCache2Enabled)
+        if (Config.luaVmCache2Enabled)
             PersistentJavaCompilationCache.enableCache(AcPaths.getCompilationCachePath(), Config.luaVmCache2MaxFiles);
 
         if (Config.luaVmPrecompileUefiAndOs)
@@ -456,6 +458,16 @@ public class AdvancedComputers {
     public void onServerStopped(ServerStoppedEvent event) {
         LOGGER.info("Stopping UD compilation threadpool");
         ComponentRegistryUD.StartThreadPool();
+    }
+
+    @SubscribeEvent
+    public void onBlockPlaced(BlockEvent.EntityPlaceEvent event) {
+        if (event.getLevel().isClientSide())
+            return;
+
+        // used to notify blocks that have a unique ud id that this id needs to be assigned now
+        if (event.getLevel().getBlockEntity(event.getPos()) instanceof BaseCableConnectableBlockEntity be)
+            be.onBlockEntityPlaced();
     }
 
     public void onLoadComplete(FMLLoadCompleteEvent event) {
@@ -501,6 +513,7 @@ public class AdvancedComputers {
             event.register(new DualLayerItemColorHandler(), FLOPPY_DISK_ITEM.get());
         }
     }
+
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
     public static class ForgeClientModEvents {
         @SubscribeEvent

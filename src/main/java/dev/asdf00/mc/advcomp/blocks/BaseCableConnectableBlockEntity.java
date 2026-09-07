@@ -36,6 +36,7 @@ public abstract class BaseCableConnectableBlockEntity extends BlockEntity implem
         this.supportedClusterTypes = supportedClusterTypes;
         connectedNetworks = new HashMap<>();
     }
+
     public long getUniqueUdId() {
         return uniqueUdId;
     }
@@ -120,5 +121,9 @@ public abstract class BaseCableConnectableBlockEntity extends BlockEntity implem
     private void generateNewUdId() {
         uniqueUdId = globalDataStorage.getNextFreeUniqueUdId();
         this.setChanged();
+    }
+
+    public void onBlockEntityPlaced() {
+        generateNewUdId();
     }
 }
