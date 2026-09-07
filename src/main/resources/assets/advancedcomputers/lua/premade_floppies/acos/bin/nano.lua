@@ -51,7 +51,10 @@ end
 
 
 -- UI setup
-local buffer = kernel:newTextBuffer()
+local buffer, errMsg = kernel:newTextBuffer()
+if not buffer then
+    error("NANO could not allocate a text buffer: " .. tostring(errMsg))
+end
 
 
 -- helpers
