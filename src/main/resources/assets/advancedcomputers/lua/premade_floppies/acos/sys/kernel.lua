@@ -244,7 +244,7 @@ local function runTasks()
                     k = k + 1
                 end
             end
-            for _, buffer in ipairs(procObj.textBuffers) do
+            for buffer, _ in pairs(procObj.textBuffers) do
                 if buffer.isAlive then
                     buffer:free()
                 end
