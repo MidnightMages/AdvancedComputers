@@ -338,14 +338,19 @@ public class DigitalCrafterBlockUD extends BaseAcBlockEntityComponentUD<DigitalC
         if (searchString == null || searchString.isEmpty())
             throw new LuaJavaError("Search string cannot be empty");
 
-        var result = ForgeRegistries.ITEMS.getValues()
-                .stream()
-                .filter(x -> x.getName(new ItemStack(x.asItem())).getString().toLowerCase().contains(searchString.toLowerCase()))
-                .limit(100)
-                .map(x -> LuaObject.of(x.getName(new ItemStack(x.asItem())).getString()))
-                .toArray(LuaObject[]::new);
-
-        return LuaObject.tableFromArray(result);
+        var rv = LuaObject.table(); // modname:itemname, Fancy Name
+        var loweredSearchString = searchString.toLowerCase();
+        int rvSize = 0;
+        for (var item : ForgeRegistries.ITEMS.getValues()) {
+            var fancyName = item.getName(new ItemStack(item.asItem())).getString();
+            if (fancyName.toLowerCase().contains(loweredSearchString)) {
+                rv.set(Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(item)).toString(), LuaObject.of(fancyName));
+                rvSize++;
+                if (rvSize >= 100)
+                    break;
+            }
+        }
+        return rv;
     }
 
     private LuaObject toLuaRecipe(CraftingRecipe recipe) {
