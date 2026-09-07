@@ -325,7 +325,7 @@ public class DigitalCrafterBlockUD extends BaseAcBlockEntityComponentUD<DigitalC
 
         var result = ForgeRegistries.ITEMS.getKeys()
                 .stream()
-                .filter(x -> x.toString().contains(searchString))
+                .filter(x -> x.toString().toLowerCase().contains(searchString.toLowerCase()))
                 .limit(100)
                 .map(x -> LuaObject.of(x.toString()))
                 .toArray(LuaObject[]::new);
