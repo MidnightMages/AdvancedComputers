@@ -245,7 +245,10 @@ public class DigitalCrafterBlockUD extends BaseAcBlockEntityComponentUD<DigitalC
                     for (var currentStackToDistribute : extraOutputsLeftToReturn) {
                         for (int i = 0; i < slotCnt; i++) {
                             var slotStack = ih.getStackInSlot(i);
-                            if (slotStack.isEmpty()) {
+                            if (!outputIntoOwnInventory) { // just output into above inventory or throw it out the top
+                                tickThread_pushItemUpOrSpawnInWorld(currentStackToDistribute);
+                                currentStackToDistribute = ItemStack.EMPTY;
+                            } else if (slotStack.isEmpty()) {
                                 ih.setStackInSlot(i, currentStackToDistribute);
                                 currentStackToDistribute = ItemStack.EMPTY;
                             } else if (ItemHandlerHelper.canItemStacksStack(currentStackToDistribute, slotStack)) {
@@ -275,7 +278,10 @@ public class DigitalCrafterBlockUD extends BaseAcBlockEntityComponentUD<DigitalC
                 }
 
                 // not sure if we will ever encounter this, but we handle it just in case.
-                case 3 -> throw new LuaJavaError("Not enough slots left to store intermediate outputs, e.g. empty buckets when crafting a cake.");
+                case 3 -> {
+                    if (outputIntoOwnInventory) // even if we do hit this, it only matters if we will actually output the intermediates into the crafter inventory
+                        throw new LuaJavaError("Not enough slots left to store intermediate outputs, e.g. empty buckets when crafting a cake.");
+                }
                 default -> throw new IllegalStateException("unreachable");
             }
 
@@ -290,32 +296,36 @@ public class DigitalCrafterBlockUD extends BaseAcBlockEntityComponentUD<DigitalC
                     if (itemstackToSpawn.isEmpty()) break;
                 }
             } else {
-                var entityAbove = getLevel().getBlockEntity(blockEntity.getBlockPos().above());
-
-                // first try to insert it into any chest-like blocks
-                LazyOptional<IItemHandler> entityAbove_ItemHandlerCap;
-                if (entityAbove != null && ((entityAbove_ItemHandlerCap = entityAbove.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.DOWN)).isPresent())) {
-                    var upperIh = entityAbove_ItemHandlerCap.orElseThrow(() -> new IllegalStateException("failed to get capability even though it should have been there"));
-                    var slotCnt = upperIh.getSlots();
-                    for (int i = 0; i < slotCnt; i++) {
-                        // slot stack simulate
-                        itemstackToSpawn = upperIh.insertItem(i, itemstackToSpawn, false);
-                        if (itemstackToSpawn.isEmpty())
-                            break;
-                    }
-                }
-
-                // if anything is left, throw it into the air
-                if (!itemstackToSpawn.isEmpty()) {
-                    var spawnPos = blockEntity.getBlockPos().getCenter().add(0, 0.6, 0);
-                    var itemEntity = new ItemEntity(getLevel(), spawnPos.x, spawnPos.y, spawnPos.z, itemstackToSpawn, 0, 0.25, 0);
-                    getLevel().addFreshEntity(itemEntity);
-                }
+                tickThread_pushItemUpOrSpawnInWorld(itemstackToSpawn);
             }
         });
 
         canCraftAgainAt = System.currentTimeMillis() + (int) (Config.componentCrafterCooldownMilliseconds * Math.sqrt(maxAmount));
         return maxAmount;
+    }
+
+    private void tickThread_pushItemUpOrSpawnInWorld(ItemStack itemstackToSpawn) {
+        var entityAbove = getLevel().getBlockEntity(blockEntity.getBlockPos().above());
+
+        // first try to insert it into any chest-like blocks
+        LazyOptional<IItemHandler> entityAbove_ItemHandlerCap;
+        if (entityAbove != null && ((entityAbove_ItemHandlerCap = entityAbove.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.DOWN)).isPresent())) {
+            var upperIh = entityAbove_ItemHandlerCap.orElseThrow(() -> new IllegalStateException("failed to get capability even though it should have been there"));
+            var slotCnt = upperIh.getSlots();
+            for (int i = 0; i < slotCnt; i++) {
+                // slot stack simulate
+                itemstackToSpawn = upperIh.insertItem(i, itemstackToSpawn, false);
+                if (itemstackToSpawn.isEmpty())
+                    break;
+            }
+        }
+
+        // if anything is left, throw it into the air
+        if (!itemstackToSpawn.isEmpty()) {
+            var spawnPos = blockEntity.getBlockPos().getCenter().add(0, 0.6, 0);
+            var itemEntity = new ItemEntity(getLevel(), spawnPos.x, spawnPos.y, spawnPos.z, itemstackToSpawn, 0, 0.25, 0);
+            getLevel().addFreshEntity(itemEntity);
+        }
     }
 
     @LuaCallable
