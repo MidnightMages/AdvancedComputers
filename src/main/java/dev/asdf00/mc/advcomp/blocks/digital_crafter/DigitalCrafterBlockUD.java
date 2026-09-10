@@ -344,16 +344,45 @@ public class DigitalCrafterBlockUD extends BaseAcBlockEntityComponentUD<DigitalC
     }
 
     @LuaCallable
-    public LuaObject searchItemsByDisplayName(String searchString) {
-        if (searchString == null || searchString.isEmpty())
-            throw new LuaJavaError("Search string cannot be empty");
+    public LuaObject searchItemsByDisplayName(LuaObject[] searchStrings) {
+        var nonEmpty = Arrays.stream(searchStrings)
+                .map(lo -> {
+                    if (lo.isString()) {
+                        return lo.getString();
+                    }
+                    throw new LuaJavaError("At least one argument was of type %s when only strings were expected.".formatted(lo.getTypeAsString()));
+                })
+                .filter(x -> !x.isEmpty())
+                .map(s -> {
+                    var rv = s.toLowerCase();
+                    return rv.stripLeading().startsWith("@") ? rv.strip() : rv;
+                })
+                .sorted(Comparator.comparing((String x) -> -((x.startsWith("@") ? 15 : 0) + x.length())))
+                .toArray(String[]::new);
+
+        if (nonEmpty.length == 0)
+            throw new LuaJavaError("You need to supply at least non-empty string as an argument");
 
         var rv = LuaObject.table(); // modname:itemname, Fancy Name
-        var loweredSearchString = searchString.toLowerCase();
         int rvSize = 0;
         for (var item : ForgeRegistries.ITEMS.getValues()) {
             var fancyName = item.getName(new ItemStack(item.asItem())).getString();
-            if (fancyName.toLowerCase().contains(loweredSearchString)) {
+            var fancyNameLower = fancyName.toLowerCase();
+            var modname = ForgeRegistries.ITEMS.getKey(item).getNamespace().toLowerCase();
+            boolean isGood = true;
+            for (var filter : nonEmpty) {
+                if (filter.startsWith("@")) { // filter modname
+                    if (!modname.contains(filter.substring(1))) {
+                        isGood = false;
+                        break;
+                    }
+                } else if (!fancyNameLower.contains(filter)) { // filter fancy item name
+                    isGood = false;
+                    break;
+                }
+            }
+
+            if (isGood) {
                 rv.set(Objects.requireNonNull(ForgeRegistries.ITEMS.getKey(item)).toString(), LuaObject.of(fancyName));
                 rvSize++;
                 if (rvSize >= 100)
