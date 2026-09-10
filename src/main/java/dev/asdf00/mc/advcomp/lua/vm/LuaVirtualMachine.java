@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -339,6 +340,9 @@ public class LuaVirtualMachine {
 
             // set up peripheral devices from IO-net
 
+            if (computerBlockEntity.existingBlockComponents == null) // safeguard
+                computerBlockEntity.existingBlockComponents = new HashSet<>();
+            
             computerBlockEntity.existingBlockComponents.clear();
             computerBlockEntity.connectedNetworks.values().stream()
                     .filter(x -> x.clusterType.getClusterName().equals("device"))
