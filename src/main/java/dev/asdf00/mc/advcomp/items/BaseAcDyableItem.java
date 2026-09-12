@@ -29,6 +29,6 @@ public abstract class BaseAcDyableItem extends Item implements DyableItem {
         var itemName = super.getName(pStack).getString().formatted(dyeName);
         if (!label.isEmpty())
             itemName += " (%s)".formatted(label);
-        return Component.literal(itemName);
+        return Component.literal(itemName.strip());
     }
 }
