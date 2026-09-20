@@ -74,9 +74,7 @@ public class DigitalCrafterBlockUD extends BaseAcBlockEntityComponentUD<DigitalC
             var ingredients = recipe.getIngredients();
             for (var ing : ingredients) {
                 if (ing.test(new ItemStack(baseIngredient))) {
-                    survivingRecipes.add(LuaObject.of(
-                            getRegistryNameForItem(recipe.getResultItem(registryAccess).getItem())
-                    ));
+                    survivingRecipes.add(toLuaRecipe(recipe));
                     break;
                 }
             }
@@ -408,7 +406,7 @@ public class DigitalCrafterBlockUD extends BaseAcBlockEntityComponentUD<DigitalC
         var rv = LuaObject.table();
         rv.set("ingredients", LuaObject.tableFromArray(
                 Arrays.stream(recipeItems)
-                        .map(slot -> slot == null ? LuaObject.NIL : LuaObject.tableFromArray(Arrays.stream(slot.getItems())
+                        .map(slot -> (slot == null || slot.getItems().length == 0) ? LuaObject.NIL : LuaObject.tableFromArray(Arrays.stream(slot.getItems())
                                 .map(possibleItem -> LuaObject.of(getRegistryNameForItem(possibleItem.getItem())))
                                 .toArray(LuaObject[]::new))
                         ).toArray(LuaObject[]::new))
