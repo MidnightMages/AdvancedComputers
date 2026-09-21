@@ -457,7 +457,7 @@ public class AdvancedComputers {
     @SubscribeEvent
     public void onServerStopped(ServerStoppedEvent event) {
         LOGGER.info("Stopping UD compilation threadpool");
-        ComponentRegistryUD.StartThreadPool();
+        ComponentRegistryUD.StopThreadPool();
     }
 
     @SubscribeEvent
