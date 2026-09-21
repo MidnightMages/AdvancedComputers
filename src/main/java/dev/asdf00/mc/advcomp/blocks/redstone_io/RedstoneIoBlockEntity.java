@@ -1,7 +1,6 @@
 package dev.asdf00.mc.advcomp.blocks.redstone_io;
 
 import dev.asdf00.mc.advcomp.AdvancedComputers;
-import dev.asdf00.mc.advcomp.blocks.BaseCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.blocks.BasePeripheralComponentBlockEntity;
 import dev.asdf00.mc.advcomp.lua.components.AcBlockEntityComponent;
 import dev.asdf00.mc.advcomp.lua.components.LuaUserDataComponent;
@@ -10,8 +9,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.server.ServerLifecycleHooks;
-
-import java.util.Collections;
 
 public class RedstoneIoBlockEntity extends BasePeripheralComponentBlockEntity implements AcBlockEntityComponent {
     // TODO save this array when saving the world
@@ -43,5 +40,18 @@ public class RedstoneIoBlockEntity extends BasePeripheralComponentBlockEntity im
         assert level != null;
         level.updateNeighborsAt(getBlockPos(), blk);
         //level.updateNeighborsAt(getBlockPos().relative(faceToUpdate), blk);
+    }
+
+    @Override
+    public void onNetworkUpdated() { // set all outputs to 0 if it becomes disconnected from the computer network
+        super.onNetworkUpdated();
+        if (getComputerBlockEntityOrNull() == null)
+            resetOutputs();
+    }
+
+    public void resetOutputs() {
+        for (int i = 0; i < 6; i++) {
+            setSignal(i, 0);
+        }
     }
 }

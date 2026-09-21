@@ -10,6 +10,7 @@ public interface LuaUserDataComponent extends LuaUserData {
     /**
      * Purely for passing data to the userdata object upon **initial** vm creation (NOT during deserialization).
      * You may provide an empty body for this method if you do not require the provided objects.
+     *
      * @param acVm A reference to the parent {@link LuaVirtualMachine} object.
      */
     void onVmInit(LuaVirtualMachine acVm, ItemStack itemStack);
@@ -19,4 +20,10 @@ public interface LuaUserDataComponent extends LuaUserData {
      * item / block that provides this userdata is removed or destroyed and therefore the component no longer exists.
      */
     void makeObjectInaccessible();
+
+    /**
+     * Fired when the associated luavm is shut down, even when the network hasnt changed.
+     */
+    default void onVmStopped() {
+    }
 }

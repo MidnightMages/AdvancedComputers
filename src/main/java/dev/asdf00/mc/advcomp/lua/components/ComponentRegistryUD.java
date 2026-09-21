@@ -11,6 +11,7 @@ import dev.asdf00.mc.advcomp.AdvancedComputers;
 import dev.asdf00.mc.advcomp.Config;
 import dev.asdf00.mc.advcomp.items.BaseMassStorageUD;
 import dev.asdf00.mc.advcomp.lua.vm.LuaVirtualMachine;
+import dev.asdf00.mc.advcomp.lua.vm.State;
 import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
 import dev.asdf00.mc.advcomp.utils.Tuple;
 import dev.asdf00.mc.advcomp.utils.TupleArrayListMap;
@@ -31,6 +32,7 @@ public class ComponentRegistryUD implements LuaUserData {
 
     public ComponentRegistryUD(LuaVirtualMachine lvm) {
         this.lvm = lvm;
+        lvm.subscribeToStateChange(this::onComputerStateChanged);
     }
 
     @LuaCallable
@@ -186,6 +188,7 @@ public class ComponentRegistryUD implements LuaUserData {
     }
 
     private static ExecutorService UD_DESCRIPTOR_COMPILATION_POOL;
+
     public static void StartThreadPool() {
         UD_DESCRIPTOR_COMPILATION_POOL = new ThreadPoolExecutor(0, 1,
                 3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
@@ -222,6 +225,15 @@ public class ComponentRegistryUD implements LuaUserData {
                         AdvancedComputers.LOGGER.warn("component was removed! %s".formatted(removedComponent.getComponentType()));
                     lvm.triggerMachineEvent("componentRemoved", LuaObject.of(removedComponent));
                 }
+            }
+        }
+    }
+
+    void onComputerStateChanged(State newState) {
+        if (newState.equals(State.CRASHED) || newState.equals(State.ENDED)) { // when the vm crashes or exits, notify all components that this has happened
+            synchronized (componentModifyLockObj) {
+                for (var entry : Arrays.stream(itemstackAssociationMap.entries()).map(Tuple::y).toArray(LuaUserDataComponent[]::new))
+                    entry.onVmStopped();
             }
         }
     }

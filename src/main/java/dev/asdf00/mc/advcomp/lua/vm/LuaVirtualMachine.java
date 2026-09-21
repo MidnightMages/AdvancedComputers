@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.PriorityBlockingQueue;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class LuaVirtualMachine {
@@ -116,6 +117,10 @@ public class LuaVirtualMachine {
         synchronized (state) {
             return state.getState();
         }
+    }
+
+    public void subscribeToStateChange(Consumer<State> onComputerStateChanged) {
+        this.state.subscribeToStateChange(onComputerStateChanged);
     }
 
     private record DelayedQueuedEvent(String eventName, LuaObject[] args, long emitAtEpoch) implements Comparable<DelayedQueuedEvent> {
@@ -342,7 +347,7 @@ public class LuaVirtualMachine {
 
             if (computerBlockEntity.existingBlockComponents == null) // safeguard
                 computerBlockEntity.existingBlockComponents = new HashSet<>();
-            
+
             computerBlockEntity.existingBlockComponents.clear();
             computerBlockEntity.connectedNetworks.values().stream()
                     .filter(x -> x.clusterType.getClusterName().equals("device"))

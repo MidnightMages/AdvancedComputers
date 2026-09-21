@@ -46,4 +46,10 @@ public class RedstoneIoBlockUD extends BaseAcBlockEntityComponentUD<RedstoneIoBl
     public static RedstoneIoBlockUD luaDeserialize(LuaObject[] objs, ByteArrayReader reader, Queue<Runnable> postActions, Object additionalData) {
         return genericDeserialize(RedstoneIoBlockEntity.class, RedstoneIoBlockUD::new, objs, reader, postActions, additionalData);
     }
+
+    @Override
+    public void onVmStopped() {
+        super.onVmStopped();
+        blockEntity.resetOutputs();
+    }
 }
