@@ -21,7 +21,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -302,28 +301,44 @@ public class DigitalCrafterBlockUD extends BaseAcBlockEntityComponentUD<DigitalC
         return maxAmount;
     }
 
-    private void tickThread_pushItemUpOrSpawnInWorld(ItemStack itemstackToSpawn) {
+    private IItemHandler tickThread_getItemHandlerOfAboveEntOrNull() {
         var entityAbove = getLevel().getBlockEntity(blockEntity.getBlockPos().above());
+        //noinspection DataFlowIssue
+        return entityAbove == null ? null :
+                entityAbove.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.DOWN).orElseGet(() -> null);
+    }
 
-        // first try to insert it into any chest-like blocks
-        LazyOptional<IItemHandler> entityAbove_ItemHandlerCap;
-        if (entityAbove != null && ((entityAbove_ItemHandlerCap = entityAbove.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.DOWN)).isPresent())) {
-            var upperIh = entityAbove_ItemHandlerCap.orElseThrow(() -> new IllegalStateException("failed to get capability even though it should have been there"));
+    // returns remaining items; caller is responsible for deleting the item from the source inventory!!
+    private ItemStack tickThread_pushItemToInventoryAbove(ItemStack itemStackToPush) {
+        var upperIh = tickThread_getItemHandlerOfAboveEntOrNull();
+        if (upperIh != null) {
             var slotCnt = upperIh.getSlots();
             for (int i = 0; i < slotCnt; i++) {
                 // slot stack simulate
-                itemstackToSpawn = upperIh.insertItem(i, itemstackToSpawn, false);
-                if (itemstackToSpawn.isEmpty())
+                itemStackToPush = upperIh.insertItem(i, itemStackToPush, false);
+                if (itemStackToPush.isEmpty())
                     break;
             }
         }
+        return itemStackToPush; // return remaining items that we couldnt push
+    }
 
+
+    // caller is responsible for deleting the item from the source inventory!!
+    private void tickThread_pushItemUpIntoWorld(ItemStack itemstackToSpawn) {
         // if anything is left, throw it into the air
         if (!itemstackToSpawn.isEmpty()) {
             var spawnPos = blockEntity.getBlockPos().getCenter().add(0, 0.6, 0);
             var itemEntity = new ItemEntity(getLevel(), spawnPos.x, spawnPos.y, spawnPos.z, itemstackToSpawn, 0, 0.25, 0);
             getLevel().addFreshEntity(itemEntity);
         }
+    }
+
+    // caller is responsible for deleting the item from the source inventory!!
+    private void tickThread_pushItemUpOrSpawnInWorld(ItemStack itemstackToSpawn) {
+        itemstackToSpawn = tickThread_pushItemToInventoryAbove(itemstackToSpawn);
+        // if anything is left, throw it into the air
+        tickThread_pushItemUpIntoWorld(itemstackToSpawn);
     }
 
     @LuaCallable
@@ -388,6 +403,34 @@ public class DigitalCrafterBlockUD extends BaseAcBlockEntityComponentUD<DigitalC
             }
         }
         return rv;
+    }
+
+    @LuaCallable
+    public boolean dumpInventory() { // returns whether the inventory is clear now
+        // dump the entire inventory up; but dont spill anything if above is an inventory
+        return this.blockEntity.runOnTickThread(() -> {
+            var ih = this.blockEntity.itemHandler;
+            boolean inventoryAboveExists = tickThread_getItemHandlerOfAboveEntOrNull() != null;
+
+            for (int i = 0; i < ih.getSlots(); i++) {
+                var currStackToMove = ih.getStackInSlot(i);
+                if (!currStackToMove.isEmpty()) {
+                    if (inventoryAboveExists) {
+                        // inventory above --> push all the items up
+                        var remaining = tickThread_pushItemToInventoryAbove(currStackToMove);
+                        ih.setStackInSlot(i, remaining);
+                        if (!remaining.isEmpty())
+                            return false; // there was a leftover --> clearing failed, return false
+                    } else {
+                        // no inventory above --> drop the items upwards
+                        tickThread_pushItemUpOrSpawnInWorld(currStackToMove);
+                        ih.setStackInSlot(i, ItemStack.EMPTY);
+                        // we cannot have leftovers in this case --> will always succeed
+                    }
+                }
+            }
+            return true; // inventory is empty now
+        });
     }
 
     private LuaObject toLuaRecipe(CraftingRecipe recipe) {
