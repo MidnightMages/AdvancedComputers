@@ -359,7 +359,7 @@ public class DigitalCrafterBlockUD extends BaseAcBlockEntityComponentUD<DigitalC
                 .toArray(String[]::new);
 
         if (nonEmpty.length == 0)
-            throw new LuaJavaError("You need to supply at least non-empty string as an argument");
+            throw new LuaJavaError("You need to supply at least one non-empty string as an argument");
 
         var rv = LuaObject.table(); // modname:itemname, Fancy Name
         int rvSize = 0;
