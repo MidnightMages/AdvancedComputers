@@ -39,7 +39,7 @@ You can also find the current mod and minecraft version in the global `_HOST` va
 - Adding more fun stuff like servers, etc.
 
 ## Downloading
-You can download this mod from [Modrinth](https://modrinth.com/mod/advanced-computers) and possibly in the future also CurseForge. We will no longer be providing binary releases on GitHub, use Modrinth instead.
+You can download this mod from [Modrinth](https://modrinth.com/mod/advanced-computers) and as of recently also [CurseForge](https://www.curseforge.com/minecraft/mc-mods/advanced-computers). We will no longer be providing binary releases on GitHub, use Modrinth/CurseForge instead.
 
 ## Targeted minecraft versions
 Currently this targets Minecraft 1.20.1 (forge), but we do plan to update to newer versions in the future.
