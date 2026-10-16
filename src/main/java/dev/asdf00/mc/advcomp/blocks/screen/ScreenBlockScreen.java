@@ -176,8 +176,7 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
                  329 // numpad_9
                     -> triggerKeyPressedEvent(type, pKeyCode, pScanCode, pModifiers, String.valueOf(pKeyCode - 320));
 
-            case 330 ->
-                    triggerKeyPressedEvent(type, pKeyCode, pScanCode, pModifiers, GLFW.glfwGetKeyName(pKeyCode, pScanCode)); // numpad_period
+            case 330 -> triggerKeyPressedEvent(type, pKeyCode, pScanCode, pModifiers, GLFW.glfwGetKeyName(pKeyCode, pScanCode)); // numpad_period
             default -> {
                 var chr = GLFW.glfwGetKeyName(pKeyCode, pScanCode);
                 if (chr == null || chr.isEmpty()) {
@@ -199,15 +198,23 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
         return getMenu().blockEntity;
     }
 
-    private static void onKeyboardEventGuarded(Consumer<ScreenBlockScreen> action) {
+    /**
+     * Used for emitting a keyboard event. Returns whether the event was consumed successfully.
+     *
+     * @param action
+     */
+    private static boolean onKeyboardEventGuarded(Consumer<ScreenBlockScreen> action) {
         var ply = Minecraft.getInstance().player;
         var openInstance = currentlyOpenInstance;
         if (ply == null || openInstance == null)
-            return;
+            return false;
 
         var menu = ply.containerMenu;
-        if (menu instanceof ScreenMenu)
+        if (menu instanceof ScreenMenu) {
             action.accept(openInstance);
+            return true;
+        }
+        return false;
     }
 
     // pModifiers:
@@ -218,12 +225,15 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
         {
             return;
         }
-        onKeyboardEventGuarded(screen -> screen.emitGeneralKeyEvent("keyPressed", event.getKeyCode(), event.getScanCode(), event.getModifiers()));
+        var wasConsumed = onKeyboardEventGuarded(screen -> screen.emitGeneralKeyEvent("keyPressed", event.getKeyCode(), event.getScanCode(), event.getModifiers()));
+
+        if (wasConsumed) // cancel the event if we processed it so that JEI doesnt act upon CTRL+O
+            event.setCanceled(true);
     }
 
     @SubscribeEvent(receiveCanceled = true)
     public static void onKeyReleasedPre(ScreenEvent.KeyReleased.Pre event) {
-        onKeyboardEventGuarded(screen -> {
+        var wasConsumed = onKeyboardEventGuarded(screen -> {
             if (event.getKeyCode() == 256) // not ESC
             {
                 LocalPlayer ply = Minecraft.getInstance().player;
@@ -233,6 +243,9 @@ public class ScreenBlockScreen extends AbstractContainerScreen<ScreenMenu> {
             }
             screen.emitGeneralKeyEvent("keyReleased", event.getKeyCode(), event.getScanCode(), event.getModifiers());
         });
+
+        if (wasConsumed) // cancel the event if we processed it so that JEI doesnt act upon CTRL+O
+            event.setCanceled(true);
     }
 //    @SubscribeEvent(receiveCanceled = true)
 //    public static void onCharTypedPre(ScreenEvent.CharacterTyped.Pre event) {
