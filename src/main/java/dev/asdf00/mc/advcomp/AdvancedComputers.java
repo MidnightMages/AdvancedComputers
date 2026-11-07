@@ -52,6 +52,7 @@ import dev.asdf00.mc.advcomp.types.DyeCustomRecipe;
 import dev.asdf00.mc.advcomp.types.GlobalDataStorage;
 import dev.asdf00.mc.advcomp.types.cluster.ClusterType;
 import dev.asdf00.mc.advcomp.utils.AcPaths;
+import dev.asdf00.mc.advcomp.utils.MiscUtil;
 import dev.asdf00.mc.advcomp.utils.ResourceUtil;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.registries.Registries;
@@ -441,8 +442,9 @@ public class AdvancedComputers {
                 try {
                     LuaVM.load(ResourceUtil.loadLuaScript(path), LuaObject.table());
                     LOGGER.info("Precompilation of '%s' finished.".formatted(path));
-                } catch (Exception ignored) {
-                    LOGGER.warn("Precompilation of '%s' failed. This is not a problem, though likely regular compilation will fail too.".formatted(path));
+                } catch (Exception e) {
+                    LOGGER.warn("Precompilation of '%s' failed. This is not a problem, though likely regular compilation will fail too. If you experience severe issues, please include this logfile. Here is the precompilation exception:\n%s"
+                            .formatted(path, MiscUtil.exceptionAsString(e)));
                 }
             }
         }).start();

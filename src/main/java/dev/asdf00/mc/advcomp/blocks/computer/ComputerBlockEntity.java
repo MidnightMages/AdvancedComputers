@@ -15,6 +15,7 @@ import dev.asdf00.mc.advcomp.lua.vm.State;
 import dev.asdf00.mc.advcomp.types.cluster.ClusterType;
 import dev.asdf00.mc.advcomp.types.network.AcNetworkHandler;
 import dev.asdf00.mc.advcomp.types.network.AcNetworkParticipant;
+import dev.asdf00.mc.advcomp.utils.MiscUtil;
 import dev.asdf00.mc.advcomp.utils.NotifyingItemHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -63,7 +64,6 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
     private int acIpAddress = -1;
 
 
-
     // set to STOPPED on first tick to reset block state to indicate stopped LVM
     private final AtomicReference<ComputerBlock.ComputerRunState> newRunState = new AtomicReference<>(ComputerBlock.ComputerRunState.STOPPED);
 
@@ -86,10 +86,9 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
                 lvm.onInventorySlotChanged(slot);
             }
         } catch (RuntimeException e) {
-            var exceptionAsString = e + "\n" + Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
             AdvancedComputers.LOGGER.error(("An exception occurred during inventory change handling in computer at position %s. " +
                                             "To avoid items being destroyed, the following exception has been swallowed. Please report this." +
-                                            "Original exception:\n%s").formatted(getBlockPos(), exceptionAsString));
+                                            "Original exception:\n%s").formatted(getBlockPos(), MiscUtil.exceptionAsString(e)));
         }
     }
 
@@ -363,8 +362,7 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
                 getLvm().toggleOnOff();
             } catch (Exception e) {
                 setRunState(ComputerBlock.ComputerRunState.CRASHED);
-                var exceptionAsString = e + "\n" + Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
-                AdvancedComputers.LOGGER.error("Computer startup has failed, please report this:\n%s".formatted(exceptionAsString));
+                AdvancedComputers.LOGGER.error("Computer startup has failed, please report this:\n%s".formatted(MiscUtil.exceptionAsString(e)));
             }
         } else {
             NetCodeUtils.sendToServer(new ClientOriginatingUiEvent(this, 1));

@@ -17,6 +17,7 @@ import dev.asdf00.mc.advcomp.items.MainboardItem;
 import dev.asdf00.mc.advcomp.lua.adapterapi.AdapterCompanion;
 import dev.asdf00.mc.advcomp.lua.components.*;
 import dev.asdf00.mc.advcomp.utils.AcPaths;
+import dev.asdf00.mc.advcomp.utils.MiscUtil;
 import dev.asdf00.mc.advcomp.utils.RuntimeAssert;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -206,9 +207,8 @@ public class LuaVirtualMachine {
         } catch (Exception e) {
             // on error, give up and return null instead
             vm = null;
-            var exceptionAsString = e + "\n" + Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
             AdvancedComputers.LOGGER.error(("Failed to deserialize vm, please report this unless the mod version changed since last time the world was saved. " +
-                                            "Original exception:\n%s").formatted(exceptionAsString));
+                                            "Original exception:\n%s").formatted(MiscUtil.exceptionAsString(e)));
         }
 
         try {
