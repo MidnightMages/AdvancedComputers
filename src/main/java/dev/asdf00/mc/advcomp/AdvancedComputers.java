@@ -54,6 +54,9 @@ import dev.asdf00.mc.advcomp.types.cluster.ClusterType;
 import dev.asdf00.mc.advcomp.utils.AcPaths;
 import dev.asdf00.mc.advcomp.utils.MiscUtil;
 import dev.asdf00.mc.advcomp.utils.ResourceUtil;
+import net.minecraft.CrashReport;
+import net.minecraft.ReportedException;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.loot.LootTableProvider;
@@ -83,6 +86,7 @@ import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
@@ -103,6 +107,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import org.slf4j.Logger;
 
+import javax.tools.ToolProvider;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
@@ -522,6 +527,47 @@ public class AdvancedComputers {
         public static void onClientTick(TickEvent.ClientTickEvent event) {
             if (event.phase == TickEvent.Phase.END) {
                 AudioHandler.onClientTick();
+            }
+        }
+    }
+
+    @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+    public static class SharedServerEvents {
+        @SubscribeEvent
+        public static void onServerAboutToStart(ServerAboutToStartEvent event) {
+            if (ToolProvider.getSystemJavaCompiler() == null) {
+                String jvmInfo;
+                try {
+                    jvmInfo = ModCommands.getJvmInfoString();
+                } catch (Exception e) {
+                    jvmInfo = "<<<Error getting jvm version info:\n%s>>>".formatted(MiscUtil.exceptionAsString(e));
+                }
+                var desc = """
+                        Advanced Computers is unable to find a Java compiler which is required for our way of executing Lua code.
+                                                
+                        Most likely you are either:
+                        - Running Minecraft using a JRE (Java Runtime Environment) instead of a full JDK (Java Development Kit)
+                        - Or you are using a JDK which does not provide a compiler when calling ToolProvider.getSystemJavaCompiler()
+                                                
+                        How to fix:
+                        - Either install the JDK variant of your runtime
+                        - Or if that still does not fix it, use GraalVM or OpenJDK which should work for sure. That being said, almost all regular JDKs out there should work.
+                                                
+                        The JDK is only required for dedicated/integrated SERVERS, which means even when you only have a JRE you are able to play on dedicated servers. 
+                        You will not see this error when joining multiplayer servers using a client that uses the JRE.
+                                                
+                        If the above steps did not fix this issue, feel free to open a ticket on GitHub or contact the Advanced Computers developers via Discord or anywhere else.
+                        Here is some more info about the java environment you are currently running the game with: %s
+                        """.formatted(jvmInfo);
+                var report = CrashReport.forThrowable(new RuntimeException(desc), "Advanced Computers requires a JDK (Java Development Kit)");
+                DistExecutor.unsafeRunForDist(() -> () -> {
+                    var mc = Minecraft.getInstance();
+                    mc.delayCrash(report);
+                    return null;
+                }, () -> () -> {
+                    throw new ReportedException(report);
+                });
+
             }
         }
     }

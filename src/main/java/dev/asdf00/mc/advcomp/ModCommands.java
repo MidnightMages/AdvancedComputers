@@ -44,20 +44,24 @@ public class ModCommands {
                 .literal("ac_getJvmInfo")
                 .requires(x -> x.hasPermission(PERMISSION_LEVEL_OP))
                 .executes(ctx -> {
-                    // src: https://stackoverflow.com/a/41706404
-                    var jvmVersionText = ("""
-                            java "%s"
-                            %s %s (build %s)
-                            %s (build %s, %s)""").formatted(
-                            System.getProperty("java.version"),
-                            System.getProperty("java.runtime.name"),
-                            System.getProperty("java.vendor.version"),
-                            System.getProperty("java.runtime.version"),
-                            System.getProperty("java.vm.name"),
-                            System.getProperty("java.vm.version"),
-                            System.getProperty("java.vm.info"));
+                    var jvmVersionText = getJvmInfoString();
                     ctx.getSource().sendSuccess(() -> Component.literal(jvmVersionText), true);
                     return 0;
                 }));
+    }
+
+    public static String getJvmInfoString() {
+        // src: https://stackoverflow.com/a/41706404
+        return ("""
+                java "%s"
+                %s %s (build %s)
+                %s (build %s, %s)""").formatted(
+                System.getProperty("java.version"),
+                System.getProperty("java.runtime.name"),
+                System.getProperty("java.vendor.version"),
+                System.getProperty("java.runtime.version"),
+                System.getProperty("java.vm.name"),
+                System.getProperty("java.vm.version"),
+                System.getProperty("java.vm.info"));
     }
 }
