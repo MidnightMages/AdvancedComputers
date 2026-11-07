@@ -16,7 +16,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public final class TextBufferUD implements LuaUserData {
-
+    private static final char[] EMPTY_CHAR_ARRAY = new char[0];
+    private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
+    
     @LuaExposed(LuaExposed.Policy.READ)
     public int width;
     @LuaExposed(LuaExposed.Policy.READ)
@@ -56,8 +58,8 @@ public final class TextBufferUD implements LuaUserData {
         for (int line = 0; line < height; line++) {
             int actualLine = (lStart + line) % height;
             String lineText = String.valueOf(text, actualLine * width, width)
-                    .replaceAll("[\0-\\x19]", " ")
-                    .replace((char) -1, ' ').stripTrailing() + "\n";
+                                      .replaceAll("[\0-\\x19]", " ")
+                                      .replace((char) -1, ' ').stripTrailing() + "\n";
             guiTextSb.append(lineText);
         }
         return guiTextSb.toString();
@@ -69,9 +71,9 @@ public final class TextBufferUD implements LuaUserData {
         isAlive = false;
         // now we are safe to drop the memory backing this buffer.
         width = height = 0;
-        backgroundColor = null;
-        foregroundColor = null;
-        text = null;
+        backgroundColor = EMPTY_BYTE_ARRAY;
+        foregroundColor = EMPTY_BYTE_ARRAY;
+        text = EMPTY_CHAR_ARRAY;
         // clear screens on client
         gpuUD.acVm.dirtyBuffer(this);
     }
