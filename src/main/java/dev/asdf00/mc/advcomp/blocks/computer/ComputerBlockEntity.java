@@ -293,11 +293,11 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
 
                 if (Config.debugEnableExtraDevelopmentLogging)
                     AdvancedComputers.LOGGER.info("invalid network for computer at bp %s. Computer count: %s"
-                        .formatted(this.getBlockPos(), hostCount));
+                            .formatted(this.getBlockPos(), hostCount));
             } else {
                 if (Config.debugEnableExtraDevelopmentLogging)
                     AdvancedComputers.LOGGER.info("valid network for computer at bp %s. Peripheral count: %s"
-                        .formatted(this.getBlockPos(), deviceCluster.getEntityCount()));
+                            .formatted(this.getBlockPos(), deviceCluster.getEntityCount()));
             }
 
             if (lvm != null) {
@@ -363,7 +363,8 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
                 getLvm().toggleOnOff();
             } catch (Exception e) {
                 setRunState(ComputerBlock.ComputerRunState.CRASHED);
-                throw e;
+                var exceptionAsString = e + "\n" + Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
+                AdvancedComputers.LOGGER.error("Computer startup has failed, please report this:\n%s".formatted(exceptionAsString));
             }
         } else {
             NetCodeUtils.sendToServer(new ClientOriginatingUiEvent(this, 1));
