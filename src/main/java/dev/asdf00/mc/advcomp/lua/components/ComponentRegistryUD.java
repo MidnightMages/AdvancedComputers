@@ -120,10 +120,6 @@ public class ComponentRegistryUD implements LuaUserData {
         }
     }
     
-    /**
-     * @param component
-     * @param sourceInfo
-     */
     public void addComponentInitAndNotify(LuaUserDataComponent component, AcComponentSlotInfo sourceInfo) {
         // trigger compilation of this UD binding ahead of time, so we dont have to wait for it later
         triggerUserdataDescriptorCompilation(component.getClass());
