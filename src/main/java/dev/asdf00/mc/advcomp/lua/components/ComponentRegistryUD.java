@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 public class ComponentRegistryUD implements LuaUserData {
@@ -118,7 +119,7 @@ public class ComponentRegistryUD implements LuaUserData {
             return (T) rv[0];
         }
     }
-
+    
     /**
      * @param component
      * @param sourceInfo
@@ -187,16 +188,19 @@ public class ComponentRegistryUD implements LuaUserData {
         luaIdentity = self;
     }
 
-    private static ExecutorService UD_DESCRIPTOR_COMPILATION_POOL;
+    private static final AtomicReference<ExecutorService> UD_DESCRIPTOR_COMPILATION_POOL = new AtomicReference<>();
 
     public static void StartThreadPool() {
-        UD_DESCRIPTOR_COMPILATION_POOL = new ThreadPoolExecutor(0, 1,
-                3, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
+        UD_DESCRIPTOR_COMPILATION_POOL.set(new ThreadPoolExecutor(0, 1,
+                3, TimeUnit.MINUTES, new LinkedBlockingQueue<>()));
     }
 
     public static void StopThreadPool() {
-        UD_DESCRIPTOR_COMPILATION_POOL.shutdownNow();
-        UD_DESCRIPTOR_COMPILATION_POOL = null;
+        var poolToShutDown = UD_DESCRIPTOR_COMPILATION_POOL.getAndSet(null);
+        if (poolToShutDown != null)
+            poolToShutDown.shutdownNow();
+        else
+            AdvancedComputers.LOGGER.warn("There was no pool to shut down. If the game crashed during startup, that is fine, otherwise it is suspicious.");
     }
 
 
@@ -204,7 +208,7 @@ public class ComponentRegistryUD implements LuaUserData {
         if (LuaVM_RT.isDescriptorAvailable(udType)) // threadsafety: if this check is true, we _definitely_ already compiled this
             return;
 
-        UD_DESCRIPTOR_COMPILATION_POOL.submit(() -> {
+        UD_DESCRIPTOR_COMPILATION_POOL.get().submit(() -> {
                     try {
                         LuaVM_RT.getDescriptor(udType);
                     } catch (Exception ignored) {
