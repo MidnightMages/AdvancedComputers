@@ -11,6 +11,7 @@ import dev.asdf00.mc.advcomp.types.cluster.ClusterType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -97,7 +98,8 @@ public abstract class BaseCableConnectableBlockEntity extends BlockEntity implem
     @Override
     public void onLoad() {
         assert level != null;
-        CableClusterHandler.markBlockPosForUpdate(level, getBlockPos());
+        if (!level.isClientSide())
+            CableClusterHandler.markBlockPosForUpdate((ServerLevel) level, getBlockPos());
     }
 
     @Override

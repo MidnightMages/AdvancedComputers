@@ -2,6 +2,7 @@ package dev.asdf00.mc.advcomp;
 
 import dev.asdf00.mc.advcomp.blocks.cables.CableCluster;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.dimension.DimensionType;
@@ -27,6 +28,7 @@ public class CableClusterHandler {
     }
 
     private static CableClusterHandler getOrMakeNew(Level level) {
+        assert !level.isClientSide();
         var dt = level.dimensionType();
         var val = handlers.get(dt);
         if (val == null) {
@@ -37,7 +39,8 @@ public class CableClusterHandler {
     }
 
     // needs to be called whenever a cable/computer/acConnectible is placed/loaded
-    public static void markBlockPosForUpdate(@NotNull Level level, @NotNull BlockPos e) {
+    public static void markBlockPosForUpdate(@NotNull ServerLevel level, @NotNull BlockPos e) {
+        assert !level.isClientSide();
         if (level.isLoaded(e)) {
             var handler = getOrMakeNew(level);
             handler.rebuildQueue.add(e);
@@ -45,7 +48,8 @@ public class CableClusterHandler {
     }
 
     // removed/unloaded
-    public static void markBlockPosForUpdateIfExists(@NotNull Level level, @NotNull BlockPos e) {
+    public static void markBlockPosForUpdateIfExists(@NotNull ServerLevel level, @NotNull BlockPos e) {
+        assert !level.isClientSide();
         var handler = handlers.get(level.dimensionType());
         if (handler != null && level.isLoaded(e))
             handler.rebuildQueue.add(e);

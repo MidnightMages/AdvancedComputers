@@ -2,6 +2,7 @@ package dev.asdf00.mc.advcomp.blocks;
 
 import dev.asdf00.mc.advcomp.CableClusterHandler;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -27,7 +28,7 @@ public abstract class BasePeripheralOrHostBlock extends BaseEntityBlock {
     @Override
     public void onRemove(BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, BlockState pNewState, boolean pMovedByPiston) {
         if (!pLevel.isClientSide)
-            CableClusterHandler.markBlockPosForUpdateIfExists(pLevel, pPos);
+            CableClusterHandler.markBlockPosForUpdateIfExists((ServerLevel) pLevel, pPos);
 
         super.onRemove(pState, pLevel, pPos, pNewState, pMovedByPiston);
     }
@@ -36,7 +37,7 @@ public abstract class BasePeripheralOrHostBlock extends BaseEntityBlock {
     public void setPlacedBy(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState state, @Nullable LivingEntity placer, @NotNull ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (!level.isClientSide) {
-            CableClusterHandler.markBlockPosForUpdate(level, pos);
+            CableClusterHandler.markBlockPosForUpdate((ServerLevel) level, pos);
         }
     }
 }

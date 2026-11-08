@@ -5,6 +5,7 @@ import dev.asdf00.mc.advcomp.CableClusterHandler;
 import dev.asdf00.mc.advcomp.blocks.BaseCableConnectableBlockEntity;
 import dev.asdf00.mc.advcomp.types.cluster.ClusterType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -40,7 +41,8 @@ public class BaseNetworkRouterBlockEntity extends BaseCableConnectableBlockEntit
         netNode.deleteAndDeregisterNode();
         netNode = null;
         assert level != null;
-        CableClusterHandler.markBlockPosForUpdate(level, this.getBlockPos());
+        if (!level.isClientSide())
+            CableClusterHandler.markBlockPosForUpdate((ServerLevel) level, this.getBlockPos());
     }
 
     @Override
@@ -48,6 +50,6 @@ public class BaseNetworkRouterBlockEntity extends BaseCableConnectableBlockEntit
         super.onLoad();
         assert level != null;
         if (!level.isClientSide())
-            CableClusterHandler.markBlockPosForUpdate(level, this.getBlockPos());
+            CableClusterHandler.markBlockPosForUpdate((ServerLevel) level, this.getBlockPos());
     }
 }

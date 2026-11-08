@@ -5,6 +5,7 @@ import dev.asdf00.mc.advcomp.types.cluster.CableConnectableBlockOrEntity;
 import dev.asdf00.mc.advcomp.types.cluster.ClusterType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -141,14 +142,14 @@ public abstract class BaseCableBlock extends Block implements SimpleWaterloggedB
     public void onRemove(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull BlockState pNewState, boolean pMovedByPiston) {
         super.onRemove(pState, pLevel, pPos, pNewState, pMovedByPiston);
         if (!pLevel.isClientSide() && !pState.getBlock().equals(pNewState.getBlock())) // only update if server and the block actually changed
-            CableClusterHandler.markBlockPosForUpdateIfExists(pLevel, pPos);
+            CableClusterHandler.markBlockPosForUpdateIfExists((ServerLevel) pLevel, pPos);
     }
 
     @Override
     public void setPlacedBy(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState state, @Nullable LivingEntity placer, @NotNull ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (!level.isClientSide) {
-            CableClusterHandler.markBlockPosForUpdate(level, pos);
+            CableClusterHandler.markBlockPosForUpdate((ServerLevel) level, pos);
         }
         BlockState blockState = calculateState(level, pos, state);
         if (state != blockState) {

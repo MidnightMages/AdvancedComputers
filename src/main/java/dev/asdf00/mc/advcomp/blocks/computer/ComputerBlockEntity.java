@@ -22,6 +22,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -235,7 +236,7 @@ public class ComputerBlockEntity extends BaseCableConnectableBlockEntity impleme
             }
             if (Config.debugEnableExtraDevelopmentLogging)
                 AdvancedComputers.LOGGER.info("ON LOAD COMPUTER Tier: %s".formatted(tier.name()));
-            CableClusterHandler.markBlockPosForUpdate(level, this.getBlockPos());
+            CableClusterHandler.markBlockPosForUpdate((ServerLevel) level, this.getBlockPos());
         }
         lazyItemHandler = LazyOptional.of(() -> itemHandler);
     }
